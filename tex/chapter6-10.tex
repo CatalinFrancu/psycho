@@ -377,7 +377,7 @@ programul sursă ca o constantă, matricea {\tt Invers} ({\tt Invers[A,B]} este
 inversul lui $B$ modulo $A$). Liniile corespunzătoare unor numere neprime au
 fost totuși inserate, pentru ușurința implementării.
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 program Invert;
 const NMax=30;
       PMax=23;
@@ -408,7 +408,7 @@ begin
     end;
   Close(Output);
 end.
-\end{lstlisting}
+\end{minted}
 
 Să analizăm în sfârșit complexitatea: Trebuie completată o matrice, deci
 $O(N^2)$ elemente. Pentru fiecare element din matrice, secvența
@@ -425,7 +425,7 @@ Programul de mai jos pare îngrozitor de lung, dar, dacă avem în vedere faptul
 că o bună bucată o reprezintă constanta {\tt Invers}, care este generată,
 putem avea speranțe să-l scriem în timpul alocat.
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 program ParaNT;
 {$B-,I-,R-,S-}
 const NMax=30;
@@ -602,7 +602,7 @@ begin
   ComposeMatrix;
   WriteSolution;
 end.
-\end{lstlisting}
+\end{minted}
 
 O posibilă îmbunătățire a programului de sus ar fi să reținem în $A[i,j,r]$ nu
 numai locul unde se face secționarea expresiei, ci și operatorul introdus și

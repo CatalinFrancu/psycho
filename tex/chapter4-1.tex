@@ -168,13 +168,13 @@ vectorială. Să le analizăm pe rând.
 Practic operația aceasta nu are de făcut decât să întoarcă valoarea primului
 element din vector:
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 typedef int Heap[10001];
 void Max(Heap H, int N)
 {
   return H[1];
 }
-\end{lstlisting}
+\end{minted}
 
 \subsection{Crearea unei structuri de heap dintr-un vector oarecare}
 
@@ -284,7 +284,7 @@ interschimbând mereu nodul cu cel mai mare fiu al său până când nodul nu ma
 are fii (ajunge pe ultimul nivel în arbore) sau până când fiii săi au valori
 mai mici decât el.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void Sift(Heap H, int N, int K)
 { int Son;
 
@@ -310,7 +310,7 @@ void Sift(Heap H, int N, int K)
         else Son=0;
     }
 }
-\end{lstlisting}
+\end{minted}
 
 Procedura {\tt Percolate} se va ocupa tocmai de fenomenul invers. Să
 presupunem că un heap are o „defecțiune” în sensul că observăm un nod care are
@@ -404,7 +404,7 @@ el. Iată ce se întâmplă cu nodul 10:
   };
 }
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void Percolate(Heap H, int N, int K)
 { int Key;
 
@@ -415,7 +415,7 @@ void Percolate(Heap H, int N, int K)
     }
   H[K] = Key;
 }
-\end{lstlisting}
+\end{minted}
 
 Acum ne putem ocupa efectiv de construirea unui heap. Am spus că procedura
 {\tt Sift} presupune că ambii fii ai nodului pentru care este ea apelată au
@@ -548,13 +548,13 @@ funcționează algoritmul pentru un arbore total dezorganizat:
        {Structură de heap};
 }
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void BuildHeap(Heap H, int N)
 { int i;
 
   for (i=N/2; i; Sift(H, N, i--));
 }
-\end{lstlisting}
+\end{minted}
 
 S-a apelat căderea începând de la al $N/2$-lea nod, deoarece s-a arătat că
 acesta este ultimul nod care mai are fii, restul fiind frunze. Să calculăm
@@ -625,7 +625,7 @@ nodului de valoare 10, sau poate fi 1, caz în care va trebui cernut până la
 nivelul frunzelor. Deoarece căderea și urcarea se pot face pe cel mult $\log
 N$ nivele, rezultă o complexitate a procedeului de $O(\log N)$.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void Cut(Heap H, int N, int K)
 { H[K] = H[N--];
 
@@ -633,7 +633,7 @@ void Cut(Heap H, int N, int K)
     Percolate(H, N, K);
     else Sift(H, N, K)
 }
-\end{lstlisting}
+\end{minted}
 
 \subsection{Inserarea unui element}
 
@@ -642,13 +642,13 @@ simple. Nu avem decât să-l așezăm pe a $N$+1-a poziție în vector și apoi 
 „promovăm” până la locul potrivit. Din nou, urcarea se poate face pe maxim
 $\log N$ nivele, de unde complexitatea logaritmică.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void Insert(Heap H, int N, int Key)
 {
   H[++N] = Key;
   Percolate(H, N, N);
 }
-\end{lstlisting}
+\end{minted}
 
 \subsection{Sortarea unui vector (heapsort)}
 
@@ -671,7 +671,7 @@ ne-am putea dori pentru a stoca maximul? Practic, am interschimbat rădăcina,
 adică pe $H[1]$ cu $H[N]$. Același lucru se face la fiecare pas, ținând cont
 de micșorarea permanentă a heap-ului.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void HeapSort(Heap H, int N)
 { int i;
 
@@ -683,7 +683,7 @@ void HeapSort(Heap H, int N)
       Sift(H, --i, 1);
     }
 }
-\end{lstlisting}
+\end{minted}
 
 \subsection{Căutarea unui element}
 
@@ -792,7 +792,7 @@ Să urmărim evoluția metodei pe exemplul din enunț:
   V = (2 \quad 4 \quad 6 \quad 7 \quad 10)
 \end{equation*}
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 #include <stdio.h>
 #include <mem.h>
 int V[10001], H[10001], N, K;
@@ -867,4 +867,4 @@ void main(void)
   SortVector();
   WriteSolution();
 }
-\end{lstlisting}
+\end{minted}

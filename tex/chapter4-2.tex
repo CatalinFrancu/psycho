@@ -200,7 +200,7 @@ reprezentare grafică a metodei:
 
 Iată primul set de proceduri de gestionare a unui Hash.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 #define M 1000 // numarul de "intrari" //
 typedef int Hash[M];
 typedef int DataType;
@@ -233,7 +233,7 @@ void Delete1(Hash H, DataType K)
 {
   H[h(K)]=0;
 }
-\end{lstlisting}
+\end{minted}
 
 Prin „număr de intrări” în tabelă se înțelege numărul de elemente ale
 vectorului $H$; în general, orice tabelă hash este un vector. Pentru ca
@@ -383,7 +383,7 @@ $M$ ori. Avantajele sunt indiscutabile pentru $M=10000$ de exemplu.
 asupra lor. Prezentăm aici numai adăugarea și căutarea, lăsându-vă ca temă
 scrierea funcției de ștergere din tabelă.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 #include <stdio.h>
 #include <stdlib.h>
 #define M 1000 // numarul de "intrari"
@@ -420,7 +420,7 @@ void Add2(Hash H, int K)
   L->Next = H[h2(K)];
   H[h2(K)] = L;
 }
-\end{lstlisting}
+\end{minted}
 
 Am spus că funcțiile de dispersie sunt concepute să lucreze numai pe date de
 tip întreg; celelalte tipuri de date trebuie convertite în prealabil la tipuri
@@ -599,7 +599,7 @@ funcția de căutare trebuie să întoarcă {\tt NULL}.
 În încheiere, prezentăm un exemplu de funcție de dispersie pentru cazul tablei
 de șah.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 #define M 9973 // numarul de "intrari"
 typedef struct {
           char b_T[8][8];
@@ -639,4 +639,4 @@ int h3(Board *B)
 
   return S;
 }
-\end{lstlisting}
+\end{minted}

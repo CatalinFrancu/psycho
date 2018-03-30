@@ -161,7 +161,7 @@ mutările celui de-al doilea. Un calcul al sumelor la citirea datelor este
 suficient. Complexitatea $O(N)$ este optimă, deoarece vectorul trebuie parcurs
 cel puțin o dată pentru citirea configurației inițiale a tablei.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 #include <stdio.h>
 
 void main(void)
@@ -189,7 +189,7 @@ void main(void)
     printf("%d %d\n", SEven, SOdd);
     else printf("%d %d\n", SOdd, SEven);
 }
-\end{lstlisting}
+\end{minted}
 
 O a doua variantă a enunțului aduce unele condiții suplimentare:
 
@@ -367,7 +367,7 @@ intrare din enunț:
 Pentru exemplul din enunț, răspunsul este deci $D_{MAX}=7$. Cum elementele
 matricei sunt parcurse cel mult o dată, rezultă o complexitate de $O(N^2)$.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 #include <stdio.h>
 #include <stdlib.h>
 #define NMax 101
@@ -415,7 +415,7 @@ void main(void)
   ReadData();
   FindMax();
 }
-\end{lstlisting}
+\end{minted}
 
 Programul prezentat mai sus poate fi optimizat, dacă timpul o permite și dacă
 acest lucru este necesar. Lăsăm cititorul să încerce să rezolve aceeași

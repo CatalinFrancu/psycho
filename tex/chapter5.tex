@@ -161,7 +161,7 @@ graful este complet), mai trebuie doar să calculăm costul fiecărei permutări
 și să o afișăm pe cea de cost minim. Până aici, nimic deosebit. Iată și sursa
 Pascal:
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 program Hamilton;
 {$B-,I-,R-,S-}
 const NMax=30;
@@ -226,7 +226,7 @@ begin
   Bkt(2,0);
   WriteSolution;
 end.
-\end{lstlisting}
+\end{minted}
 
 Programul sub această formă nu se încadrează în timp nici măcar pentru $N=15$
 (cifra depinde și de calculatorul folosit pentru testare, dar nu variază cu
@@ -343,7 +343,7 @@ presupune ieșirea din procedura de backtracking, afișarea soluției și
 restaurarea vechii întreruperi 8, pentru ca programul să nu lase „urme”. Iată
 deci o versiune a programului Pascal care va fi extrem de punctuală...
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 program Hamilton;
 {$B-,I-,R-,S-}
 uses Dos;
@@ -427,7 +427,7 @@ begin
   { Restauram timer-ul }
   SetIntVec(8,@OldTimer);
 end.
-\end{lstlisting}
+\end{minted}
 
 Și această a doua metodă are neajunsurile ei, deoarece presupune scrierea a
 destul de multe linii de program în plus. În afară de aceasta, instrucțiunea
@@ -452,7 +452,7 @@ program. Primul lucru pe care îl va face programul va fi să dea unei variabile
 intrarea în procedura backtracking) se va testa valoarea variabilei {\tt Time}
 și atunci când ea este egală cu {\tt Alarm}, se va ieși din program.
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 program Hamilton;
 {$B-,I-,R-,S-}
 const NMax=30;
@@ -529,7 +529,7 @@ begin
   Bkt(2,0);
   WriteSolution;
 end.
-\end{lstlisting}
+\end{minted}
 
 Singura problemă pe care o poate ridica această ultimă versiune este
 următoarea: dacă programul este lansat în execuție la un moment foarte
@@ -580,9 +580,9 @@ optimă. Dar algoritmii greedy euristici au unele proprietăți interesante:
 
 \item Aproape întotdeauna, funcțiile euristice conțin teste de genul:
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 if A<B then Actiune1 else Actiune2;
-\end{lstlisting}
+\end{minted}
 
 Din punct de vedere logic, dacă {\tt A=B} se poate executa oricare din cele
 două acțiuni. Condiția {\tt A<B} este echivalentă cu condiția {\tt
@@ -591,19 +591,19 @@ sunt absolut diferite și pot produce soluții cu totul diferite. Iată de
 exemplu, două rutine care caută poziția $k$ pe care se află elementul minim
 într-un vector $V$ cu $N$ elemente:
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 k:=1;
 for i:=2 to N do
   if V[i]<V[k] then k:=i;
-\end{lstlisting}
+\end{minted}
 
 respectiv
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 k:=1;
 for i:=2 to N do
   if V[i]<=V[k] then k:=i;
-\end{lstlisting}
+\end{minted}
 
 Cele două versiuni vor găsi într-adevăr un indice $k$ astfel încât $V[k]$ să
 fie minim. Totuși, dacă există mai multe elemente de valoare minimă, atunci
@@ -622,7 +622,7 @@ nodul 1. Putem aplica același algoritm pornind pe rând din fiecare nod; la
 sfârșit tipărim soluția de cost minim. Prima variantă a programului Pascal
 este:
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 program Hamilton;
 {$B-,I-,R-,S-}
 const NMax=30;
@@ -699,38 +699,38 @@ begin
     end;
   WriteSolution;
 end.
-\end{lstlisting}
+\end{minted}
 
 De sine stătătoare, funcția euristică nu este strălucită. Totuși, ea poate fi
 lesne modificată. Se observă că, în procedura {\tt Greedy1}, instrucțiunea
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 for j:=1 to N do...
-\end{lstlisting}
+\end{minted}
 
 poate fi înlocuită cu
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 for j:=N downto 1 do...
-\end{lstlisting}
+\end{minted}
 
 , iar condiția
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 (A[R[i-1],j] < Closest)
-\end{lstlisting}
+\end{minted}
 
 cu
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 (A[R[i-1],j]<=Closest)
-\end{lstlisting}
+\end{minted}
 
 Făcând toate combinațiile posibile, rezultă alte trei proceduri, {\tt
   Greedy2}, {\tt Greedy3} și {\tt Greedy4}, iar noua formă a programului
 principal este:
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 begin
   ReadData;
   MinCost:=MaxInt;
@@ -749,7 +749,7 @@ begin
 
   WriteSolution;
 end.
-\end{lstlisting}
+\end{minted}
 
 După cum se vede, adaosul de proceduri face ca sursa să atingă dimensiuni
 impunătoare, dar efortul necesar pentru a o scrie este aproape aceeași ca și
@@ -789,7 +789,7 @@ asemenea ca după aceste greedy-uri să apelăm nu un backtracking simplu, ci
 unul omorât prin orice metodă, caz în care șansele se îmbunătățesc
 considerabil. Programul principal ar putea fi atunci:
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 begin
   SetAlarm;
   ReadData;
@@ -810,7 +810,7 @@ begin
   Bkt(2,0);
   WriteSolution;
 end.
-\end{lstlisting}
+\end{minted}
 
 \section{Testarea aleatoare a posibilităților}
 
@@ -831,7 +831,7 @@ des folosită pe la concursuri. Și este momentul să amintim o urare ce li se
 adresează concurenților care intră în sala de corectare, respectiv „Să fie
 într-un timer bun!”.
 
-\begin{lstlisting}[language=Pascal]
+\begin{minted}{pascal}
 program Hamilton;
 {$B-,I-,R-,S-}
 const NMax=30;
@@ -913,4 +913,4 @@ begin
     end;
   WriteSolution;
 end.
-\end{lstlisting}
+\end{minted}

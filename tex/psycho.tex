@@ -17,7 +17,6 @@
 \usepackage[margin=1in]{geometry}
 \usepackage[unicode]{hyperref}
 \usepackage[utf8]{inputenc}
-\usepackage{listings}
 \usepackage{mathtools}
 \usepackage{minted}
 \usepackage{multirow}
@@ -56,14 +55,6 @@
 \renewcommand{\theFancyVerbLine}{\sffamily
   \textcolor{gray!50}{\scriptsize
     \oldstylenums{\arabic{FancyVerbLine}}}}
-\lstset{
-  aboveskip=\bigskipamount,
-  backgroundcolor=\color{light-gray},
-  basicstyle=\footnotesize\ttfamily,
-  literate={'}{\textquotesingle}1, % otherwise apostrophes get converted
-  numbers=left,
-  numberstyle=\scriptsize\color{gray},
-}
 
 % default figure layout
 \newcommand{\centeredTikzFigure}[2][]{

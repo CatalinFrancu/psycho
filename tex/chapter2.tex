@@ -42,9 +42,9 @@ următoarea: numerele vor fi reprezentate printr-un vector de cifre
 zecimale. Prima poziție (poziția 0) din vector este rezervată pentru a memora
 numărul de cifre. Definiția C a tipului de date este:
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 typedef int Huge[1001];
-\end{lstlisting}
+\end{minted}
 
 Iată cum s-ar memora numărul „1997” într-un asemenea vector:
 
@@ -112,10 +112,10 @@ numărul de cifre pe 0. De aceea, este practic inutil să implementăm această
 funcție ca atare; putem folosi în loc singura instrucțiune pe care ea o
 conține.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void Atrib0(Huge H)
 { H[0]=0; }
-\end{lstlisting}
+\end{minted}
 
 La inițializarea cu un scalar nenul, trebuie să așezăm fiecare cifră pe
 poziția corespunzătoare, aflând în paralel și numărul de cifre. Se începe cu
@@ -123,7 +123,7 @@ cifra unităților, și la fiecare pas se pune în vector cifra cea mai puțin
 semnificativă, după care numărul de reprezentat se împarte la 10
 (neglijându-se restul), iar numărul de cifre se incrementează.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void AtribValue(Huge H, unsigned long X)
 { H[0]=0;
   while (X)
@@ -131,7 +131,7 @@ void AtribValue(Huge H, unsigned long X)
       X/=10;
     }
 }
-\end{lstlisting}
+\end{minted}
 
 Iată, de exemplu, cum se pune pe vector numărul 195:
 
@@ -184,13 +184,13 @@ Iată, de exemplu, cum se pune pe vector numărul 195:
 în Pascal sau {\tt memmove} în C). Pentru eleganță, poate fi folosită și
 atribuirea cifră cu cifră:
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void AtribHuge(Huge H, Huge X)
 { int i;
 
   for (i=0;i<=X[0];i++) H[i]=X[i];
 }
-\end{lstlisting}
+\end{minted}
 
 \section{Compararea}
 
@@ -211,7 +211,7 @@ matematică prin clasa a II-a (doar că atunci nu ni s-a spus că este vorba de
 un „algoritm”). Rutina de mai jos compară două numere uriașe $H_1$ și $H_2$ și
 întoarce -1, 0 sau 1, după $H_1$ este mai mic, egal sau mai mare decât $H_2$.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 int Sgn(Huge H1,Huge H2)
 { int i;
 
@@ -223,7 +223,7 @@ int Sgn(Huge H1,Huge H2)
   while (H1[i]==H2[i] && i) i--;
   return H1[i]<H2[i] ? -1 : H1[i]==H2[i] ? 0 : 1;
 }
-\end{lstlisting}
+\end{minted}
 
 \section{Adunarea a doi vectori}
 
@@ -235,7 +235,7 @@ dimensiunea vectorului mai mare dintre $A$ și $B$, sau cu 1 mai mult dacă
 apare transport de la cifra cea mai semnificativă. Procedura de mai jos adaugă
 numărul $B$ la numărul $A$.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void Add(Huge A, Huge B)
 /* A <- A+B */
 { int i,T=0;
@@ -252,7 +252,7 @@ void Add(Huge A, Huge B)
     }
   if (T) A[++A[0]]=T;
 }
-\end{lstlisting}
+\end{minted}
 
 \section{Scăderea a doi vectori}
 
@@ -264,7 +264,7 @@ aceasta, se pornește de la cifra unităților și se memorează la fiecare pas
 pentru a scădea cifra cea mai semnificativă a lui $B$ din cifra cea mai
 semnificativă a lui $A$ nu e nevoie de împrumut.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void Subtract(Huge A, Huge B)
 /* A <- A-B */
 { int i, T=0;
@@ -277,7 +277,7 @@ void Subtract(Huge A, Huge B)
        if (T) A[i]+=10; */
   while (!A[A[0]]) A[0]--;
 }
-\end{lstlisting}
+\end{minted}
 
 \section{Înmulțirea și împărțirea cu puteri ale lui 10}
 
@@ -292,7 +292,7 @@ respectiv {\tt memmove}). Iată funcțiile care realizează deplasarea
 vectorilor, atât prin mutarea blocurilor de memorie, cât și prin atribuiri
 succesive.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void Shl(Huge H, int Count)
 /* H <- H*10^Count */
 { 
@@ -334,7 +334,7 @@ void Shr2(Huge H, int Count)
   /* Decrementeaza numarul de cifre */
   H[0]-=Count;
 }
-\end{lstlisting}
+\end{minted}
 
 \section{Înmulțirea unui vector cu un scalar}
 
@@ -380,7 +380,7 @@ exemplu cum se calculează produsul $312 \times 87$:
 
 Procedura este descrisă mai jos:
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void Mult(Huge H, unsigned long X)
 /* H <- H*X */
 { int i;
@@ -396,7 +396,7 @@ void Mult(Huge H, unsigned long X)
       T/=10;
     }
 }
-\end{lstlisting}
+\end{minted}
 
 \section{Înmulțirea a doi vectori}
 
@@ -470,7 +470,7 @@ Această operație efectuează $M \times N$ produse de cifre și $M + N$ (sau $M
 N - 1$, după caz) „transporturi” pentru aflarea rezultatului, deci are
 complexitatea $O(M \times N)$. Iată și implementarea:
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void MultHuge(Huge A, Huge B, Huge C)
 /* C <- A x B */
 { int i,j,T=0;
@@ -486,7 +486,7 @@ void MultHuge(Huge A, Huge B, Huge C)
     }
   if (T) C[++C[0]]=T;
 }
-\end{lstlisting}
+\end{minted}
 
 Mai există o altă modalitate de a înmulți două numere de câte $N$ cifre
 fiecare, care are complexitatea $O(N^{\log_2 3}) \approx O(N^{1,58}) \approx
@@ -578,7 +578,7 @@ deoarece prin cele două adunări poate să apară o creștere a numărului de c
 al factorilor, care în acest caz trebuie readuși la un număr de cifre egal cu
 o putere a lui 2.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void MultHuge2(Huge A, Huge B, Huge P);
 
 void MultRec(Huge A, Huge B, Huge P)
@@ -619,7 +619,7 @@ void MultHuge2(Huge A, Huge B, Huge P)
   A[0]=SaveA;B[0]=SaveB;
   while (!P[P[0]] && P[0]>1) P[0]--;
 }
-\end{lstlisting}
+\end{minted}
 
 \section{Împărțirea unui vector la un scalar}
 
@@ -656,7 +656,7 @@ cifre. La sfârșit trebuie să decrementăm corespunzător numărul de cifre al
 câtului, prin neglijarea zerourilor create la începutul numărului. Numărul
 maxim de cifre al câtului este egal cu cel al deîmpărțitului.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 unsigned long Divide(Huge A, unsigned long X)
 /* A <- A/X si intoarce A%X */
 { int i;
@@ -669,12 +669,12 @@ unsigned long Divide(Huge A, unsigned long X)
   while (!A[A[0]] && A[0]>1) A[0]--;
   return R;
 }
-\end{lstlisting}
+\end{minted}
 
 Dacă dorim numai să aflăm restul împărțirii, nu mai avem nevoie decât să
 recalculăm restul la fiecare pas, fără a mai modifica vectorul $A$:
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 unsigned long Mod(Huge A, unsigned long X)
 /* Intoarce A%X */
 { int i;
@@ -684,7 +684,7 @@ unsigned long Mod(Huge A, unsigned long X)
     R=(10*R+A[i])%X;
   return R;
 }
-\end{lstlisting}
+\end{minted}
 
 \section{Împărțirea a doi vectori}
 
@@ -779,7 +779,7 @@ face și binar, prin înjumătățirea intervalului, ceea ce reduce timpul mediu
 căutare la aproximativ 3 comparații și trei înmulțiri, dar codul se complică
 nejustificat de mult (de cele mai multe ori).
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void DivideHuge(Huge A, Huge B, Huge C, Huge R)
 /* A/B = C rest R */
 { int i;
@@ -795,7 +795,7 @@ void DivideHuge(Huge A, Huge B, Huge C, Huge R)
     }
   while (!C[C[0]] && C[0]>1) C[0]--;
 }
-\end{lstlisting}
+\end{minted}
 
 \section{Extragerea rădăcinii cubice}
 
@@ -932,7 +932,7 @@ folosindu-le pe cele vechi, nu avem nevoie decât de adunări și de înmulțiri
 numere mici (de ordinul miilor). Toate aceste operații se fac în timp liniar,
 deci am reușit să găsim un algoritm pătratic. Iată mai jos sursa C:
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 void FindDigit(Huge L,Huge NewL2,Huge NewL3,
      Huge OldL,Huge OldL2,Huge OldL3,Huge Target)
 { Huge Aux;
@@ -977,12 +977,12 @@ void CubeRoot(Huge A, Huge X)
       FindDigit(X,NewX2,NewX3,OldX,OldX2,OldX3,Target);
     }
 }
-\end{lstlisting}
+\end{minted}
 
 Acum nu mai avem decât să scriem rutinele de intrare/ieșire și programul
 principal:
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 #include <stdio.h>
 #include <mem.h>
 #define NMax 1000
@@ -1018,7 +1018,7 @@ void main(void)
   CubeRoot(A,X);
   WriteSolution();
 }
-\end{lstlisting}
+\end{minted}
 
 Pentru a extinde această metodă la rădăcini de orice ordin $K$, trebuie numai
 să ținem cont de expresia binomului lui Newton:

@@ -168,13 +168,13 @@ Dacă există probleme care cer să se găsească un optim (maxim/minim) al unei
 valori, întrebați dacă se acordă punctaje parțiale pentru soluții neoptime. Și
 acest fapt poate schimba natura problemei. După aceasta,
 
-\begin{lstlisting}[frame=single, language=Pascal]
+\begin{minted}{pascal}
   Nr_probleme_nerezolvate := Nr_probleme_primite;
 
   while (Nr_probleme_nerezolvate>0) 
-    and not ("Timpul a expirat, va rugam sa salvati") do
+    and not ('Timpul a expirat, va rugam sa salvati') do
     begin
-\end{lstlisting}
+\end{minted}
 
 {\bf B)} Faceți o împărțire a timpului pentru problemele rămase proporțional
 cu punctajul fiecărei probleme. În general problemele au punctaje egale, dar
@@ -371,33 +371,33 @@ unele lucruri pe care e bine să le știți despre scrierea unui program:
   mobilă sunt mult mai lente. De exemplu, testul dacă un număr este prim nu va
   începe în nici un caz cu linia
 
-  \begin{lstlisting}[language=Pascal]
+  \begin{minted}{pascal}
     while i <= Sqrt(N) do
-  \end{lstlisting}
+  \end{minted}
 
   ci cu linia
 
-  \begin{lstlisting}[language=Pascal]
+  \begin{minted}{pascal}
     while i * i <= N do
-  \end{lstlisting}
+  \end{minted}
 
   Din punct de vedere logic, condițiile sunt perfect echivalente. Totuși,
   prima se evaluează de câteva zeci de ori mai încet decât a doua.
 
 \item Dacă lucrați cu numere reale, nu folosiți testul
 
-  \begin{lstlisting}[language=Pascal]
+  \begin{minted}{pascal}
     R1=R2
-  \end{lstlisting}
+  \end{minted}
 
   deoarece pot apărea erori, ci implementați o funcție:
 
-  \begin{lstlisting}[language=Pascal]
+  \begin{minted}{pascal}
     function Equal(R1,R2:Real):Boolean;
     begin
       Equal:=(Abs(R1-R2)<0.00001);
     end;
-  \end{lstlisting}
+  \end{minted}
 
   Numărul de zerouri de după virgulă trebuie să fie suficient de mare astfel
   încât două numere diferite să nu fie tratate drept egale (se poate lucra de
@@ -531,10 +531,10 @@ cea mai bună de depanare este următoarea:
 
 {\bf K)}
 
-\begin{lstlisting}[frame=single, language=Pascal]
+\begin{minted}{pascal}
     Dec(Nr_probleme_nerezolvate);
   end; { while }
-\end{lstlisting}
+\end{minted}
 
 \begin{center}
   {\Huge \decofourleft \decofourright}
