@@ -200,40 +200,7 @@ reprezentare grafică a metodei:
 
 Iată primul set de proceduri de gestionare a unui Hash.
 
-\begin{minted}{c}
-#define M 1000 // numarul de "intrari" //
-typedef int Hash[M];
-typedef int DataType;
-Hash H;
-
-void InitHash1(Hash H)
-{ int i;
-
-  for (i=0; i<M; H[i++]=0);
-}
-
-inline int h(DataType K)
-{
-  return K;
-}
-
-int Search1(Hash H, DataType K)
-/* Intoarce -1 daca elementul nu exista in hash
-   sau indicele in hash daca el exista */
-{
-  return H[h(K)] ? h(K) : -1;
-}
-
-void Add1(Hash H, DataType K)
-{
-  H[h(K)]=1;
-}
-
-void Delete1(Hash H, DataType K)
-{
-  H[h(K)]=0;
-}
-\end{minted}
+\inputminted{c}{src/chapter4-2.c}
 
 Prin „număr de intrări” în tabelă se înțelege numărul de elemente ale
 vectorului $H$; în general, orice tabelă hash este un vector. Pentru ca
@@ -383,44 +350,7 @@ $M$ ori. Avantajele sunt indiscutabile pentru $M=10.000$ de exemplu.
 asupra lor. Prezentăm aici numai adăugarea și căutarea, lăsându-vă ca temă
 scrierea funcției de ștergere din tabelă.
 
-\begin{minted}{c}
-#include <stdio.h>
-#include <stdlib.h>
-#define M 1000 // numarul de "intrari"
-typedef struct _List {
-          long P;
-          struct _List * Next;
-        } List;
-typedef List * Hash[M];
-Hash H;
-
-void InitHash2(Hash H)
-{ int i;
-
-  for (i=0; i<M; H[i++]=NULL);
-}
-
-int h2(int K)
-{
-  return K%M;
-}
-
-int Search2(Hash H, int K)
-/* Intoarce 0 daca elementul nu exista in hash
-   sau 1 daca el exista */
-{ List *L;
-
-  for (L=H[h2(K)]; L && (L->P != K); L = L->Next);
-  return L!=NULL;
-}
-
-void Add2(Hash H, int K)
-{ List *L = malloc(sizeof(List));
-  L->P = K;
-  L->Next = H[h2(K)];
-  H[h2(K)] = L;
-}
-\end{minted}
+\inputminted{c}{src/chapter4-3.c}
 
 Am spus că funcțiile de dispersie sunt concepute să lucreze numai pe date de
 tip întreg; celelalte tipuri de date trebuie convertite în prealabil la tipuri
@@ -600,44 +530,4 @@ funcția de căutare trebuie să întoarcă {\tt NULL}.
 În încheiere, prezentăm un exemplu de funcție de dispersie pentru cazul tablei
 de șah.
 
-\begin{minted}{c}
-#define M 9973 // numarul de "intrari"
-typedef struct {
-          char b_T[8][8];
-            /* tabla de joc, cu 0<= T[i][j] <=12 */
-          char b_CastleW, b_CastleB;
-            /*  ultimii doi biti ai lui b_CastleW
-                indica daca albul are dreptul de a
-                efectua rocada mare, respectiv pe cea
-                mica. Analog pentru b_CastleB */
-          char b_Side;
-            /* 0 sau 1, dupa cum la mutare este albul
-               sau negrul */
-          char b_EP;
-            /* 0..8, indicand coloana (0..7) pe care
-               partea la mutare poate efectua o
-               captura "en passant". 8 indica ca nu
-               exista aceasta posibilitate */
-          int b_NMoves;
-            /* Numarul de mutari efectuate */
-        } Board;
-Board B;
-
-int h3(Board *B)
-{ int i,j;
-  /* Valoarea initiala a lui S este un numar pe 17 biti care
-     inglobeaza toate variabilele suplimentare pe langa T.
-     S se va lua apoi modulo M */
-  long S = (B->b_NMoves           /* 8 biti */
-          +(B->b_CastleW << 8)    /* 2 biti */
-          +(B->b_CastleB << 10)   /* 2 biti */
-          +(B->b_Side << 12)      /* 1 bit */
-          +B->b_EP<<13) % M;      /* 4 biti */
-
-  for (i=0; i<=7; i++)
-    for (j=0; j<=7; j++)
-      S=(16*S+B->b_T[i][j])%M;
-
-  return S;
-}
-\end{minted}
+\inputminted{c}{src/chapter4-4.c}

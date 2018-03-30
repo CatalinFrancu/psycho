@@ -278,42 +278,7 @@ memoriei (procedura {\tt FillChar} din Pascal).
 
 \end{itemize}
 
-\begin{minted}{pascal}
-program VectorDeBiti;
-type Vector=array[0..62499] of Byte;
-var V:Vector;
-    N,X,i:LongInt;
-
-function GetValue(X:LongInt):Boolean;
-begin
-  GetValue:=V[Pred(X) shr 3] and (1 shl (Pred(X) and 7))<>0;
-end;
-
-procedure SetValue(X:LongInt;B:Boolean);
-begin
-  if B
-    then V[Pred(X) shr 3]:=V[Pred(X) shr 3] or
-                           (1 shl (Pred(X) and 7))
-    else V[Pred(X) shr 3]:=V[Pred(X) shr 3] and
-                           ($FF xor (1 shl (Pred(X) and 7)));
-end;
-
-begin
-  FillChar(V,SizeOf(V),0);
-  Assign(Input,'input.txt');Reset(Input);
-  ReadLn(N);
-  for i:=1 to N-1 do
-    begin
-      ReadLn(X);
-      SetValue(X,True);
-    end;
-  Close(Input);
-  i:=0;
-  repeat Inc(i) until not GetValue(i);
-  WriteLn(i);
-end.
-\end{minted}
-
+\inputminted{pascal}{src/chapter3-1.pas}
 
 \section{Vectori de dimensiuni mari cu elemente de valori mici}
 
@@ -491,36 +456,7 @@ noastre pentru fiecare element în parte.
 Prezentăm mai jos numai un program demonstrativ despre modul de lucru cu
 aceste funcții:
 
-\begin{minted}{pascal}
-program Nibbles;
-type Vector=array[0..62499] of Byte;
-var V:Vector;
-
-function GetValue(X:LongInt):Word;
-var Oct,Nib:Word;
-begin
-  Oct:=Pred(X) shr 1;
-  Nib:=Pred(X) and 1;
-  GetValue:=(V[Oct] and ($0F shl (Nib shl 2)))
-            shr (Nib shl 2);
-end;
-
-procedure SetValue(X:LongInt;K:Word);
-var Oct,Nib:Word;
-begin
-  Oct:=Pred(X) shr 1;
-  Nib:=Pred(X) and 1;
-  V[Oct]:=(V[Oct] and ($FF xor ($0F shl (Nib shl 2))))
-          or (K shl (Nib shl 2));
-end;
-
-begin
-  FillChar(V,SizeOf(V),0);
-  SetValue(12345,12);
-  SetValue(12346,13); { Doi nibble de pe acelasi octet }
-  WriteLn(GetValue(12345),' ',GetValue(12346));
-end.
-\end{minted}
+\inputminted{pascal}{src/chapter3-2.pas}
 
 \section{Alocarea dinamică a matricelor de mari dimensiuni}
 
@@ -582,20 +518,7 @@ o indirectare datorată pointerului).
 Iată un exemplu demonstrativ de folosire a acestei structuri de date, care
 calculează suma numerelor naturale de la 1 la 100.
 
-\begin{minted}{pascal}
-program VPV;
-type Vector=array[1..400] of Integer;
-     Matrix=array[1..400] of ^Vector;
-var A:Matrix;
-    i:Integer;
-
-begin
-  for i:=1 to 400 do New(A[i]);
-  A[1]^[1]:=1;
-  for i:=2 to 100 do A[i]^[i]:=A[i-1]^[i-1]+i;
-  WriteLn(A[100]^[100]);
-end.
-\end{minted}
+\inputminted{pascal}{src/chapter3-3.pas}
 
 \section{Fragmentarea matricelor de mari dimensiuni}
 
@@ -724,27 +647,4 @@ două funcții, una pentru modificarea unui element și una pentru aflarea
 valorii lui. De asemenea, {\tt X div 64} a fost înlocuit peste tot cu {\tt X
   shr 6}, iar {\tt X mod 64} cu {\tt X and 63}.
 
-\begin{minted}{pascal}
-program Fragment;
-type FragType=array[0..399,0..63] of Integer;
-     Matrix=array[0..6] of ^FragType;
-var B:Matrix;
-    i:Integer;
-
-function GetValue(i,j:Integer):Integer;
-begin
-  GetValue:=B[j shr 6]^[i,j and 63];
-end;
-
-procedure SetValue(i,j,Value:Integer);
-begin
-  B[j shr 6]^[i,j and 63]:=Value;
-end;
-
-begin
-  for i:=0 to 6 do New(B[i]);
-  SetValue(1,1,1);
-  for i:=2 to 100 do SetValue(i,i,GetValue(i-1,i-1)+i);
-  WriteLn(GetValue(100,100));
-end.
-\end{minted}
+\inputminted{pascal}{src/chapter3-4.pas}

@@ -161,35 +161,7 @@ mutările celui de-al doilea. Un calcul al sumelor la citirea datelor este
 suficient. Complexitatea $O(N)$ este optimă, deoarece vectorul trebuie parcurs
 cel puțin o dată pentru citirea configurației inițiale a tablei.
 
-\begin{minted}{c}
-#include <stdio.h>
-
-void main(void)
-{ FILE *F=fopen("input.txt","rt");
-  int SEven,SOdd,N,i,K;
-
-  fscanf(F,"%d\n",&N);
-  for (i=1, SEven=SOdd=0; i<=N; i++)
-    { fscanf(F, "%d\n", &K);
-      if (i&1) SOdd+=K;
-        else SEven+=K;
-    }
-  fclose(F);
-
-  printf("Mutarea mea: %c\n", SEven>=SOdd ? 'R' : 'L');
-  for (i=1; i<N/2; i++)
-    { printf("Mutarea dvs. (L/R) ? ");
-      printf("Mutarea mea: %c\n", getchar());
-      getchar(); /* Caracterul newline */
-    }
-  printf("Mutarea dvs. (L/R) ? ");
-  getchar();
-
-  if (SEven>=SOdd)
-    printf("%d %d\n", SEven, SOdd);
-    else printf("%d %d\n", SOdd, SEven);
-}
-\end{minted}
+\inputminted{c}{src/problem4-1.c}
 
 O a doua variantă a enunțului aduce unele condiții suplimentare:
 
@@ -367,55 +339,7 @@ intrare din enunț:
 Pentru exemplul din enunț, răspunsul este deci $D_{MAX}=7$. Cum elementele
 matricei sunt parcurse cel mult o dată, rezultă o complexitate de $O(N^2)$.
 
-\begin{minted}{c}
-#include <stdio.h>
-#include <stdlib.h>
-#define NMax 101
-
-int D[NMax][NMax], A[NMax], N;
-
-void ReadData(void)
-{ FILE *F=fopen("input.txt","rt");
-  int i;
-
-  fscanf(F,"%d\n",&N);
-  for (i=1; i<=N;)
-    fscanf(F, "%d\n", &A[i++]);
-  fclose(F);
-}
-
-int Min(int A, int B)
-{
-  return A<B ? A : B;
-}
-
-int Max(int A, int B)
-{
-  return A>B ? A : B;
-}
-
-void FindMax(void)
-{ int i,j,k;
-
-  for (i=1;i<N;i++)
-    D[i][i+1]=abs(A[i]-A[i+1]);
-  for (k=3;k<=N-1;k++)
-    for (i=1;i+k<=N;i++)
-      { j=i+k;
-        D[i][j]=Max(A[i]+Min(D[i+2][j]-A[i+1],
-                             D[i+1][j-1]-A[j]),
-                    A[j]+Min(D[i+1][j-1]-A[i],
-                             D[i][j-2]-A[j-1]));
-      }
-  printf("Diferenta maxima este %d\n",D[1][N]);
-}
-
-void main(void)
-{
-  ReadData();
-  FindMax();
-}
-\end{minted}
+\inputminted{c}{src/problem4-2.c}
 
 Programul prezentat mai sus poate fi optimizat, dacă timpul o permite și dacă
 acest lucru este necesar. Lăsăm cititorul să încerce să rezolve aceeași
