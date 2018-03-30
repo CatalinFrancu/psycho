@@ -1,0 +1,385 @@
+\section{Problema 17}
+
+Iată un nou exemplu de problemă care admite două rezolvări: una evidentă, dar
+neeficientă și una mai puțin evidentă, dar cu mult mai eficientă.
+
+{\bf ENUNȚ}: Fie $V$ un vector. Arborele cartezian atașat vectorului $V$ este
+un arbore binar care se obține astfel: Dacă vectorul $V$ este vid (are 0
+elemente), atunci arborele cartezian atașat lui este de asemenea vid. Altfel,
+se selectează elementul de valoare minimă din vector și se pune în rădăcina
+arborelui, iar arborii cartezieni atașați fragmentelor de vector din stânga
+(respectiv din dreapta) elementului minim se pun în subarborele stâng,
+respectiv drept al rădăcinii. Iată, de exemplu, care este arborele cartezian
+al următorului vector cu 8 elemente:
+
+\tikzset{
+  level/.style={sibling distance=10em/#1},
+  circ/.style = {circle, draw, minimum size=2em},
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    nodes = {
+      draw,
+      anchor=center,
+      minimum size=2em,
+    },
+  },
+}
+\newcommand\cartesianStack[3] {
+  \matrix[mat] (m) at (0,2) {
+    #1 \& #2 \& #3 \& \ \\
+  };
+
+  \node at ([xshift=-1em]m.west) {$S$};
+}
+
+\centeredTikzFigure[]{
+  \node[circ] (n1) at (-3,-2) {8};
+  \node[circ] (n2) at (-2,-1) {2};
+  \node[circ] (n3) at (-1,-2) {4};
+  \node[circ] (n4) at (0,0) {1};
+  \node[circ] (n5) at (1,-2) {5};
+  \node[circ] (n6) at (2,-1) {3};
+  \node[circ] (n7) at (3,-3) {6};
+  \node[circ] (n8) at (4,-2) {4};
+  \draw (n1) -- (n2) -- (n3);
+  \draw (n2) -- (n4) -- (n6) -- (n5);
+  \draw (n6) -- (n8) -- (n7);
+
+  \matrix[mat, column sep=0.38em] (v) at (0.5, 2) {
+    8 \& 2 \& 4 \& 1 \& 5 \& 3 \& 6 \& 4 \\
+  };
+  \node at ([xshift=-1em] v.west) {$V$};
+
+  % no easy anchors; just use hardcoded coordinates
+  \draw[densely dotted, semithick] (-3.52,-2.53) rectangle (-0.49,2.55);
+  \draw[densely dotted, semithick] (0.49,-3.53) rectangle (4.51,2.55);
+}
+
+În figură au fost încadrate prin dreptunghiuri punctate porțiunile din stânga,
+respectiv din dreapta elementului minim, împreună cu subarborii
+atașați. Trebuie observat că arborele cartezian atașat unui vector poate să nu
+fie unic, în cazul în care există mai multe elemente de valoare minimă. Vom
+impune ca o condiție suplimentară ca elementul care va fi trecut în rădăcină
+să fie cel mai din stânga dintre minime (cel cu indicele cel mai mic). Astfel,
+arborele cartezian este unic.
+
+Cerința problemei este ca, dându-se un vector, să i se construiască arborele
+cartezian.
+
+{\bf Intrarea}: Fișierul de intrare {\tt INPUT.TXT} conține pe prima linie
+valoarea lui $N$ ($N \leq 10.000$), iar pe a doua $N$ numere naturale mai mici
+ca 30.000, separate prin spații.
+
+Ieșirea se va face în fișierul text {\tt OUTPUT.TXT} sub următoarea formă:
+
+$T_1 \quad T_2 \quad T_3 \quad \dots \quad T_N$
+
+unde $T_i$ este indicele în vector al elementului care este părintele lui
+$V[i]$ în arborele cartezian. Dacă $V[i]$ este rădăcina arborelui, atunci $T_i
+= 0$.
+
+{\bf Exemplu}: Pentru exemplul dat mai sus, fișierul {\tt INPUT.TXT} este:
+
+\begin{verbatim}
+8
+8 2 4 1 5 3 6 4
+\end{verbatim}
+
+După cum reiese din figură, tatăl elementului 8 este elementul 2, adică al
+doilea în vector; tatăl elementului 2 este elementul 1, adică al 4-lea în
+vector; tatăl elementului 5 este elementul 3, adică al 6-lea în vector
+ș.a.m.d. Fișierul de ieșire este deci:
+
+\begin{verbatim}
+2 4 2 0 6 4 8 6
+\end{verbatim}
+
+{\bf Complexitate cerută}: $O(N)$.
+
+{\bf Timp de implementare}: 45 minute - 1h.
+
+{\bf Timp de rulare}: 2 secunde.
+
+{\bf REZOLVARE}: Nu întâmplător s-a impus o complexitate liniară pentru
+rezolvarea acestei probleme. Altfel, ea ar fi trivială în $O(N^2)$, prin
+următoarea metodă: scriem o procedură care parcurge vectorul și caută minimul,
+apoi se reapelează pentru bucățile de vector aflate în stânga, respectiv în
+dreapta minimului. Pentru a demonstra că această variantă de rezolvare are
+complexitate pătratică, să ne imaginăm cum s-ar comporta ea pe cazul:
+
+\begin{equation}
+  V = (N \quad N-1 \quad N-2 \quad \dots \quad 2 \quad 1)
+\end{equation}
+
+La primul apel, procedura ar face $N$ comparații pentru a parcurge vectorul
+(deoarece elementul minim este ultimul în vector) și s-ar reapela pentru
+porțiunea din vector care cuprinde primele $N-1$ elemente. La al doilea apel,
+ar face $N-1$ comparații și s-ar reapela pentru primele $N-2$ elemente etc. În
+concluzie, numărul total de comparații făcute este
+
+\begin{equation}
+  N + (N-1) + (N-2) + \cdots + 1 = \frac{N(N + 1)}{2}
+\end{equation}
+
+de unde rezultă complexitatea. O problemă interesantă, pe care îi vom lăsa
+plăcerea cititorului să o rezolve, este de a demonstra că această versiune
+{\bf nu poate atinge o complexitate mai bună decât $O(N \log N)$} și de a
+arăta care sunt cazurile cele mai favorabile pe care se obține această
+complexitate.
+
+A doua metodă este și ea destul de ușor de înțeles și de implementat. Ceea
+este mai greu de acceptat este că ea are complexitate liniară, așa cum vom
+încerca să explicăm la sfârșit. Iată mai întâi principiul de rezolvare: vom
+porni cu un arbore cartezian vid și, la fiecare pas, vom adăuga câte un
+element al vectorului $V$ la acest arbore, astfel încât structura obținută să
+rămână un arbore cartezian. La al $k$-lea pas, vom adăuga elementul $V[k]$ în
+arbore și vom restructura arborele în așa fel încât să obținem arborele
+cartezian atașat primelor $k$ elemente din $V$. Trebuie să ne concentrăm
+atenția asupra a două lucruri:
+
+\begin{enumerate}
+
+\item Cunoscând arborele cartezian atașat primelor $k$-1 vârfuri și elementul
+  $V[k]$, cum se obține arborele cartezian atașat primelor $k$ vârfuri?
+
+\item Cum reușim să actualizăm de $N$ ori arborele astfel încât timpul total
+  consumat să fie liniar?
+
+\end{enumerate}
+
+Pentru a răspunde la prima întrebare, pe lângă vectorii $V$ și $T$, mai este
+necesară o stivă $S$, în care vom stoca elemente ale vectorului $V$. Inițial,
+stiva este vidă. Atunci când un nou element $X$ sosește, el va fi introdus în
+stivă imediat după ultimul număr din stivă care are o valoare mai mică sau
+egală cu $X$. Toate elementele care se aflau înainte în stivă pe poziții mai
+mari sau egale cu poziția pe care a fost inserat $X$ vor fi eliminate din
+stivă, iar elementul care se afla exact pe poziția lui $X$ va deveni fiul
+stâng al lui $X$. $X$ însuși va deveni fiul drept al predecesorului său în
+stivă. La fiecare moment, primul element din stivă este rădăcina arborelui
+cartezian.
+
+Pentru a înțelege mai bine principiul de funcționare a stivei, să analizăm mai
+de aproape exemplul din enunț.
+
+La început stiva este vidă. Primul element din V are valoarea 8, drept care îl
+vom pune în stivă, iar arborele cartezian va avea un singur nod:
+
+\centeredTikzFigure[]{
+  \node[circ] {8};
+
+  \cartesianStack{8}{\ }{\ }
+}
+
+Următorul element sosit este 2. Acesta este mai mic decât 8, deci trebuie
+introdus înaintea lui în stivă. El va fi deci primul element din stivă și
+rădăcina arborelui cartezian la acest moment. Concomitent, 8 va fi eliminat
+din stivă și va deveni fiul stâng al lui 2:
+
+\centeredTikzFigure[]{
+  \node[circ] {2}
+  child { node[circ] {8} }
+  child[missing] {node[circ] {}};
+
+  \cartesianStack{2}{\ }{\ }
+}
+
+Se observă că arborele obținut este tocmai arborele cartezian atașat secvenței
+$(V[1], V[2])$. Următorul element este 4, care este mai mare decât 2, deci
+trebuie adăugat în vârful stivei. Nici un element nu este eliminat din stivă,
+iar 4 devine fiul drept al lui 2:
+
+\centeredTikzFigure[]{
+  \node[circ] {2}
+  child { node[circ] {8} }
+  child { node[circ] {4} };
+
+  \cartesianStack{2}{4}{\ }
+}
+
+Următorul element sosit este 1, care este mai mic decât toate numerele din
+stivă. Stiva se va goli, iar numărul 2 (cel peste care se va scrie 1) va
+deveni fiul stâng al lui 1:
+
+\centeredTikzFigure[]{
+  \node[circ] {1}
+  child { node[circ] {2}
+    child { node[circ] {8} }
+    child { node[circ] {4} }
+  }
+  child[missing] {node[circ] {}};
+
+  \cartesianStack{1}{\ }{\ }
+}
+
+Deja arborele începe să semene cu forma sa finală. Urmează elementul 5, care
+va fi adăugat în stivă și „atârnat” în dreapta lui 1:
+
+\centeredTikzFigure[]{
+  \node[circ] {1}
+  child { node[circ] {2}
+    child { node[circ] {8} }
+    child { node[circ] {4} }
+  }
+  child { node[circ] {5} };
+
+  \cartesianStack{1}{5}{\ }
+}
+
+Elementul 3 este mai mare ca 1, căruia îi va deveni fiu drept, dar mai mic ca
+5, pe care îl va elimina din stivă:
+
+\centeredTikzFigure[]{
+  \node[circ] {1}
+  child { node[circ] {2}
+    child { node[circ] {8} }
+    child { node[circ] {4} }
+  }
+  child { node[circ] {3}
+    child { node[circ] {5} }
+    child[missing] {node[circ] {}}
+  };
+
+  \cartesianStack{1}{3}{\ }
+}
+
+Următorul număr, 6, va fi adăugat la extremitatea dreaptă a arborelui și în
+vârful stivei:
+
+\centeredTikzFigure[]{
+  \node[circ] {1}
+  child { node[circ] {2}
+    child { node[circ] {8} }
+    child { node[circ] {4} }
+  }
+  child { node[circ] {3}
+    child { node[circ] {5} }
+    child { node[circ] {6} }
+  };
+
+  \cartesianStack{1}{3}{6}
+}
+
+În sfârșit, elementul 4 va fi fiul drept al lui 3 și îl va elimina din stivă
+pe 6, care îi va deveni fiu stâng:
+
+\centeredTikzFigure[]{
+  \node[circ] {1}
+  child { node[circ] {2}
+    child { node[circ] {8} }
+    child { node[circ] {4} }
+  }
+  child { node[circ] {3}
+    child { node[circ] {5} }
+    child { node[circ] {4}
+      child { node[circ] {6} }
+      child[missing] {node[circ] {}}
+    }
+  };
+
+  \cartesianStack{1}{3}{4}
+}
+
+Se observă că arborele a ajuns tocmai la forma sa corectă. Trebuie acum să ne
+ocupăm de un detaliu de implementare. Pentru a afla poziția pe care trebuie
+inserat un element în stivă avem două metode:
+
+\begin{enumerate}
+
+\item Putem să căutăm în stivă de la dreapta la stânga (ar fi mai corect spus
+  „de la vârf spre bază”) până dăm de un element mai mic decât cel de inserat;
+  programul folosește această metodă și îi vom discuta în final eficiența.
+
+\item Putem face o căutare binară în stivă, întrucât elementele din stivă au
+  valori crescătoare de la bază spre vârf (lăsăm demonstrația acestei
+  afirmații în seama cititorului). O căutare binară într-un vector de $k$
+  elemente poate necesita, în cazul cel mai nefavorabil, $\log k$
+  comparații. În cazul cel mai nefavorabil, când vectorul $V$ este sortat
+  crescător, elementele vor fi introduse pe rând în stivă și nu vor mai fi
+  scoase, deci la fiecare pas se vor face $\log k$ comparații, unde $k$ ia
+  valori de la 1 la $N$. Complexitatea care rezultă este mai slabă decât cea
+  cerută:
+
+  \begin{equation}
+    \begin{split}
+      O(\log 1 + \log 2 + \cdots + \log N) = O(\sum_{k = 1}^{N} \log k) = \\
+      = O(\log \prod_{k = 1}^{N} k) = O(\log N!) = O(N \cdot \log N)
+    \end{split}
+  \end{equation}
+
+\end{enumerate}
+
+Acesta este unul din puținele cazuri în care căutarea binară este mai
+ineficientă decât cea secvențială.
+
+Pentru ușurința programării, sursa C de mai jos reține în stiva $S$ nu
+valorile elementelor, ci indicii lor în vectorul $V$ (deoarece aceștia sunt
+ceruți pentru construcția vectorului $T$).
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#define NMax 10001
+
+int V[NMax], /* Vectorul */
+    T[NMax], /* Vectorul de tati */
+    S[NMax], /* Stiva */
+    N;       /* Numarul de elemente */
+
+void ReadData(void)
+{ FILE *F=fopen("input.txt","rt");
+  int i;
+
+  fscanf(F,"%d\n",&N);
+  for (i=1; i<=N;)
+    fscanf(F, "%d", &V[i++]);
+}
+
+void BuildTree(void)
+{ int i,k,LenS=0;
+
+  S[0]=0; /* Pentru ca initial T[1] sa fie 0 */
+  for (i=1; i<=N; i++)
+    { /* Cauta pozitia pe care va fi inserat V[i] */
+      k=LenS+1;
+      while (V[S[k-1]]>V[i]) k--;
+      /* Face corecturile in S si T */
+      T[i]=S[k-1];
+      if (k<=LenS) T[S[k]]=i;
+      /* i este ultimul element din stiva, deci... */
+      S[LenS=k]=i;
+    }
+}
+
+void WriteSolution(void)
+{ FILE *F=fopen("output.txt","wt");
+  int i;
+  for (i=1; i<=N;)
+    fprintf(F,"%d ",T[i++]);
+  fprintf(F,"\n");
+}
+
+void main(void)
+{
+  ReadData();
+  BuildTree();
+  WriteSolution();
+}
+\end{lstlisting}
+
+Acum să analizăm și complexitatea acestui algoritm. În primul rând, ea nu
+poate fi mai bună decât $O(N)$, pentru că aceasta este complexitatea
+funcțiilor de intrare și ieșire. Procedura {\tt BuildTree} se compune dintr-un
+ciclu {\tt for} în care se execută patru operații în timp constant și o
+instrucțiune repetitivă {\tt while}. Numărul total de operații în timp
+constant care se execută în procedură este prin urmare $O(N)$. Problema este:
+care este numărul total maxim de evaluări ale condiției logice din bucla {\tt
+  while}? Aparent, bucla while se execută de $O(N)$ ori, deci numărul total de
+evaluări ar fi $O(N^2)$. Să aruncăm totuși o privire mai atentă.
+
+Fiecare evaluare a condiției din bucla {\tt while} are ca efect decrementarea
+lui $k$ și, implicit, eliminarea unui element deja existent în stivă. Pe de
+altă parte, fiecare element este introdus în stivă o singură dată și deci nu
+poate fi eliminat din stivă decât cel mult o dată. Așadar numărul maxim de
+elemente ce pot fi eliminate din stivă pe parcursul executării procedurii {\tt
+  BuildTree} este $N-1$, deci numărul total de evaluări ale condiției este
+$O(N)$. De aici rezultă că programul are complexitate liniară.
