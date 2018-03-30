@@ -440,8 +440,8 @@ află, reprezentat pe 4 octeți, numărul de apeluri ale timer-ului (numărul de
   Time} de tip {\tt Longint} (deoarece acest tip de date ocupă 4 octeți) exact
 la această adresă, folosind clauza Pascal {\tt absolute}, variabila se va
 incrementa la fiecare 55ms, scutindu-ne pe noi de această grijă. Dacă înmulțim
-variabila cu 55/1000, aflăm exact numărul de secunde scurse de la miezul
-nopții. Dacă împărțim acest rezultat la 3600, putem afla ora exactă
+variabila cu 55/1.000, aflăm exact numărul de secunde scurse de la miezul
+nopții. Dacă împărțim acest rezultat la 3.600, putem afla ora exactă
 ș.a.m.d. Lucrul care ne interesează pe noi este să setăm o „alarmă” care să
 oprească programul peste 30 de secunde. 30 de secunde înseamnă $30 \times
 18,2$ incrementări ale variabilei {\tt Time}. Folosind în loc de 18,2 valoarea

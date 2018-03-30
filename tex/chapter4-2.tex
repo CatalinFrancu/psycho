@@ -112,7 +112,7 @@ coboară uneori până la $O(1)$, iar în medie scade foarte mult (de mii de ori
 
 Iată despre ce este vorba. Să presupunem pentru început că în loc de poziții
 pe tabla de șah, lista noastră memorează numere între 0 și 999. În acest caz,
-tabela hash ar fi un simplu vector $H$ cu 1000 de elemente booleene. Inițial,
+tabela hash ar fi un simplu vector $H$ cu 1.000 de elemente booleene. Inițial,
 toate elementele lui $H$ au valoarea {\tt False} (sau 0). Dacă numărul 473 a
 fost găsit în listă, nu avem decât să setăm valoarea lui $H(473)$ la {\tt
   True} (sau 1). La o nouă apariție a lui 473 în listă, vom examina elementul
@@ -247,7 +247,7 @@ vorbi mai târziu despre cum se poate face conversia. Acum să generalizăm
 exemplul de mai sus.
 
 Într-adevăr, cazul anterior este mult prea simplu. Să ne închipuim de pildă că
-în loc de numere mai mici ca 1000 avem numere de până la 2.000.000.000. În
+în loc de numere mai mici ca 1.000 avem numere de până la 2.000.000.000. În
 această situație posibilitatea de a reprezenta tabela ca un vector
 caracteristic iese din discuție. Numărul de intrări în tabelă este de ordinul
 miilor, cel mult al zecilor de mii, deci cu mult mai mic decât numărul total
@@ -256,7 +256,7 @@ număr $K$ într-o tabelă cu $M$ intrări (numerotate de la 0 la $M-1$) pe
 poziția $K \bmod M$, adică $h(K)=K \bmod M$. Care va fi însă rezultatul?
 Funcția $h$ își va pierde proprietatea de injectivitate, deoarece mai multor
 chei le poate corespunde aceeași intrare în tabelă, cum ar fi cazul numerelor
-1234 și 2001234, ambele dând același rest la împărțirea prin $M=1000$. Nu
+1.234 și 2.001.234, ambele dând același rest la împărțirea prin $M=1.000$. Nu
 putem avea însă speranța de a găsi o funcție injectivă, pentru că atunci
 numărul de intrări în tabelă ar trebui să fie cel puțin egal cu numărul de
 chei distincte. Vrând-nevrând, trebuie să rezolvăm {\bf coliziunile} (sau {\bf
@@ -264,7 +264,7 @@ chei distincte. Vrând-nevrând, trebuie să rezolvăm {\bf coliziunile} (sau {\
 repartizate la aceeași intrare.
 
 Vom reveni ulterior la oportunitatea alegerii funcției modul și a numărului de
-1000 de intrări în tabelă. Deocamdată vom folosi aceste date pentru a explica
+1.000 de intrări în tabelă. Deocamdată vom folosi aceste date pentru a explica
 modul de funcționare a tabelei hash pentru funcții neinjective. Să presupunem
 că avem două chei $K_1$ și $K_2$ care sunt repartizate de funcția $h$ la
 aceeași intrare $X$, adică $h(K_1) = h(K_2) = X$. Soluția cea mai comodă este
@@ -299,16 +299,16 @@ aceeași intrare $X$. Prin urmare vectorul $H$ va fi un vector de liste:
     },
     pointers/.list={2, 5, 8, 11},
   ] (l) {
-    1002 \\
+    1.002 \\
     \ \\
     \ \\
     4 \\
     \ \\
     \ \\
-    5001 \\
+    5.001 \\
     \ \\
     \ \\
-    3002 \\
+    3.002 \\
     \ \\
     \ \\
     $\vdots$ \\
@@ -325,13 +325,13 @@ aceeași intrare $X$. Prin urmare vectorul $H$ va fi un vector de liste:
   ] (a) at (10, 0) {
     $\bullet$ \& \ \& 0\\
     \  \&
-    \node[cell, value] (c5001) {5001};
+    \node[cell, value] (c5001) {5.001};
     \node[cell, ptr] (p5001) at (c5001.east) {};
     \& 1 \\
     \  \&
-    \node[cell, value] (c1002) {1002};
+    \node[cell, value] (c1002) {1.002};
     \node[cell, ptr] (p1002) at (c1002.east) {};
-    \node[cell, value] (c3002) at (p1002.east) {3002};
+    \node[cell, value] (c3002) at (p1002.east) {3.002};
     \node[cell, ptr] (p3002) at (c3002.east) {};
     \& 2 \\
     $\bullet$ \& \ \& 3 \\
@@ -377,7 +377,7 @@ repartizată la intrarea $H(h(K))$. De aceea, căutarea poate ajunge, în cazul
 cel mai defavorabil când toate cheile din listă se repartizează la aceeași
 intrare în hash, la o complexitate $O(N)$. Dacă reușim însă să găsim o funcție
 care să distrbuie cheile cât mai aleator, timpul de intrare se va reduce de
-$M$ ori. Avantajele sunt indiscutabile pentru $M=10000$ de exemplu.
+$M$ ori. Avantajele sunt indiscutabile pentru $M=10.000$ de exemplu.
 
 Întrucât operațiile cu liste liniare sunt în general cunoscute, nu vom insista
 asupra lor. Prezentăm aici numai adăugarea și căutarea, lăsându-vă ca temă
@@ -520,27 +520,28 @@ cât mai mică. Totuși, experiența arată că nu orice valoare a lui $M$ este
 bună.
 
 De exemplu, la prima vedere s-ar putea spune că o bună valoare pentru $M$ este
-o putere a lui 2, cum ar fi 1024, pentru că operația de împărțire cu rest se
+o putere a lui 2, cum ar fi 1.024, pentru că operația de împărțire cu rest se
 poate face foarte ușor în această situație. Totuși, funcția $h(x)=x \bmod
-1024$ are un mare defect: ea nu ține cont decât de ultimii 10 biți ai
+1.024$ are un mare defect: ea nu ține cont decât de ultimii 10 biți ai
 numărului $x$. Dacă datele de intrare sunt numere în mare majoritate pare, ele
 vor fi repartizate în aceeași proporție la intrările cu număr de ordine par,
 pentru că funcția h păstrează paritatea. Din aceleași motive, alegerea unei
-valori ca 1000 sau 2000 nu este prea inspirată, deoarece ține cont numai de
+valori ca 1.000 sau 2.000 nu este prea inspirată, deoarece ține cont numai de
 ultimele 3-4 cifre ale reprezentării zecimale. Multe valori pot da același
-rest la împărțirea prin 1000. De exemplu, dacă datele de intrare sunt anii de
+rest la împărțirea prin 1.000. De exemplu, dacă datele de intrare sunt anii de
 naștere ai unor persoane dintr-o agendă telefonică, iar funcția este $h(x)=x
-\bmod 1000$, atunci majoritatea cheilor se vor îngrămădi (termenul este
+\bmod 1.000$, atunci majoritatea cheilor se vor îngrămădi (termenul este
 sugestiv) între intrările 920 și 990, restul rămânând nefolosite.
 
 Practic, trebuie ca $M$ să nu fie un număr rotund în nici o bază aritmetică,
 sau cel puțin nu în bazele 2 și 10. O bună alegere pentru $M$ sunt numerele
 prime care să nu fie apropiate de nici o putere a lui 2. De exemplu, în locul
-unei tabele cu $M=10000$ de intrări, care s-ar comporta dezastruos, putem
-folosi una cu 9973 de intrări. Chiar și această alegere poate fi îmbunătățită;
-între puterile lui 2 vecine, respectiv 8192 și 16384, se poate alege un număr
-prim din zona 11000-12000. Risipa de memorie de circa 1000-2000 de intrări în
-tabelă va fi pe deplin compensată de îmbunătățirea căutării.
+unei tabele cu $M=10.000$ de intrări, care s-ar comporta dezastruos, putem
+folosi una cu 9.973 de intrări. Chiar și această alegere poate fi
+îmbunătățită; între puterile lui 2 vecine, respectiv 8.192 și 16.384, se poate
+alege un număr prim din zona 11.000-12.000. Risipa de memorie de circa
+1.000-2.000 de intrări în tabelă va fi pe deplin compensată de îmbunătățirea
+căutării.
 
 \subsection{Metoda înmulțirii}
 
@@ -552,11 +553,11 @@ Pentru această metodă funcția hash este
 
 Aici $A$ este un număr pozitiv subunitar, $0 < A < 1$, iar prin $x \times A
 \bmod 1$ se înțelege partea fracționară a lui $x \times A$, adică $x \times A
-- \lfloor x \times A \rfloor$. De exemplu, dacă alegem $M = 1234$ și $A =
-0,3$, iar $x = 1997$, atunci avem
+- \lfloor x \times A \rfloor$. De exemplu, dacă alegem $M = 1.234$ și $A =
+0,3$, iar $x = 1.997$, atunci avem
 
 \begin{equation}
-  h(x) = \lfloor 1234 \times (599,1 \bmod 1) \rfloor = \lfloor 1234 \times 0,1 \rfloor = 123
+  h(x) = \lfloor 1.234 \times (599,1 \bmod 1) \rfloor = \lfloor 1.234 \times 0,1 \rfloor = 123
 \end{equation}
 
 Se observă că funcția $h$ produce numere între 0 și $M-1$. Într-adevăr, 

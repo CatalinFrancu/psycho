@@ -4,7 +4,7 @@ De multe ori, în probleme, apar situații când este nevoie să memorăm numere
 întregi foarte mari (de ordinul sutelor de cifre), iar uneori trebuie să
 efectuăm și operații aritmetice cu aceste numere. Iată un asemenea exemplu:
 
-{\bf ENUNȚ}: Se dă un număr natural cu $N \leq 1000$ cifre. Se cere să se
+{\bf ENUNȚ}: Se dă un număr natural cu $N \leq 1.000$ cifre. Se cere să se
 extragă rădăcina cubică a numărului. Se garantează că numărul citit este cub
 perfect.
 
@@ -79,11 +79,11 @@ octet, deci face risipă de memorie. Dacă am alege baza de numerație 256, am
 folosi la maximum memoria, și în plus operațiile ar fi cu mult mai rapide
 (deoarece 256 este o putere a lui 2, înmulțirile și împărțirile la 256 sunt
 simple deplasări la stânga și la dreapta ale reprezentărilor binare). Să facem
-următorul calcul ca să vedem câte cifre are în baza 256 un număr care are 1000
-de cifre în baza 10:
+următorul calcul ca să vedem câte cifre are în baza 256 un număr care are
+1.000 de cifre în baza 10:
 
 \begin{equation}
-  10^{1000} =
+  10^{1.000} =
   10 \cdot (10^3)^{333} \approx
   10 \cdot (2^{10})^{333} \approx
   10 \cdot 2^2 \cdot (2^8)^{416} =
@@ -840,7 +840,7 @@ ridicare la cub. Dintre aceste operații, cea mai costisitoare este ridicarea
 la cub, $O(N^2)$. Complexitatea totală este prin urmare $O(N^2 \log_2
 A)$. Deoarece $A$ are ordinul de mărime $10^N$, rezultă complexitatea $O(N^3
 \log 10)= O(N^3)$, adică mai proastă decât cea cerută (de altfel, un algoritm
-cu această complexitate nici nu s-ar încadra în timp pentru $N$ = 1000). Dacă
+cu această complexitate nici nu s-ar încadra în timp pentru $N = 1.000$). Dacă
 timpul ne permite, trebuie să căutăm altă metodă.
 
 În exemplul ales, să observăm că $10^6 \leq A < 10^9$, de unde deducem că
@@ -860,7 +860,7 @@ Ce putem spune despre a doua cifră? Dacă ar fi 3, atunci $130 \leq X < 140
 2). Dacă ar fi 1, atunci $110 \leq X < 120 \implies 1.331.000 \leq 2.097.152 <
 1.728.000$, fals. Rezultă că a doua cifră este obligatoriu 2. Analog, putem
 neglija ultimele trei cifre ale lui $A$, iar a doua cifră a lui $X$ este cel
-mai mare $C$ pentru care $\overline{1C}^3 \leq 2097$. Pentru a afla ultima
+mai mare $C$ pentru care $\overline{1C}^3 \leq 2.097$. Pentru a afla ultima
 cifră, aplicăm același raționament: Dacă ar fi 9, atunci $X$ = 129 și ar
 rezulta $2.146.688 = X^3 = 2.097.152$, absurd. Dacă considerăm că cifra este
 8, atunci calculul se verifică. Am aflat așadar că $X$ = 128.
@@ -922,8 +922,8 @@ spunem $C$), să-l aflăm pe $X$, pătratul și cubul său? Nu e prea greu:
 
 \begin{align}
   \begin{split}
-    X^3 & = (10 \cdot OldX + C)^3 = 1000 \cdot OldX^3 + 300 \cdot C \cdot OldX^2 + 30 \cdot C^2 \cdot OldX + C^3 \\
-    & = 1000 \cdot OldX^3 + (300 \cdot C) \cdot OldX^2 + (30 \cdot C^2) \cdot OldX + C^3
+    X^3 & = (10 \cdot OldX + C)^3 = 1.000 \cdot OldX^3 + 300 \cdot C \cdot OldX^2 + 30 \cdot C^2 \cdot OldX + C^3 \\
+    & = 1.000 \cdot OldX^3 + (300 \cdot C) \cdot OldX^2 + (30 \cdot C^2) \cdot OldX + C^3
   \end{split}
 \end{align}
 
