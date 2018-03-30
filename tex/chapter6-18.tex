@@ -1,0 +1,307 @@
+\section{Problema 18}
+
+{\bf ENUNȚ}: Se dă un vector nesortat cu elemente numere reale
+oarecare. Considerând că vectorul ar fi sortat, se cere să se găsească
+distanța maximă între două elemente consecutive ale sale, fără însă a sorta
+efectiv vectorul.
+
+{\bf Intrarea}: Fișierul {\tt INPUT.TXT} conține pe prima linie numărul $N$ de
+elemente din vector ($N \leq 5.000$). Pe următoare linie se dau numerele
+separate prin spații.
+
+{\bf Ieșirea}: Pe ecran se va tipări un mesaj de forma:
+
+Distanța maximă este $D$
+
+{\bf Exemplu}: Pentru fișierul de intrare cu conținutul
+
+\begin{verbatim}
+4
+5 3.2 2 3.7
+\end{verbatim}
+
+răspunsul trebuie să fie
+
+\begin{verbatim}
+Distanta maxima este 1.3
+\end{verbatim}
+
+{\bf Timp de implementare}: 30 minute.
+
+{\bf Timp de rulare}: 2-3 secunde.
+
+{\bf Complexitate cerută}: $O(N)$.
+
+{\bf REZOLVARE}: Desigur că primul lucru la care ne gândim este să sortăm
+vectorul și să îl parcurgem apoi de la stânga la dreapta, căutând distanța
+maximă între două elemente consecutive. Complexitatea unui asemenea algoritm
+este $O(N \log N)$. Nici această soluție nu este rea, iar la un concurs,
+comisiei de corectare i-ar veni destul de greu să găsească teste care să
+departajeze un algoritm în $O(N \log N)$ de unul liniar, chiar și pentru $N =
+5.000$. Totuși, vom arăta care este algoritmul liniar; în primul rând de
+dragul „artei”, iar în al doilea rând pentru că nu este cu mult mai greu de
+implementat decât o sortare.
+
+Primul lucru care trebuie făcut este găsirea maximului și a minimului din
+vector; să notăm aceste valori cu $V_{max}$ și $V_{min}$. Aceste operații se
+fac în timp liniar, eventual chiar la citirea datelor din fișier. Apoi se
+împarte intervalul $[V_{min}, V_{max}]$ de pe axa reală în $N-1$ intervale
+egale. Iată cazul exemplului din enunț, unde $V_{min} = 2$ și $V_{max} = 5$:
+
+\tikzset{
+  axisLabel/.style = {
+    font=\bf,
+    text depth=0,
+  },
+}
+\newcommand\axisNumber[3] {
+  \draw[ultra thick] (#1,0.2) -- (#1,-0.2);
+  \node[axisLabel] at (#3,0.6) {#2};
+}
+\centeredTikzFigure[
+]{
+  %axis
+  \draw[->] (-2.5,0) -- (8,0);
+
+  % ticks
+  \draw (0,0.1) -- (0,-0.1);
+  \draw (3,0.1) -- (3,-0.1);
+  \draw (4,0.1) -- (4,-0.1);
+
+  % numbers
+  \node at (0,0.6) {0};
+  \axisNumber{2}{2}{2};
+  \axisNumber{3.2}{3,2}{3.0};
+  \axisNumber{3.7}{3,7}{3.9};
+  \axisNumber{5}{5}{5};
+
+  % variables
+  \node at (2, -0.8) {$V_{min}$};
+  \node at (5, -0.8) {$V_{max}$};
+}
+
+Lungimea fiecărui interval va fi deci de
+
+\begin{equation}
+  D = \frac{V_{max} - V_{min}}{N - 1} \qquad
+  (\text{în cazul nostru } D = 1)
+\end{equation}
+
+De ce s-a făcut această împărțire? Dacă notăm cu $D_{max}$ distanța maximă pe
+axă între două numere vecine, adică tocmai valoarea pe care o căutăm, se poate
+demonstra că $D_{max} \geq D$. Într-adevăr, între cele $N$ numere de pe axă se
+formează $N-1$ intervale. Dacă presupunem că $D_{max} < D$, rezultă că
+distanța între oricare două numere consecutive de pe axă este mai mică decât
+$D$. De aici deducem că distanța dintre primul și ultimul număr, adică
+$V_{max} - V_{min}$, este mai mică decât $(N-1) \times D$. Dar aceasta duce
+la relația:
+
+\begin{equation}
+  V_{max} - V_{min} < (N - 1) \cdot \frac{V_{max} - V_{min}}{N - 1}
+  \implies
+  V_{max} - V_{min} < V_{max} - V_{min}
+\end{equation}
+
+relație care este absurdă; demonstrația afirmației $D_{max} \geq D$ este
+completă.
+
+Următorul pas pe care îl avem de făcut este să parcurgem încă o dată vectorul
+de numere și să aflăm pentru fiecare element căruia dintre intervalele de
+lungime îi aparține. Și această operație se poate face în $O(N)$. Convenim ca
+dacă un număr $X$ se află exact la limita dintre două intervale, adică
+
+\begin{equation}
+  X = V_{min} + k \cdot D, \quad 0 \leq k < N
+\end{equation}
+
+el să fie considerat ca aparținând intervalului din dreapta. Aceasta înseamnă
+că elementul de valoare $V_{max}$ nu aparține nici unuia din cele $N-1$
+intervale, ci celui de-al $N$-lea interval, $[V_{max}, V_{max} + D]$. Să vedem
+la ce ne ajută acest lucru. Din moment ce $D_{max} \geq D$, rezultă că este
+imposibil ca distanța maximă să se producă între două numere din același
+interval, deoarece distanța în cadrul aceluiași interval nu poate atinge
+valoarea $D$. Este deci obligatoriu ca distanța maximă să apară între două
+elemente din intervale distincte. Să urmărim în figura următoare ce alte
+proprietăți mai au aceste numere:
+
+\newcommand\axisPair[3] {
+  \draw[ultra thick] (#1,0.2) -- (#1,-0.2);
+  \node[axisLabel] at (#1,0.6) {#2};
+  \node[axisLabel] at (#1,-0.6) {#3};
+}
+\centeredTikzFigure[
+]{
+  %axis
+  \draw[->] (-5,0) -- (9,0);
+
+  % ticks
+  \foreach \x in {0,...,4} {
+    \draw (\x,0.1) -- (\x,-0.1);
+  };
+
+  % values
+  \axisPair{-3}{}{$V_{min}$}
+  \axisPair{0.25}{}{$X$}
+  \axisPair{0.75}{?}{$X'$}
+  \axisPair{3.25}{?}{$Y'$}
+  \axisPair{3.75}{}{$Y$}
+  \axisPair{7}{}{$V_{max}$}
+
+  \node[axisLabel] at (-1.5, 0.3) {$\cdots$};
+  \node[axisLabel] at (5.5, 0.3) {$\cdots$};
+}
+
+Dacă $X$ și $Y$ sunt valorile între care diferența este maximă, este de la
+sine înțeles că între ele nu mai există nici un număr, deoarece se prespune că
+$X$ și $Y$ sunt consecutive în vectorul sortat. Aceasta înseamnă însă că $X$
+este cel mai mare număr din intervalul său, iar numărul $X'$ nu poate exista
+acolo unde a fost el figurat. Analog, $Y$ este cel mai mic număr din
+intervalul său, iar numărul $Y'$ nu poate exista. De fapt, în nici unul din
+intervalele dintre cele care le cuprind pe $X$ și $Y$ nu poate exista nici un
+număr.
+
+Prin urmare, diferența maximă se poate produce numai între maximul unui
+interval și minimul imediat următor. Următorul pas în găsirea soluției
+presupune aflarea pentru fiecare din cele $N-1$ intervale (sau $N$ dacă îl
+considerăm și pe ultimul, cel care nu îl conține decât pe $V_{max}$) a
+minimului și a maximului. Și acest pas se execută în $O(N)$, deoarece
+procesarea fiecărui element din vector se reduce la numai două comparări, cu
+minimul și cu maximul intervalului în care se încadrează el. Vor rezulta doi
+vectori care în program se vor numi $Lo$ și $Hi$. Iată care sunt valorile lor
+pentru exemplul nostru:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{ccccc}
+    {\bf Intervalul}: & [2, 3) & [3, 4) & [4, 5) & [5, 6) \\
+            $Lo$: & 2 & 3,2 & $-$ & 5 \\
+            $Hi$: & 2 & 3,7 & $-$ & 5 \\
+  \end{tabular}
+\end{table}
+
+Deoarece în intervalul [4,5) nu se află elemente, rezultă că elementele
+  corespunzătoare din vectorii $Lo$ și $Hi$ trebuie să aibă o valoare specială
+  care să informeze programul asupra acestui lucru. De exemplu, sursa oferită
+  mai jos folosește următorul artificiu: inițializează vectorul $Lo$ cu valori
+  foarte mari ($V_{max} + 1$), astfel încât orice număr „repartizat” într-un
+  interval să modifice această valoare. Similar, vectorul $Hi$ este
+  inițializat cu $V_{min} - 1$. Dacă pentru un interval aceste valori se
+  păstrează până la sfârșit, putem trage concluzia că în respectivul interval
+  nu se află nici un număr.
+
+În continuare, elementele vectorilor $Lo$ și $Hi$ se amestecă formând un nou
+vector $W$ care de data aceasta este sortat. Sortarea este foarte ușoară,
+pentru că nu avem decât să așezăm numerele în ordinea $Lo[1]$, $Hi[1]$,
+$Lo[2]$, $Hi[2]$, $\dots$, $Lo[N]$, $Hi[N]$. Deși la prima vedere pare că noul
+vector rezultat are $2N$ elemente, de fapt el are numai $N$ elemente, pentru
+că:
+
+\begin{itemize}
+
+\item Dacă într-un interval $K$ există un singur număr, (cazul intervalelor
+  [2,3) și [5,6)) sau există numai numere egale, atunci $Lo[K] = Hi[K]$ și
+      este suficient să copiem în $W$ una singură dintre aceste două valori;
+
+\item Dacă într-un interval nu există nici un număr, putem să nu copiem nici o
+  valoare în vectorul $W$.
+
+\end{itemize}
+
+Astfel, construcția vectorului $W$ se poate face în timp liniar, mai exact în
+$O(2N)$. Se observă că la această construcție se poate întâmpla ca unele
+numere să „dispară”, adică să nu fie trecute în vectorul $W$. De exemplu, dacă
+între numerele 3,2 și 3,7 ar mai fi existat un număr, 3,5, el nu ar fi fost
+nici minim, nici maxim pentru intervalul său, deci nu ar fi fost
+copiat. Totuși, trierea în acest fel a elementelor nu afectează în nici un fel
+soluția. În cazul nostru, nu se întâmplă să dispară nici un element, deci $W =
+(2, 3,2, 3,7, 5)$.
+
+După ce am construit vectorul $W$, nu mai avem decât să-l parcurgem de la
+stânga la dreapta și să tipărim diferența maximă întâlnită între două numere
+consecutive (repetăm, vectorul $W$ este sortat), această ultimă etapă
+necesitând și ea un timp liniar. Nu se poate obține o complexitate inferioară
+celei liniare, întrucât citirea datelor presupune ea însăși $N$ operații.
+
+Ca un detaliu de implementare, odată ce au fost construiți vectorii $Lo$ și
+$Hi$, vectorul $V$ nu mai este necesar, deci putem construi chiar în el
+vectorul $W$, pentru a economisi memorie.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#define NMax 5000
+float V[NMax+1], Lo[NMax+1], Hi[NMax+1];
+float Delta, Max, Min;
+int N;
+
+void ReadData(void)
+/* Citeste vectorul si afla maximul si minimul */
+{ FILE *F=fopen("input.txt", "rt");
+  int i;
+
+  fscanf(F, "%d\n", &N);
+  fscanf(F, "%f", &V[1]);
+  Max=Min=V[1];
+
+  for (i=2; i<=N; i++)
+    {
+      fscanf(F, "%f", &V[i]);
+      if (V[i]>Max) Max=V[i];
+        else if (V[i]<Min) Min=V[i];
+    }
+  fclose(F);
+}
+
+void Split(void)
+{ int i, K;
+
+  Delta = (Max-Min)/(N-1);
+  /* Se initializeaza vectorii Lo si Hi */
+  for (i=0; i<=N; Lo[i]=Max+1, Hi[i++]=Min-1);
+
+  /* Se construiesc intervalele */
+  for (i=1; i<=N; i++)
+    {
+      K = (V[i]-Min)/Delta;
+      if (V[i]<Lo[K]) Lo[K]=V[i];
+      if (V[i]>Hi[K]) Hi[K]=V[i];
+    }
+}
+
+void Rebuild(void)
+/* Rescrie vectorul V, pentru a economisi memorie,
+   pastrand numai capetele intervalelor */
+{ int i, M=0;
+
+  for (i=0;i<N; i++)
+    {
+      if (Lo[i] != Max+1) V[++M]=Lo[i];
+      if (Hi[i] != Min-1 && Hi[i] != Lo[i]) V[++M]=Hi[i];
+    }
+  N=M;
+}
+
+void FindGap(void)
+/* Acum cautarea distantei maxime se face
+   secvential, vectorul fiind sortat */
+{ int i;
+  float Gap=0;
+
+  for (i=2; i<=N; i++)
+    if (V[i]-V[i-1] > Gap)
+      Gap = V[i]-V[i-1];
+  printf("Distanta maxima este %0.3f\n", Gap);
+}
+
+void main(void)
+{
+  ReadData();
+  if (Max==Min)
+    puts("0");
+  else
+    {
+      Split();
+      Rebuild();
+      FindGap();
+    }
+}
+\end{lstlisting}
