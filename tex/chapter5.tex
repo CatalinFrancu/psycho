@@ -703,28 +703,10 @@ end.
 
 De sine stătătoare, funcția euristică nu este strălucită. Totuși, ea poate fi
 lesne modificată. Se observă că, în procedura {\tt Greedy1}, instrucțiunea
-
-\begin{minted}{pascal}
-for j:=1 to N do...
-\end{minted}
-
-poate fi înlocuită cu
-
-\begin{minted}{pascal}
-for j:=N downto 1 do...
-\end{minted}
-
-, iar condiția
-
-\begin{minted}{pascal}
-(A[R[i-1],j] < Closest)
-\end{minted}
-
-cu
-
-\begin{minted}{pascal}
-(A[R[i-1],j]<=Closest)
-\end{minted}
+\mintinline{pascal}{for j:=1 to N do...} poate fi înlocuită cu
+\mintinline{pascal}{for j:=N downto 1 do...}, iar condiția
+\mintinline{pascal}{(A[R[i-1],j] < Closest)} cu
+\mintinline{pascal}{(A[R[i-1],j]<=Closest)}.
 
 Făcând toate combinațiile posibile, rezultă alte trei proceduri, {\tt
   Greedy2}, {\tt Greedy3} și {\tt Greedy4}, iar noua formă a programului

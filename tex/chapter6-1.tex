@@ -87,10 +87,23 @@ programului) și pentru a explica observațiile de mai sus, să generalizăm
 observațiile făcute pentru un $N$ oarecare.
 
 \tikzset{
-  board/.style = {matrix of nodes, ampersand replacement=\&, nodes=cell},
-  cell/.style = {rectangle, draw, minimum height=1em, minimum width=1em, font=\huge},
-  noborder/.style={column #1/.style={nodes={draw=none, font=\normalsize}}},
-  noborder/.list={5, 15},
+  board/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    nodes=cell,
+    column 5/.style=noborder,
+    column 15/.style=noborder,
+  },
+  cell/.style = {
+    rectangle,
+    draw,
+    minimum height=1em,
+    minimum width=1em,
+    font=\huge,
+  },
+  noborder/.style={
+    nodes={draw=none, font=\normalsize},
+  },
   empty/.style={text=white},
 }
 

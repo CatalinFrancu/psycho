@@ -566,23 +566,28 @@ cifră a permutării este 6, a cincea ca valoare dintre cifrele rămase, deci se
 adaugă $4 \times 6! = 2.880$. Rămân cifrele 1, 3, 4, 5, 7 și 8 etc. Se aplică
 procedeul până la ultima cifră și rezultă:
 
-\begin{tabular}{|l|l|l|}
-  \hline
-  Cifre rămase           & Permutarea & Valoarea adăugată \\ \hline
-  1, 2, 3, 4, 5, 6, 7, 8 & 2          & $1 \times 7! = 5.040$ \\
-  1, 3, 4, 5, 6, 7, 8    & 6          & $4 \times 6! = 2.880$ \\
-  1, 3, 4, 5, 7, 8       & 8          & $5 \times 5! = 600$ \\
-  1, 3, 4, 5, 7          & 4          & $2 \times 4! = 48$ \\
-  1, 3, 5, 7             & 5          & $2 \times 3! = 12$ \\
-  1, 3, 7                & 7          & $2 \times 2! = 4$ \\
-  1, 3                   & 3          & $1 \times 1! = 1$ \\
-  1                      & 1          & $0 \times 0! = 0$ \\ \hline
-                         &            & $H(p) = 8.585 $\\ \hline
-\end{tabular}
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|}
+    \hline
+    Cifre rămase           & Permutarea & Valoarea adăugată \\ \hline
+    1, 2, 3, 4, 5, 6, 7, 8 & 2          & $1 \times 7! = 5.040$ \\
+    1, 3, 4, 5, 6, 7, 8    & 6          & $4 \times 6! = 2.880$ \\
+    1, 3, 4, 5, 7, 8       & 8          & $5 \times 5! = 600$ \\
+    1, 3, 4, 5, 7          & 4          & $2 \times 4! = 48$ \\
+    1, 3, 5, 7             & 5          & $2 \times 3! = 12$ \\
+    1, 3, 7                & 7          & $2 \times 2! = 4$ \\
+    1, 3                   & 3          & $1 \times 1! = 1$ \\
+    1                      & 1          & $0 \times 0! = 0$ \\ \hline
+    \                      &            & $H(p) = 8.585 $\\ \hline
+  \end{tabular}
+\end{table}
 
 Reciproc se construiește permutarea când i se cunoaște valoarea atașată:
 
-\small{
+\begin{table}[H]
+  \centering
+  \small
   \begin{tabular}{|l|l|l|l|l|}
     \hline
     Cifre nefolosite       & $H(p)$ &                      & Cifra selectată & \\ \hline
@@ -595,7 +600,7 @@ Reciproc se construiește permutarea când i se cunoaște valoarea atașată:
     1, 3                   & 1      & $1 \bdiv 1! = 1$     & 3 & $1 \bmod 1! = 0$ \\
     1                      & 0      & $0 \bdiv 0! = 0$     & 1 & \\ \hline
   \end{tabular}
-}
+\end{table}
 
 Rezultă $p = (2, 6, 8, 4, 5, 7, 3, 1)$.
 
