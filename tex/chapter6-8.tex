@@ -1,0 +1,264 @@
+\section{Problema 8}
+
+Problema {\bf codului lui Prüfer} pentru arborii generali, mai exact cea a
+decodificării acestui cod, este genul de problemă care nu este excesiv de
+grea, dar care necesită un artificiu fără de care nu se poate ajunge la
+complexitatea optimă.
+
+{\bf ENUNȚ}: Un arbore general neorientat conex cu $N+2$ vârfuri se poate
+codifica eficient printr-un vector cu $N$ numere, astfel:
+
+\begin{itemize}
+
+\item Numerotăm nodurile de la 1 la $N+2$ într-o ordine oarecare;
+
+\item Eliminăm cea mai mică frunză (nod de grad 1) și adăugăm în vector
+  numărul nodului de care ea aparținea;
+
+\item Reluăm procedeul pentru arborele rămas: tăiem cea mai mică frunză și
+  adăugăm în vector numărul nodului de care ea aparținea;
+
+\item Repetăm procedeul până mai rămân doar două noduri.
+
+\end{itemize}
+
+Vectorul rezultat se numește codificare Prüfer a arborelui dat. Iată un
+exemplu de construcție a codului Prüfer atașat arborelui din figura de mai
+jos:
+
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    nodes=cell,
+    column sep=2em,
+    row sep=2em,
+  },
+  cell/.style={
+    draw,
+    circle,
+    minimum height=2.5em,
+  }
+]{
+  \matrix[mat] (m) {
+    3 \& 2 \& 6 \\
+    1 \& 5 \&   \\
+    7 \& 4 \&   \\
+  };
+
+  \draw (m-1-1) edge (m-2-1);
+  \draw (m-2-1) edge (m-3-1);
+  \draw (m-2-1) edge (m-2-2);
+  \draw (m-2-2) edge (m-1-2);
+  \draw (m-2-2) edge (m-3-2);
+  \draw (m-1-2) edge (m-1-3);
+}
+
+Codul lui Prüfer se obține astfel:
+
+\begin{itemize}
+
+\item Îl tăiem pe 3 și scriem 1;
+
+\item Îl tăiem pe 4 și scriem 5;
+
+\item Îl tăiem pe 6 și scriem 2;
+
+\item Îl tăiem pe 2 și scriem 5;
+
+\item Îl tăiem pe 5 și scriem 1;
+
+\end{itemize}
+
+Deci codificarea este (1, 5, 2, 5, 1) (și mai rămâne muchia 1-7, lucru care
+este evident, deoarece 1 și 7 sunt singurele noduri care nu au fost tăiate).
+
+Așadar fiecărui arbore oarecare cu $N+2$ noduri i se poate atașa un vector cu
+$N$ componente numere naturale cuprinse între 1 și $N+2$. Se poate demonstra
+că funcția definită între cele două mulțimi (mulțimea arborilor și mulțimea
+vectorilor) este bijectivă. De aici rezultă două lucruri:
+
+\begin{enumerate}
+
+\item Există $(N+2)^N$ arbori generali cu $N+2$ noduri.
+
+\item Codificarea Prüfer admite și decodificare (deoarece funcția de
+  codificare este bijectivă). Tocmai aceasta este problema de rezolvat. Se dă
+  un vector de $N$ numere întregi, fiecare cuprins între 1 și $N+2$. Se cere
+  să se tipărească cele $N+1$ muchii ale arborelui decodificat.
+
+\end{enumerate}
+
+{\bf Intrarea} se face din fișierul text {\tt INPUT.TXT} care conține două
+linii. Pe prima linie se dă $N$ ($1 \leq N \leq 10000$), pe a doua cele $N$
+numere separate prin spații.
+
+{\bf Ieșirea} se va face în fișierul text {\tt OUTPUT.TXT}. Acesta va conține
+muchiile arborelui, câte una pe linie, o muchie fiind indicată prin vârfurile
+adiacente separate printr-un spațiu.
+
+{\bf Exemplu}:
+
+\texttt{
+  \begin{tabular}{|l|l|}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        5         & 5 2 \\
+        1 5 2 5 1 & 1 3 \\
+        & 4 5 \\
+        & 7 1 \\
+        & 6 2 \\
+        & 1 5 \\
+    \hline
+  \end{tabular}
+}
+
+{\bf Timp de implementare}: 45 minute.
+
+{\bf Timp de rulare}: 2-3 secunde.
+
+{\bf Complexitate cerută}: $O(N)$.
+
+{\bf REZOLVARE}: Să pornim de la exemplul particular prezentat mai sus, urmând
+ca apoi să generalizăm algoritmul.
+
+Primim la intrare $N=5$ (deducem că arborele are 7 noduri) și codificarea (1,
+5, 2, 5, 1). Primul element din vector este 1. Știm deci că, la primul pas, a
+fost eliminată o frunză al cărei părinte este nodul 1. Întrebarea este: ce
+număr purta respectiva frunză? În nici un caz 1, deoarece numărul 1 îl avea
+tatăl ei. Nici 2, nici 5 nu ar putea fi, deoarece aceste numere apar mai
+târziu în codificare, deci „mai este nevoie” de ele și nu pot fi încă
+eliminate. Rămân 3, 4, 6 și 7. Dintre acestea noi știm că a fost tăiată cea
+mai mică {\bf frunză}. Este însă ușor de văzut că toate nodurile enumerate
+sunt frunze în arborele inițial (deoarece nu mai apar în vector, adică nici un
+alt nod nu mai este legat de ele), deci îl vom alege pe cel mai mic cu
+putință, adică pe 3. Rezultă că prima muchie tăiată a fost (1,3).
+
+Pe poziția a doua în codificare apare numărul 5. Ce număr ar putea avea frunza
+tăiată? 1 și 2 mai apar ulterior în codificare deci nu pot fi eliminate încă,
+5 este chiar tatăl frunzei necunoscute, iar 3 a fost deja eliminat. Dintre 4,
+6 și 7, frunza cu numărul cel mai mic este 4, deci următoarea muchie tăiată
+este (4,5).
+
+În continuare apare un 2. Cel mai mic nod care nu mai apare în vector și nici
+nu a fost deja eliminat este 6, deci muchia este (6,2). Se observă că mai
+departe nu mai apare nici un 2 în codificare, de unde deducem că după tăierea
+nodului 6, nodul 2 a devenit frunză și va putea fi la rândul său eliminat. Cu
+un raționament analog, următoarele muchii eliminate sunt (2,5) și (5,1), iar
+singurele noduri rămase sunt 1 și 7. Arborele a fost reconstituit corect.
+
+Deci procedeul general este: pentru fiecare număr dintre cele $N$ din vector,
+nodul care aparținea de el poartă cel mai mic număr care nu intervine ulterior
+în codificare și nu a fost tăiat deja. Astfel se generează $N$ muchii. A
+$N+1$-a muchie are drept capete ultimele noduri rămase netăiate.
+
+Acesta este algoritmul. Trebuie să ne ocupăm acum de partea de implementare.
+
+Pentru a testa la orice moment dacă un nod mai apare sau nu în vector, este
+bine să se creeze la citirea datelor un vector care să rețină numărul de
+apariții în codificare al fiecărui nod. Pentru exemplul dat, vectorul de
+apariții va fi $Apar=(2,1,0,0,2,0,0)$, semnificând că 1 și 5 apar de câte două
+ori, 2 apare o singură dată, iar 3, 4, 6 și 7 nu apar deloc. La fiecare pas,
+când se „restaurează” o muchie, se decrementează poziția corespunzătoare
+tatălui în vectorul de apariții. Un număr nu mai apare ulterior în codificare
+dacă pe poziția sa din vectorul de apariții se află un 0.
+
+Astfel, o primă versiune de program ar putea fi:
+
+\vspace{\algskip}
+\begin{algorithmic}[1]
+  \REQUIRE $N$, $V[1..N]$
+  \STATE construiește vectorul $Apar[1..N+2]$
+  \FOR{$i = 1$ la $N$}
+  \STATE caută primul $j$ pentru care $Apar[j]=0$ și $j$ nu a fost tăiat
+  \PRINT muchia $(j,V[i])$
+  \STATE $Apar[V[i]] \leftarrow Apar[V[i]]-1$
+  \STATE marchează nodul $j$ ca fiind tăiat
+  \ENDFOR
+\end{algorithmic}
+
+După cum se observă, căutarea celui mai mic nod $j$ se face în timp liniar,
+ceea ce înseamnă că algoritmul complet va necesita un timp pătratic. Pentru
+a-l reduce la o complexitate liniară, începem prin a observa că la fiecare pas
+alegem frunza cu numărul cel mai mic. Aceasta înseamnă că, în general, numărul
+frunzei alese spre a fi tăiată va crește la fiecare pas. Astfel, prima oară am
+tăiat nodul 4, apoi nodul 7. Singurul caz când va fi tăiată o frunză mai mică
+decât cea dinaintea ei este atunci când unui nod cu număr mic i se taie toate
+frunzele și devine el însuși o frunză, putănd fi tăiat. În exemplul nostru,
+nodul 2 nu putea fi eliminat de la început, deși avea un număr mic, deoarece
+mai avea atașată frunza 6. După eliminarea muchiei (6,2), nodul 2 a devenit
+frunză și a fost eliminat imediat.
+
+Putem deci păstra într-o variabilă (care în program se numește $Next$)
+următoarea frunză care care trebuie eliminată. Dacă prin decrementarea
+numărului de apariții la pasul curent nu s-a creat nici un zero în vectorul
+$Apar$, sau s-a creat un zero, dar pe o poziție $K>Next$, atunci totul este
+bine și la pasul următor se va elimina nodul $Next$. Dacă s-a creat un zero pe
+o poziție $K$ mai mică decât $Next$, rezultă că în arbore există acum două
+frunze, $K$ și $Next$, $K$ fiind mai mică, deci prioritară. Atunci la pasul
+următor se va elimina frunza de pe poziția $K$, urmând ca peste doi pași să se
+revină la frunza $Next$. Dacă prin eliminarea acestei frunze $K$ s-a creat un
+alt zero în vectorul de apariții, tot pe o poziție $K'$ mai mică decât Next,
+se va trece mai întâi la acea poziție, urmând ca după aceea să se revină la
+poziția $Next$ etc.
+
+La prima vedere, pare necesară menținerea unei stive în care să depunem
+numerele $Next, K, K'$... și să le scoatem din stivă pe măsură ce nodurile
+respective sunt eliminate. Acest lucru ar presupune în continuare un algoritm
+pătratic. Totuși nu este așa deoarece, odată ce am tăiat un nod și l-am marcat
+ca atare, putem fi siguri că nu ne vom mai intâlni cu el până la sfârșitul
+decodificării, deci nu mai este necesară stocarea lui. Există o pseudo-stivă
+care are înălțimea 2: frunza asupra căreia se operează curent și nodul care
+urmează, $Next$.
+
+În acest fel, numărul total de incrementări al variabilei $Next$ nu depășește
+$N$ (iar ea nu este niciodată decrementată), deci programul este rezolvat în
+timp liniar. Facem observația că algoritmul $O(N)$ este optim; nu poate exista
+unul mai bun deoarece există $O(N)$ muchii care trebuie tipărite.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#define NMax 10002
+typedef int Vector[NMax];
+
+Vector V,Apar;
+int N;
+
+void ReadData(void)
+{ int i;
+  FILE *InF=fopen("input.txt","rt");
+
+  fscanf(InF,"%d",&N);
+  for (i=1;i<=N+2;Apar[i++]=0);
+  for (i=1;i<=N;i++)
+    { fscanf(InF,"%d",&V[i]);
+      Apar[V[i]]++;
+    }
+  fclose(InF);
+}
+
+void Decode(void)
+{ int Current=0,Next,i;
+  FILE *OutF=fopen("output.txt","wt");
+
+  do; while (Apar[++Current]);    /* Se cauta prima frunza */
+  Next=Current;
+  for (i=1;i<=N;i++)
+    { fprintf(OutF,"%d %d\n",Current,V[i]);
+      if (Current==Next) do; while (Apar[++Next]);
+      /* Daca am ajuns la ultimul 0, mai caut unul */
+      Apar[V[i]]--;
+      Current=(V[i]<Next) && (Apar[V[i]]==0) ? V[i] : Next;
+      /* Daca exista o frunza mai mica decat Next, */
+      /* ea este prioritara, altfel revin la Next */
+    }
+  fprintf(OutF,"%d %d\n",Current,Next);
+  fclose(OutF);
+}
+
+void main(void)
+{
+  ReadData();
+  Decode();
+}
+\end{lstlisting}

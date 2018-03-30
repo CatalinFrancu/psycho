@@ -1,0 +1,291 @@
+\section{Problema 2}
+
+Problema următoare a fost propusă la a VI-a Olimpiadă Internațională de
+Informatică, Stockholm 1994. Este și ea un bun exemplu de situație în care
+putem cădea în plasa unei rezolvări „Branch and Bound” atunci când nu este
+cazul.
+
+{\bf ENUNȚ}: Se dă o configurație de $3 \times 3$ ceasuri, fiecare având un
+singur indicator care poate arăta numai punctele cardinale (adică orele 3, 6,
+9 și 12). Asupra acestor ceasuri se poate acționa în nouă moduri distincte,
+fiecare acțiune însemnând mișcarea limbilor unui anumit grup de ceasuri în
+sens orar cu 90°. În figura de mai jos se dă un exemplu de configurație
+inițială a ceasurilor și se arată care sunt cele nouă tipuri de mutări (pentru
+fiecare tip de mutare se mișcă numai ceasurile reprezentate hașurat).
+
+\newcommand\threeByThree[7]{
+  \fill[affected] (#1,#2) rectangle (#3,#4); 
+  \draw[grid] (0,0) grid (2,2);
+  \node[number] at (#5, #6) {#7};
+}
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    row sep=1em,
+    column sep=1em,
+    anchor=north,
+  },
+  grid/.style = {step=2/3,gray,very thin},
+  affected/.style = {gray!40!white},
+  number/.style = {font=\bf\large, anchor=center},
+]{
+  % clocks
+  \matrix[mat] (m) {
+    \draw (-1,0) -- (0,0) circle (1); \&
+    \draw (-1,0) -- (0,0) circle (1); \&
+    \draw (0,+1) -- (0,0) circle (1); \\
+    \draw (0,-1) -- (0,0) circle (1); \&
+    \draw (0,-1) -- (0,0) circle (1); \&
+    \draw (0,-1) -- (0,0) circle (1); \\
+    \draw (0,-1) -- (0,0) circle (1); \&
+    \draw (+1,0) -- (0,0) circle (1); \&
+    \draw (0,-1) -- (0,0) circle (1); \\
+  };
+
+  % moves
+  \matrix[mat] (l) at (8,0) {
+    %             SW corner |NE corner  |text pos |text
+    \threeByThree {0/3}{2/3} {4/3}{6/3} {1/3}{5/3} {1} \&
+    \threeByThree {0/3}{4/3} {6/3}{6/3} {3/3}{5/3} {2} \&
+    \threeByThree {2/3}{2/3} {6/3}{6/3} {5/3}{5/3} {3} \\
+    \threeByThree {0/3}{0/3} {2/3}{6/3} {1/3}{3/3} {4} \&
+    % need one extra rectangle here -- just reuse the whole command
+    \threeByThree {0/3}{2/3} {6/3}{4/3} {3/3}{3/3} {5}
+    \threeByThree {2/3}{0/3} {4/3}{6/3} {3/3}{3/3} {5} \&
+    \threeByThree {4/3}{0/3} {6/3}{6/3} {5/3}{3/3} {6} \\
+    \threeByThree {0/3}{0/3} {4/3}{4/3} {1/3}{1/3} {7} \&
+    \threeByThree {0/3}{0/3} {6/3}{2/3} {3/3}{1/3} {8} \&
+    \threeByThree {2/3}{0/3} {6/3}{4/3} {5/3}{1/3} {9} \\
+  };
+}
+
+Se cere ca, într-un număr minim de mutări, să aducem toate indicatoarele la
+ora 12.
+
+Intrarea se face din fișierul {\tt INPUT.TXT}, care conține configurația
+inițială sub forma unei matrice $3 \times 3$. Pentru fiecare ceas se specifică
+câte o cifră: 0 = ora 12, 1 = ora 3, 2 = ora 6, 3 = ora 9.
+
+Ieșirea se va face în fișierul {\tt OUTPUT.TXT} sub forma unui șir de numere
+între 1 și 9, pe un singur rând, separate prin spațiu, reprezentând șirul de
+mutări care aduc ceasurile în starea finală. Se cere o singură soluție.
+
+{\bf Exemplu}: Pentru figura de mai sus, fișierul {\tt INPUT.TXT} este
+
+\begin{verbatim}
+3 3 0
+2 2 2
+2 1 2
+\end{verbatim}
+
+iar fișierul {\tt OUTPUT.TXT} ar putea fi:
+
+\begin{verbatim}
+5 8 4 9
+\end{verbatim}
+
+{\bf Timp de implementare}: 1h - 1h 15min.
+
+{\bf Timp de rulare}: o secundă.
+
+{\bf Complexitate cerută}: $O(1)$ (timp constant).
+
+{\bf REZOLVARE}: Din câte am văzut pe la concursuri, peste jumătate din elevi
+s-ar apuca direct să implementeze o rezolvare Branch and Bound la această
+problemă, fără să-și mai bată capul prea mult. Există argumente în favoarea
+acestei inițiative:
+
+\begin{itemize}
+
+\item Mulți preferă să nu mai piardă timpul căutând o altă soluție, mai ales
+  că problema seamănă mult cu „Lampa lui Dario Uri” (care de fapt este exact
+  problema ceasurilor, dar în care ceasurile au doar două stări în loc de
+  patru). În plus, se știe că pe cazul general al unei table $N \times N$,
+  cele două probleme nu admit rezolvări polinomiale și atunci cea mai sigură
+  soluție este prin tehnica Branch and Bound.
+
+\item De asemenea, se observă că numărul total de configurații posibile pentru
+  o tablă cu 9 ceasuri este de $4^9$, adică aproximativ un sfert de milion. Un
+  algoritm Branch and Bound ar furniza așadar o soluție în timp
+  rezonabil. Raționamentul multor elevi este „decât să pierd timpul căutând o
+  soluție mai bună, fără să am certitudinea că o voi găsi, mai bine folosesc
+  timpul implementând un Branch care măcar știu sigur că merge”.
+
+\item Problema cere o soluție într-un număr minim de pași, lucru care îi cam
+  descurajează pe cei care încă ar vrea să caute alte rezolvări. „Alte
+  rezolvări” înseamnă de obicei un Greedy comod de implementat, iar asupra
+  rezolvărilor Greedy se poartă întotdeauna discuții interminabile pe
+  culoarele sălilor de concurs referitor la „cât de bune sunt” (adică în cât
+  la sută din cazuri furnizează soluția optimă).
+
+\end{itemize}
+
+Se pierd însă din vedere unele lucruri esențiale. În primul rând, tabla nu
+este de $N \times N$, ci are dimensiuni fixate, $3 \times 3$. În al doilea
+rând, implementarea unui Branch and Bound în timp de concurs este o aventură
+nu tocmai ușor de dus la bun sfârșit (personal mi-a fost frică să o încerc
+vreodată). În sfârșit, după cum se va vedea mai jos, problema șirului minim de
+transformări este o pseudo-problemă, deoarece soluția simplă este oricum
+unică.
+
+Ce se înțelege prin „soluție simplă”? Să remarcăm două lucruri:
+
+\begin{enumerate}
+
+\item Aplicarea de patru ori a aceleiași mutări nu schimbă nimic în
+  configurația ceasurilor. Într-adevăr, mutarea va afecta de fiecare dată
+  același grup de ceasuri, iar aplicarea de patru ori va roti fiecare
+  indicator cu 360°, adică îl va aduce în poziția inițială. Din acest motiv,
+  toate afirmațiile făcute în cele ce urmează vor fi valabile în algebra
+  modulo 4.
+
+\item Ordinea în care se aplică transformările nu contează.
+
+\end{enumerate}
+
+În consecință, prin „soluție simplă” se înțelege un șir de mutări ordonat
+crescător în care nici o mutare nu apare de mai mult de trei ori. Să
+demonstrăm acum că soluția simplă este unică.
+
+Fie $A \in \mathbb{M}_3(\mathbb{Z}_4)$ matricea citită de la intrare, unde
+$a_{i,j}$ arată de câte ori a fost rotit ceasul $C_{i,j}$ peste ora 12. Fie
+matricea $B \in \mathbb{M}_3(\mathbb{Z}_4), b_{i,j}=4 - a_{i,j}$. Matricea $B$
+arată de câte ori mai trebuie rotit fiecare ceas până la ora 12. O soluție
+înseamnă a efectua fiecare din cele 9 mutări de un număr de ori, $p_1, p_2,
+\dots, p_9$. Cum afectează aceste mutări ceasurile? Se poate deduce ușor:
+
+\begin{tabular}{| l | l |}
+  \hline
+  Ceasul & Tipurile de mutări care îl afectează \\ \hline
+  $C_{1,1}$ & 1, 2, 4 \\
+  $C_{1,2}$ & 1, 2, 3, 5 \\
+  $C_{1,3}$ & 2, 3, 6 \\
+  $C_{2,1}$ & 1, 4, 5, 7 \\
+  $C_{2,2}$ & 1, 3, 5, 7, 9 \\
+  $C_{2,3}$ & 3, 5, 6, 9 \\
+  $C_{3,1}$ & 4, 7, 8 \\
+  $C_{3,2}$ & 5, 7, 8, 9 \\
+  $C_{3,3}$ & 6, 8, 9 \\
+  \hline
+\end{tabular}
+
+Se obține deci un sistem de 9 ecuații cu 9 necunoscute:
+
+\begin{equation}
+  P = 
+  \begin{pmatrix}
+    p_1 + p_2 + p_4 & p_1 + p_2 + p_3 + p_5 & p_2 + p_3 + p_6 \\
+    p_1 + p_4 + p_5 + p_7 & p_1 + p_3 + p_5 + p_7 + p_9 & p_3 + p_5 + p_6 + p_9 \\
+    p_4 + p_7 + p_8 & p_5 + p_7 + p_8 + p_9 & p_6 + p_8 + p_9 \\
+  \end{pmatrix}
+  \equiv B
+\end{equation}
+
+Să presupunem că acest sistem admite două soluții $p_1, \dots, p_9$ și $q_1,
+\dots, q_9$. Atunci $P \equiv B \pmod{4}$ și $Q \equiv B \pmod{4}$, deci $P
+\equiv Q \pmod{4}$ și, prin diferite combinații liniare ale celor 9 ecuații,
+se deduce $p_1 \equiv q_1$, $p_2 \equiv q_2$, ..., $p_9 \equiv q_9 \pmod{4}$,
+adică cele două soluții sunt echivalente.
+
+Odată ce am demonstrat că soluția este unică, algoritmul de găsire a ei este
+foarte simplu: găsim o soluție oarecare, o ordonăm crescător și eliminăm orice
+grup de 4 mutări identice. Pentru a găsi o soluție oarecare, avem nevoie de
+niște mutări predefinite care să miște un singur ceas cu o singură poziție
+înainte, fără a afecta celelalte ceasuri. Aceste mutări vor fi reținute sub
+forma unui vector cu 9 componente, fiecare componentă indicând de câte ori se
+efectuează fiecare din cele 9 tipuri de mutări. Deoarece avem nevoie de 9
+asemenea mutări predefinite, câte una pentru fiecare ceas, rezultatul va fi o
+matrice predefinită. De exemplu, pentru a determina secvența de mutări care
+rotește ceasul $C_{1,1}$ cu o poziție, trebuie rezolvat sistemul
+
+\begin{equation}
+  \begin{pmatrix}
+    p_1 + p_2 + p_4 & p_1 + p_2 + p_3 + p_5 & p_2 + p_3 + p_6 \\
+    p_1 + p_4 + p_5 + p_7 & p_1 + p_3 + p_5 + p_7 + p_9 & p_3 + p_5 + p_6 + p_9 \\
+    p_4 + p_7 + p_8 & p_5 + p_7 + p_8 + p_9 & p_6 + p_8 + p_9 \\
+  \end{pmatrix}
+  \equiv
+  \begin{pmatrix}
+    1 & 0 & 0 \\
+    0 & 0 & 0 \\
+    0 & 0 & 0
+  \end{pmatrix}
+\end{equation}
+
+lucru care nu este foarte ușor, dar se poate duce la bun sfârșit în timp de
+concurs. Soluția este $p_1=3, p_2=3, p_3=3, p_4=3, p_5=3, p_6=2, p_7=3, p_8=2,
+p_9=0$, adică mutarea 1 trebuie efectuată de trei ori, mutarea 2 de trei ori
+ș.a.m.d. Se obține prima linie din matricea predefinită, $(3, 3, 3, 3, 3, 2,
+3, 2, 0)$. Mai trebuie rezolvate propriu-zis sistemele de ecuații pentru
+ceasurile $C_{1,2}$ și $C_{2,2}$, soluțiile celorlalte sisteme decurgând ușor
+prin simetrie. Soluțiile apar în textul sursă.
+
+Odată determinate aceste șiruri elementare de mutări, vom lua pe rând fiecare
+ceas, vom aplica șirul elementar corespunzător de atâtea ori cât e nevoie
+pentru a-l aduce la ora 12 și vom aduna modulo 4 toate mutările
+făcute. Vectorul sumă care rezultă este tocmai soluția noastră.
+
+Pentru exemplul din enunț, folosind constantele din programul sursă, obținem:
+
+\begin{equation}
+  B =
+  \begin{pmatrix}
+    1 & 1 & 0 \\
+    2 & 2 & 2 \\
+    2 & 3 & 2
+  \end{pmatrix}
+\end{equation}
+
+și
+
+\begin{align*}
+1 & \times (3,3,3,3,3,2,3,2,0) = & (3,3,3,3,3,2,3,2,0) & + \\
+1 & \times (2,3,2,3,2,3,1,0,1) = & (2,3,2,3,2,3,1,0,1) & \\
+0 & \times (3,3,3,2,3,3,0,2,3) = & (0,0,0,0,0,0,0,0,0) & \\
+2 & \times (2,3,1,3,2,0,2,3,1) = & (0,2,2,2,0,0,0,2,2) & \\
+2 & \times (2,3,2,3,1,3,2,3,2) = & (0,2,0,2,2,2,0,2,0) & \\
+2 & \times (1,3,2,0,2,3,1,3,2) = & (2,2,0,0,0,2,2,2,0) & \\
+2 & \times (3,2,0,3,3,2,3,3,3) = & (2,0,0,2,2,0,2,2,2) & \\
+3 & \times (1,0,1,3,2,3,2,3,2) = & (3,0,3,1,2,1,2,1,2) & \\
+2 & \times (0,2,3,2,3,3,3,3,3) = & (0,0,2,0,2,2,2,2,2) & \\
+\cline{3-3}
+  &                              & (0,0,0,1,1,0,0,1,1) &
+\end{align*}
+
+Prin urmare soluția simplă a exemplului este: 4 5 8 9.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+typedef int Matrix[9][9];
+typedef int Vector[9];
+const Matrix A=
+  {{3,3,3,3,3,2,3,2,0},  // Mutarile care misca ceasul C11
+   {2,3,2,3,2,3,1,0,1},  // .
+   {3,3,3,2,3,3,0,2,3},  // .
+   {2,3,1,3,2,0,2,3,1},  // .
+   {2,3,2,3,1,3,2,3,2},  // .
+   {1,3,2,0,2,3,1,3,2},  // .
+   {3,2,0,3,3,2,3,3,3},  // .
+   {1,0,1,3,2,3,2,3,2},  // .
+   {0,2,3,2,3,3,3,3,3}}; // Mutarile care misca ceasul C33
+
+void main(void)
+{ FILE *F=fopen("input.txt","rt");
+  Vector V={0,0,0,0,0,0,0,0,0}; // Vectorul suma
+  int i,j,k;
+
+  for (i=0;i<=8;i++)
+    { fscanf(F,"%d",&k);
+      for (j=0;j<=8;j++)
+        V[j]=(V[j]+(4-k)*A[i][j])%4;
+    }
+  fclose(F);
+
+  F=fopen("output.txt","wt");
+  for(i=0;i<=8;i++)
+    for(j=1;j<=V[i];j++)
+      fprintf(F,"%d ",i+1);
+  fclose(F);
+}
+\end{lstlisting}

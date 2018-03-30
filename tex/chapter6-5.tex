@@ -1,0 +1,344 @@
+\section{Problema 5}
+
+Această problemă a fost propusă la Olimpiada Națională de Informatică, Slatina
+1995, la clasa a XI-a. Pe atunci programarea dinamică era o tehnică de
+programare destul de puțin cunoscută de către majoritatea elevilor.
+
+{\bf ENUNȚ}: O regiune deșertică este reprezentată printr-un tablou de
+dimensiuni $M \times N$ ($1 \leq M \leq 100$, $1 \leq N \leq 100$). Elementele
+tabloului sunt numere naturale mai mici ca 255, reprezentând diferențele de
+altitudine față de nivelul mării (cota 0). Să se stabilească:
+
+a) Un traseu pentru a traversa deșertul de la nord la sud (de la linia 1 la
+linia $M$), astfel:
+
+\begin{itemize}
+
+\item Se pornește dintr-un punct al liniei 1;
+
+\item Deplasarea se poate face în una din direcțiile: E, SE, S, SV, V;
+
+\item Suma diferențelor de nivel (la urcare și la coborâre) trebuie să fie
+  minimă.
+
+\end{itemize}
+
+b) Un traseu pentru a traversa deșertul de la nord la sud în condițiile
+punctului (a), la care se adaugă condiția:
+
+\begin{itemize}
+
+\item Lungimea traseului să fie minimă.
+
+\end{itemize}
+
+{\bf Intrarea}: Fișierul de intrare {\tt INPUT.TXT} conține un singur set de
+date cu următoarea structură:
+
+\begin{tabular}{ll}
+  linia 1: & $M$ $N$ \\
+  liniile $2 \dots M + 1$: & elementele tabloului (pe linii) separate prin spații \\
+\end{tabular}
+
+{\bf Ieșirea}: Fișerul de ieșire {\tt OUTPUT.TXT} va conține rezultatele în
+următorul format:
+
+\begin{verbatim}
+(a)
+<suma diferențelor de nivel>
+TRASEU: (i_1, j_1)->(i_2, j_2)->...->(i_k, j_k)
+(b)
+<suma diferențelor de nivel> <lungime traseu>
+TRASEU: (i_1, j_1)->(i_2, j_2)->...->(i_p, j_p)
+\end{verbatim}
+
+unde $i_x$ și $j_x$ sunt linia și coloana fiecărei celule vizitate.
+
+{\bf Exemplu}:
+
+\texttt{
+  \begin{tabular}{|l|l|}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        4 4 &             (a) \\
+        10 7 2 5 &        5 \\
+        13 20 25 3 &      TRASEU: (1,3)->(2,4)->(3,3)->(3,2)->(4,1) \\
+        2 4 2 20 &        (b) \\
+        5 10 9 11 &       9 3 \\
+        &                 TRASEU: (1,3)->(2,4)->(3,3)->(4,2) \\
+    \hline
+  \end{tabular}
+}
+
+Acesta a fost enunțul original. Iată acum completările propuse și o precizare
+importantă:
+
+\begin{itemize}
+
+\item {\bf Timpul de implementare}: 45 minute - 1h (la concurs a fost cam 1h
+  30 min);
+
+\item {\bf Timpul de rulare}: 2-3 secunde;
+
+\item {\bf Complexitatea cerută}: $O(N^2)$;
+
+\item La punctul (b), condiția nou adăugată este mai puternică decât cea de la
+  punctul (a). Cu alte cuvinte, în primul rând contează lungimea drumului și
+  abia apoi, dintre toate drumurile de lungime minimă, trebuie ales cel pentru
+  care suma denivelărilor este minimă. Pentru a vă convinge că ordinea în care
+  sunt impuse condițiile este importantă, să privim exemplul de mai sus. Dacă
+  este mai importantă minimizarea sumei denivelărilor, atunci minimul este 5,
+  iar drumul este soluția de la punctul (a). Dacă este mai importantă
+  minimizarea lungimii drumului, atunci lungimea minimă este 3, iar din toate
+  drumurile de lungime 3, cel mai puțin costisitor este cel indicat la punctul
+  (b).
+
+\end{itemize}
+
+{\bf REZOLVARE}: Vom lăsa punctul (b) al acestei probleme în seama
+cititorului, întrucât el nu este altceva decât o simplificare a punctului
+(a). Să ne ocupăm acum de punctul (a). Vom numi efort diferența de altitudine
+(în modul) la deplasarea cu un pas. Scopul este deci găsirea unor drumuri de
+efort total minim. Matricea de altitudini o vom nota cu $Alt$.
+
+O primă posibilitate de abordare a problemei este „greedy”, dar aceasta nu e
+cea mai fericită alegere, chiar dacă este una comodă. Ideea de bază este
+următoarea: Încercăm să pornim din colțul de NV și să ne deplasăm la fiecare
+pas pe acea direcție pentru care efortul este minim, până ajungem la ultima
+linie. Apoi pornim din a doua coloană a primei linii și aplicăm aceeași
+tactică, apoi din a treia coloană și așa mai departe până la colțul de NE. În
+final tipărim soluția cea mai bună găsită. Iată însă un exemplu pe care
+această metodă dă greș:
+
+\begin{equation}
+  Alt =
+  \begin{pmatrix}
+    2 & 1 & 2 \\
+    10 & 1 & 10 \\
+    10 & 10 & 10
+  \end{pmatrix}
+\end{equation}
+
+Pe această matrice, algoritmul greedy va găsi traseele (1,1) $\to$ (2,2) $\to$
+(3,2) de efort total 10, (1,2) $\to$ (2,2) $\to$ (3,2) de efort total 9 și
+(3,1) $\to$ (2,2) $\to$ (3,2) de efort total 10. Așadar, rezultatul optim ar
+fi 9, ceea ce este fals deoarece alegerea traseului (1,1) $\to$ (2,1) $\to$
+(3,1) ar duce la un efort total de 8, deci mai mic.
+
+Motivul pentru care acest algoritm nu funcționează cum trebuie este că el nu
+privește în perspectivă. În cazul de mai sus, coborârea în „văile” de
+altitudine 1 era o primă mutare tentantă, dar fără nici un rezultat, deoarece
+până la urmă tot era necesară suirea la altitudinea 10. Soluția corectă este
+ca, pentru a afla efortul minim cu care se poate ajunge la o locație oarecare,
+să analizăm toate drumurile care duc la acea locație. Dacă am cunoaște efortul
+minim cu care se poate ajunge la fiecare din vecinii din E, NE, N, NV, și V ai
+unei celule, atunci putem cu ușurință, pe baza unor comparații, să deducem din
+ce parte este cel mai avantajos să venim în respectiva celulă și cu ce efort
+minim.
+
+\newcommand\EFF{\mathit{Eff}}
+
+Mai concret, vom construi o matrice cu aceleași dimensiuni ca și matricea
+$Alt$, pe care o vom denumi $\EFF$. În această matrice, $\EFF[i,j]$ reprezintă
+efortul minim necesar pentru a ajunge de pe un punct oarecare de pe linia 1 în
+celula $(i, j)$. Deducem că $\EFF[1,j] = 0, \forall 1 \leq j \leq N$. Noi
+trebuie să completăm matricea $\EFF$, apoi să căutăm minimul dintre toate
+elementele de pe linia $M$ (care este chiar efortul minim căutat) și să
+reconstituim traseul de urmat.
+
+Ca să vedem cum anume se face completarea matricei, facem mai întâi observația
+că, odată ce am ajuns pe o linie, putem fie să coborâm direct pe linia imediat
+inferioară, fie să ne deplasăm câțiva pași numai spre stânga sau numai spre
+dreapta, apoi să coborâm pe linia următoare. În orice locație $(X,Y)$ a
+matricei putem veni dinspre E, NE, N, NV, sau V. Pentru acești cinci vecini
+presupunem deja calculate eforturile minime necesare, respectiv $\EFF[X,Y+1],
+\EFF[X-1,Y+1], \EFF[X-1,Y], \EFF[X-1,Y-1], \EFF[X,Y-1]$. Atunci, în funcție de
+direcția din care venim, efortul depus până la punctul $(X,Y)$ va fi:
+
+\begin{tabular}{lll}
+  dinspre est:       & $\EFF[X,Y+1]+ |Alt[X,Y+1] - Alt[X,Y]|$     & (1) \\
+  dinspre nord-est:  & $\EFF[X-1,Y+1]+ |Alt[X-1,Y+1] - Alt[X,Y]|$ & (2) \\
+  dinspre nord:      & $\EFF[X-1,Y]+ |Alt[X-1,Y] - Alt[X,Y]|$     & (3) \\
+  dinspre nord-vest: & $\EFF[X-1,Y-1]+ |Alt[X-1,Y-1] - Alt[X,Y]|$ & (4) \\
+  dinspre vest:      & $\EFF[X,Y-1]+ |Alt[X,Y-1] - Alt[X,Y]|$     & (5) \\
+\end{tabular}
+
+În principiu, nu avem decât să calculăm minimul dintre aceste expresii ca să
+aflăm valoarea lui $\EFF[X,Y]$. În felul acesta, matricea $\EFF$ se va completa
+pe linie, de sus în jos. Totuși, apare o problemă: pentru a-l afla pe
+$\EFF[X,Y]$ avem nevoie de $\EFF[X,Y-1]$ (dacă ne deplasăm spre est), iar pentru
+a-l afla pe $\EFF[X,Y-1]$ avem nevoie de $\EFF[X,Y]$ (dacă ne deplasăm spre
+vest)! Bineînțeles, avem sentimentul că ne învârtim după propria
+coadă. Totuși, dezlegarea nu e complicată, ținând cont de observația făcută
+mai sus, că pe aceeași linie deplasarea se face într-o singură direcție. Este
+suficient să parcurgem fiecare linie de două ori: prima oară o parcurgem de la
+stânga la dreapta, în ipoteza că deplasarea pe linia respectivă se face spre
+est, apoi încă o dată de la dreapta la stânga, în ipoteza că deplasarea pe
+linia respectivă se face spre vest. La prima parcurgere, vom minimiza efortul
+pentru fiecare căsuță cu expresia (5), iar la a doua - cu expresia
+(1). Minimizarea cu expresiile (2), (3) și (4) se poate face la oricare din
+parcurgeri, deoarece elementele liniei superioare nu se mai modifică.
+
+După cum am spus, efortul minim se obține căutând minimul de pe ultima linie a
+matricei $\EFF$ (aceasta deoarece nu contează în ce punct de pe ultima linie
+este sosirea). Punctul în care se atinge acest minim este tocmai punctul de
+sosire. Reconstituirea efectivă a drumului se face în sens invers: se pleacă
+din punctul de sosire $(i_k,j_k)$ și se caută un punct vecin lui pe una din
+cele cinci direcții permise, $(i_{k-1},j_{k-1})$ astfel încât
+
+\begin{equation}
+  \EFF[i_k,j_k] = \EFF[i_{k-1},j_{k-1}] + |Alt[i_k,j_k] - Alt[i_{k-1},j_{k-1}]|
+\end{equation}
+
+Cu alte cuvinte, se testează pentru care din expresiile (1) - (5) se verifică
+egalitatea. Se reia, recursiv, același procedeu pentru locația
+$(i_{k-1},j_{k-1})$.
+
+Iată cum se completează matricea $\EFF$ pentru exemplul dat și cum se
+reconstituie drumul:
+
+\begin{equation}
+  Alt =
+  \begin{pmatrix}
+    10 &  7 &  2 &  5 \\
+    13 & 20 & 25 &  3 \\
+    2 &  4 &  2 & 20 \\
+    5 & 10 &  9 & 11
+  \end{pmatrix}
+\end{equation}
+
+\begin{equation}
+  \EFF =
+  \begin{pmatrix}
+    0 &  0 &  0 &  0 \\
+    3 & 10 & 15 &  1 \\
+    6 &  4 &  2 & 18 \\
+    5 & 10 &  9 & 11
+  \end{pmatrix}
+\end{equation}
+
+Minimul de pe linia a 4-a a matricei $\EFF$ este $\EFF[4,1]=5$, deci sosirea se
+face în colțul de SV. Din ce parte am ajuns aici? Se testează toți vecinii și
+se constată că $\EFF[4,1] = \EFF[3,2] + |Alt[4,1] - Alt[3,2]|$, deci s-a venit
+de la locația (3,2). Apoi se constată că:
+
+\begin{equation}
+  \begin{split}
+    \EFF[3,2] & = \EFF[3,3] + |Alt[3,2] - Alt[3,3]| \\
+    \EFF[3,3] & = \EFF[2,4] + |Alt[3,3] - Alt[2,4]| \\
+    \EFF[2,4] & = \EFF[1,3] + |Alt[2,4] - Alt[1,3]| \\
+  \end{split}
+\end{equation}
+
+Din aceste relații rezultă că traseul urmat este $(1,3) \to (2,4) \to (3,3)
+\to (3,2) \to (4,1)$.
+
+Pentru o mai mare ușurință a implementării, se vor adăuga două coloane fictive
+la matricea $Alt$: coloanele 0 și $N + 1$. Facem acest lucru pentru a ne putea
+referi la celula $(X,Y-1)$ atunci când $(X, Y)$ este o celulă din prima
+coloană (respectiv la celula $(X,Y+1)$ atunci când $(X,Y)$ este o celulă de pe
+ultima coloană) fără a primi un mesaj de eroare. Trebuie însă să fim atenți ca
+nu cumva noile coloane adăugate să perturbe datele de ieșire și să rezulte că
+traseul optim trece prin coloana 0 sau $N+1$. Pentru a scăpa de grija
+celulelor de pe aceste două coloane și a ne asigura că ele nu vor putea fi
+selectate pentru traseul optim, le vom atribui altitudini foarte
+mari. Deoarece diferența maximă de nivel la fiecare pas este 255, rezultă că
+efortul total maxim ce se poate obține este $255 \times 99 = 25.245$. Așadar,
+o altitudine a coloanelor laterale de 30.000 este suficientă.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <math.h>
+#define NMax 101
+#define Infinity 30000
+typedef int Matrix[NMax][NMax+1];
+
+Matrix Alt, Eff;
+int M, N;
+FILE *OutF;
+
+void ReadData(void)
+{ FILE *F=fopen("input.txt", "rt");
+  int i,j;
+
+  fscanf(F, "%d %d\n", &M, &N);
+  for (i=1; i<=M; i++)
+    for (j=1; j<=N; j++)
+      fscanf(F, "%d", &Alt[i][j]);
+  fclose(F);
+}
+
+void Optimize(int X1, int Y1, int X2, int Y2)
+/* Testeaza daca in (X1,Y1) se poate ajunge
+   cu efort mai mic dinspre (X2,Y2) */
+{
+  if (Eff[X2][Y2]+abs(Alt[X1][Y1]-Alt[X2][Y2])<Eff[X1][Y1])
+    Eff[X1][Y1]=Eff[X2][Y2]+abs(Alt[X1][Y1]-Alt[X2][Y2]);
+}
+
+void Traverse(void)
+{ int i,j;
+
+  for (j=1; j<=N;) Eff[1][j++]=0;
+  for (i=1; i<=M; i++)
+    Eff[i][0]=Eff[i][N+1]=Infinity; /* Bordeaza matricea */
+  for (i=2; i<=M; i++)
+    {
+      for (j=1; j<=N; j++)
+        {
+          Eff[i][j]=Infinity;
+          Optimize(i, j, i-1, j);       /* De la N  */
+          Optimize(i, j, i-1, j-1);     /* De la NV */
+          Optimize(i, j, i-1, j+1);     /* De la NE */
+          Optimize(i, j, i, j-1);       /* De la V  */
+        }
+      for (j=N; j; j--)
+        Optimize(i, j, i, j+1);         /* De la E  */
+    }
+}
+
+void GoBack(int X, int Y)
+/* Reconstituie drumul */
+{
+  if (X>1)
+    if (Eff[X][Y]==Eff[X][Y-1]
+                   +abs(Alt[X][Y-1]-Alt[X][Y]))
+    GoBack(X, Y-1);
+    else if (Eff[X][Y]==Eff[X-1][Y-1]
+                        +abs(Alt[X-1][Y-1]-Alt[X][Y]))
+    GoBack(X-1, Y-1);
+    else if (Eff[X][Y]==Eff[X-1][Y]
+                        +abs(Alt[X-1][Y]-Alt[X][Y]))
+    GoBack(X-1, Y);
+    else if (Eff[X][Y]==Eff[X-1][Y+1]
+                        +abs(Alt[X-1][Y+1]-Alt[X][Y]))
+    GoBack(X-1, Y+1);
+    else if (Eff[X][Y]==Eff[X][Y+1]
+                        +abs(Alt[X][Y+1]-Alt[X][Y]))
+    GoBack(X, Y+1);
+  if (X>1) fprintf(OutF, "->");
+  fprintf(OutF,"(%d,%d)", X, Y);
+}
+
+void WriteSolution(void)
+{ int j,k;
+
+  OutF=fopen("output.txt", "wt");
+  /* Cauta punctul de sosire */
+  fputs("(a)\n",OutF);
+  for (j=2, k=1; j<=N; j++)
+    if (Eff[M][j]<Eff[M][k]) k=j;
+  fprintf(OutF, "%d\n", Eff[M][k]);
+  fputs("TRASEU: ",OutF);
+  GoBack(M, k);
+  fprintf(OutF,"\n");
+  fclose(OutF);
+}
+
+void main(void)
+{
+  ReadData();
+  Traverse();
+  WriteSolution();
+}
+\end{lstlisting}

@@ -1,0 +1,624 @@
+\section{Problema 10}
+
+Această problemă a fost dată la unul din barajele pentru selecționarea lotului
+restrâns al României pentru Olimpiada Internațională din 1996.
+
+{\bf ENUNȚ}: Fie un număr prim $P$. Pe mulțimea $\{0, 1, \dots, P-1\}$ se
+definesc operațiile binare $+$, $-$, $\times$, $/$ modulo $P$, în felul
+următor:
+
+\begin{enumerate}
+
+\item $a + b \bmod P$ este restul împărțirii lui $a+b$ la $P$. Analog pentru
+  „$\times$”.
+
+\item Expresia $a-b$ este definită ca fiind soluția ecuației $b+x \equiv a
+  \pmod{P}$. Analog pentru „/”.
+
+\end{enumerate}
+
+Se știe că ecuația $b + x = a$ are întotdeauna soluție unică, iar $b \times x
+= a$ are soluție unică pentru orice $b \neq 0$. Pentru $b = 0$, operația $a/b$
+nu e definită. De exemplu, dacă $P=11$, atunci $6+7=2$, $6-7=10$, $6 \times
+7=9$, $6/7=4$. Se știe că adunarea și înmulțirea modulo $P$ sunt comutative,
+asociative, posedă elemente neutre (pe 0, respectiv pe 1), iar adunarea este
+distributivă față de înmulțire. În plus, pentru orice $a$ există $b$ astfel
+încât $a+b=0$; notând $b$ cu ($-a$) avem $c-a=c+(-a)=c+b$ pentru orice $c$. De
+asemenea, pentru orice $a \neq 0$ există $b$ astfel încât $a \times b = 1$;
+notând $b$ cu $(1/a)$ avem că $c/a=c \times (1/a)=c \times b$.
+
+Dându-se un număr prim $P$, un întreg $D$ între 0 și $P-1$ și un șir de $N$
+numere, cuprinse fiecare între 0 și $P-1$, se cere să se introducă între
+elementele șirului operatorii $+$, $-$, $\times$, $/$ și parantezele
+corespunzătoare, astfel încât să se obțină o expresie corectă a cărei valoare
+să fie $D$ (lucrând în aritmetica modulo $P$). În caz că acest lucru nu este
+posibil, se va afișa un mesaj corespunzător.
+
+{\bf Intrarea}: Fișierul {\tt INPUT.TXT} conține două linii:
+
+\begin{itemize}
+
+\item pe prima linie se găsesc trei numere întregi: $P$, $N$ și $D$, separate
+  prin spații ($2 \leq P \leq 23$, $P$ prim, $1 \leq N \leq 30$, $0 \leq D
+  \leq P-1$);
+
+\item pe următoarea linie se găsește șirul de numere ce formează expresia ($N$
+  numere întregi cuprinse între 0 și $P-1$).
+
+\end{itemize}
+
+{\bf Ieșirea}: Fișierul text {\tt OUTPUT.TXT} va conține o singură linie pe
+care se va găsi expresia generată sau mesajul „Nu există soluție.”. Expresia
+va fi parantezată complet (fiecare operator va avea o pereche de paranteze
+atașate).
+
+{\bf Exemple}:
+
+\texttt{
+  \begin{tabular}{|l|l|}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        11 3 6 & (4+(7/9)) \\
+        4 7 9  &           \\ \hline
+        11 3 7 & Nu exista solutie. \\
+        1 1 1  &           \\
+        \hline
+  \end{tabular}
+}
+
+{\bf Timp de execuție} pentru un test: 1 minut.
+
+Modificările și completările propuse de autor sunt:
+
+\begin{itemize}
+
+\item {\bf Timp de execuție}: 10 secunde
+
+\item {\bf Timp de implementare}: 1h 30 minute, maxim 1h 45 minute.
+
+\item {\bf Complexitate cerută}: $O(N^3 \times P^2)$.
+
+\end{itemize}
+
+{\bf REZOLVARE}: Problema în sine nu este foarte complicată. Ea face apel la
+programarea dinamică, dar este foarte asemănătoare cu una din problemele bine
+cunoscute de elevi - înmulțirea optimă a unui șir de matrice. Ceea ce o face
+mai „provocatoare” este timpul alocat implementării. De fapt, la respectiva
+probă au fost propuse trei probleme, cam de același nivel de dificultate, iar
+timpul total permis a fost de 4 ore. De asemenea, structurile de date impuse
+și modul de utilizare a lor sunt mai rar întâlnite.
+
+Ideea de la care se pornește în rezolvarea acestei probleme este următoarea:
+Parantezarea și completarea cu operatori a unui șir de $N$ numere, $V=(V(1),
+V(2), \dots, V(N))$, astfel încât să se obțină rezultatul $D$ este posibilă
+dacă și numai dacă există două valori $D_1$ și $D_2$, un număr întreg $K$
+cuprins între 1 și $N-1$ și un operator $\oplus \in \{ +, -, \times, / \}$
+astfel încât următoarele condiții să fie îndeplinite simultan:
+
+\begin{enumerate}
+
+\item Este posibilă parantezarea și completarea cu operatori a șirului $V' =
+  (V(1),$ $V(2), \dots, V(K))$ astfel încât să se obțină rezultatul $D_1$;
+
+\item Este posibilă parantezarea și completarea cu operatori a șirului
+  $V''=(V(K+1), V(K+2), \dots, V(N))$ astfel încât să se obțină rezultatul
+  $D_2$;
+
+\item $D_1 \oplus D_2 = D$
+
+\end{enumerate}
+
+Cu alte cuvinte, trebuie să găsim un loc în care să „spargem” expresia noastră
+în așa fel încât, luând două valori care se pot obține pentru partea din
+stânga, respectiv din dreapta, și inserând între ele operatorul potrivit, să
+obținem valoarea $D$.
+
+Pentru aflarea operatorului, a locului de împărțire a expresiei în două și a
+celor două valori necesare, ar fi de ajuns patru instrucțiuni repetitive {\tt
+  for}. Totuși, rămâne o singură întrebare: cum se poate verifica dacă se
+poate sau nu obține valoarea $D_1$ pentru subexpresia din stânga, respectiv
+valoarea $D_2$ pentru subexpresia din dreapta? Aceasta este o subproblemă
+similară cu problema în sine, dar redusă la dimensiuni mai mici. O abordare
+directă ar fi comodă: se scrie o procedură care efectuează cele patru
+instrucțiuni for și, pentru fiecare combinație posibilă de operatori și
+operanzi, se reapelează recursiv ca să afle dacă valorile operanzilor se pot
+obține. Totuși, este intuitiv că această variantă va avea o complexitate
+uriașă, care o face inutilizabilă.
+
+Motivul principal al nerentabilității acestei implementări este că ea reface
+de nenumărate ori exact aceleași calcule. Spre exemplu, dacă $N=4$, programul
+va încerca să spargă vectorul $(V(1), V(2), V(3), V(4))$ în două părți. Există
+trei moduri posibile:
+
+\begin{enumerate}[label=(\alph*)]
+
+\item $(V(1))$ și $(V(2), V(3), V(4))$;
+
+\item $(V(1), V(2))$ și $(V(3), V(4))$;
+
+\item $(V(1), V(2), V(3))$ și $(V(4))$;
+
+\end{enumerate}
+
+Pentru a studia cazul ({\bf c}), expresia stângă va trebui la rândul ei ruptă
+în două bucăți, lucru care poate fi făcut în două moduri:
+
+\begin{enumerate}[label=(\alph*)]
+  \setcounter{enumi}{3}
+
+\item $(V(1))$ și $(V(2), V(3))$;
+
+\item $(V(1), V(2))$ și $(V(3))$;
+
+\end{enumerate}
+
+Se observă că deja secvența $(V(1), V(2))$ a fost studiată de două ori (în
+cazurile ({\bf b}) și ({\bf e})), iar secvența $(V(1))$ tot de două ori (în
+cazurile ({\bf a}) și ({\bf d})). Exemplele pot continua. Dacă însă am reuși
+să nu mai evaluăm de două ori aceeași secvență, complexitatea programului s-ar
+reduce foarte mult. Pentru aceasta, trebuie să pornim cu secvențe foarte
+scurte (întâi cele de un singur număr, apoi cele de două numere), și să trecem
+la secvențe mai lungi, bazându-ne pe faptul că secvențele mai lungi se
+descompun în secvențe mai scurte care au fost deja analizate. Facem mențiunea
+că o secvență cu un singur număr poate fi parantezată într-un singur fel
+(practic nu este nevoie de paranteze și operatori) și poate produce un singur
+rezultat, egal cu valoarea numărului. O secvență de două numere poate produce
+maximum patru rezultate distincte, prin folosirea pe rând a celor patru
+operatori disponibili.
+
+Pentru a stoca rezultatele obținute, vom folosi o matrice tridimensională $A$
+de dimensiuni $N \times N \times P$. $A[i,j,r]$ indică dacă există vreo
+parantezare corespunzătoare a secvenței $(V(i), V(i+1), \dots, V(j))$ astfel
+încât să se obțină rezultatul $r$. Dacă o asemenea parantezare există,
+$A[i,j,r]$ va indica punctul în care trebuie spartă în două expresia
+(printr-un număr între $i$ și $j-1$). Dacă nu există o asemenea parantezare,
+$A[i,j,r]$ va lua o valoare specială (0 de exemplu).
+
+De aici decurge modul de inițializare al matricei:
+
+\begin{equation}
+  \begin{cases}
+    A[i,i,V(i)] = i, & \quad \forall 1 \leq i \leq N \\
+
+    A[i,j,r] = 0, & \quad \text{pentru orice alte valori ale lui } i, j \text{
+      și } r
+  \end{cases}
+\end{equation}
+
+Matricea se va completa pe diagonală, începând de la diagonala principală și
+terminând în colțul de NE. Pentru a afla toate valorile care se pot obține
+prin parantezarea secvenței $(V(i), V(i+1), \dots, V(j))$, se va împărți
+această expresie în două părți disjuncte, în toate modurile posibile: $(V(i))$
+și $(V(i+1), \dots, V(j))$, apoi $(V(i), V(i+1))$ și $(V(i+2), \dots, V(j))$
+și așa mai departe până la $(V(i), V(i+1), \dots, V(j-1))$ și
+$(V(j))$. Fiecăreia din părțile obținute îi va corespunde în matrice un
+element de forma $A[i,k]$ sau $A[k+1,j]$, cu $i \leq k < j$. În orice caz,
+toate elementele de această formă se vor afla în matrice dedesubtul diagonalei
+din care face parte elementul $A[i,j]$, deci pentru secvențele respective se
+cunosc deja toate valorile pe care le pot lua prin parantezare și introducerea
+operatorilor. Tot ce avem de făcut este să combinăm în toate modurile aceste
+valori prin inserarea fiecăruia din cei patru operatori pentru a obține toate
+valorile posibile ale expresiei $(V(i), V(i+1), \dots, V(j))$.
+
+Dacă în final $A[1,N,D] \neq 0$, atunci problema are soluție. Vom vedea
+imediat și cum se reconstituie ea. Iată modul de compunere a matricei pentru
+exemplul din enunț (cu deosebirea că, în figurile de mai jos, $A[i,j]$ nu mai
+este un vector cu $P$ elemente, ci o mulțime de valori între 0 și $P-1$,
+această reprezentare fiind mai comodă):
+
+\begin{equation}
+  A[1,1] = \{4\} \quad A[2,2] = \{7\} \quad A[3,3] = \{9\}
+\end{equation}
+
+\begin{equation}
+  A =
+  \begin{pmatrix}
+    \{4\} & ? & ? \\
+    ? & \{7\} & ? \\
+    ? & ? & \{9\}
+  \end{pmatrix}
+\end{equation}
+
+Între numerele 4 și 7 plasăm cei patru operatori și obținem:
+
+\begin{align*}
+  4 + 7 & \equiv 0 \pmod{11} \\
+  4 - 7 & \equiv 4 + 4 \equiv 8 \pmod{11} \\
+  4 \times 7 & \equiv 6 \pmod{11} \\
+  4\ /\ 7 & \equiv 4 \times 8 \equiv 10 \pmod{11} \\
+  A[1,2] & = \{0, 6, 8, 10\}
+\end{align*}
+
+Analog se procedează pentru numerele 7 și 9:
+
+\begin{align*}
+  7 + 9 & \equiv 5 \pmod{11} \\
+  7 - 9 & \equiv 7 + 2 \equiv 9 \pmod{11} \\
+  7 \times 9 & \equiv 8 \pmod{11} \\
+  7\ /\ 9 & \equiv 7 \times 5 \equiv 2 \pmod{11} \\
+  A[2,3] & = \{2, 5, 8, 9\}
+\end{align*}
+
+\begin{equation}
+  A =
+  \begin{pmatrix}
+    \{4\} & \{0, 6, 8, 10\} & ? \\
+    ? & \{7\} & \{2, 5, 8, 9\} \\
+    ? & ? & \{9\}
+  \end{pmatrix}
+\end{equation}
+
+Pentru a calcula $A[1,3]$, putem grupa termenii în două moduri: Fie primul
+separat și ultimii doi separat, fie primii doi separat și ultimul separat. În
+primul caz, ultimii doi termeni - după cum s-a văzut - pot produce patru
+rezultate distincte (2, 5, 8 și 9). Combinând oricare din aceste rezultate cu
+primul termen (4) și adăugând orice operator, vor rezulta 16 valori posibile,
+din care evident unele vor coincide. Analog se procedează și pentru celălalt
+caz:
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{l@{\hspace{1in}}l}
+    \hline
+    Cazul I & Cazul II \\ \hline
+    {$\begin{aligned}
+        4 + 2 & \equiv 6 \pmod{11} \\
+        4 - 2 & \equiv 2 \pmod{11} \\
+        4 \times 2 & \equiv 8 \pmod{11} \\
+        4\ /\ 2 & \equiv 2 \pmod{11} \\
+      \end{aligned}$}
+    &
+    {$\begin{aligned}
+        0 + 9 & \equiv 9 \pmod{11} \\
+        0 - 9 & \equiv 2 \pmod{11} \\
+        0 \times 9 & \equiv 0 \pmod{11} \\
+        0\ /\ 9 & \equiv 0 \pmod{11} \\
+      \end{aligned}$}
+    \\ \hline
+    {$\begin{aligned}
+        4 + 5 & \equiv 9 \pmod{11} \\
+        4 - 5 & \equiv 10 \pmod{11} \\
+        4 \times 5 & \equiv 9 \pmod{11} \\
+        4\ /\ 5 & \equiv 3 \pmod{11} \\
+      \end{aligned}$}
+    &
+    {$\begin{aligned}
+        6 + 9 & \equiv 4 \pmod{11} \\
+        6 - 9 & \equiv 8 \pmod{11} \\
+        6 \times 9 & \equiv 10 \pmod{11} \\
+        6\ /\ 9 & \equiv 8 \pmod{11} \\
+      \end{aligned}$}
+    \\ \hline
+    {$\begin{aligned}
+        4 + 8 & \equiv 1 \pmod{11} \\
+        4 - 8 & \equiv 7 \pmod{11} \\
+        4 \times 8 & \equiv 10 \pmod{11} \\
+        4\ /\ 8 & \equiv 6 \pmod{11} \\
+      \end{aligned}$}
+    &
+    {$\begin{aligned}
+        8 + 9 & \equiv 6 \pmod{11} \\
+        8 - 9 & \equiv 10 \pmod{11} \\
+        8 \times 9 & \equiv 6 \pmod{11} \\
+        8\ /\ 9 & \equiv 7 \pmod{11} \\
+      \end{aligned}$}
+    \\ \hline
+    {$\begin{aligned}
+        4 + 9 & \equiv 2 \pmod{11} \\
+        4 - 9 & \equiv 6 \pmod{11} \\
+        4 \times 9 & \equiv 3 \pmod{11} \\
+        4\ /\ 9 & \equiv 9 \pmod{11} \\
+      \end{aligned}$}
+    &
+    {$\begin{aligned}
+        10 + 9 & \equiv 8 \pmod{11} \\
+        10 - 9 & \equiv 1 \pmod{11} \\
+        10 \times 9 & \equiv 2 \pmod{11} \\
+        10\ /\ 9 & \equiv 6 \pmod{11} \\
+      \end{aligned}$}
+    \\ \hline
+  \end{tabular}
+\end{table}
+
+\begin{align*}
+  A[1,3] = \{0, 1, 2, 3, 4, 6, 7, 8, 9, 10\}
+\end{align*}
+
+\begin{equation}
+  A =
+  \begin{pmatrix}
+    \{4\} & \{0, 6, 8, 10\} & \{0 \dots 4, 6 \dots 10\} \\
+    ? & \{7\} & \{2, 5, 8, 9\} \\
+    ? & ? & \{9\}
+  \end{pmatrix}
+\end{equation}
+
+Se observă că singura valoare care nu se poate obține prin parantezarea
+șirului (4, 7, 9) este 5. Să vedem acum și care este metoda de reconstituire a
+soluției. Fie $A[1,N,D]=X$. Dacă $X=0$, atunci nu există soluție. Dacă $X \neq
+0$, atunci $X$ indică poziția din vector după care trebuie inserat semnul. Nu
+se indică însă ce semn trebuie inserat, nici care sunt valorile care trebuie
+obținute pentru partea stângă, respectiv dreaptă. De aceea, vom căuta o
+combinație oarecare de valori $D_1$ și $D_2$ care se pot obține și un operator
+oarecare astfel încât $D_1 \oplus D_2 = D$. Odată ce le găsim, vom căuta, prin
+aceeași metodă, o modalitate de a obține valoarea $D_1$ în partea stângă a
+vectorului (știm sigur că această modalitate există) și o modalitate de a
+obține valoarea $D_2$ în partea dreaptă a vectorului.
+
+Iată în continuare câteva detalii de implementare. Pentru efectuarea
+operațiilor matematice modulo $P$ s-a scris o funcție separată, $Expr$, care
+primește două numere $X$ și $Y$ între 0 și $P-1$ și un număr $Op$ între 1 și 4
+reprezentând codificarea operatorului și întoarce un număr între 0 și $P$,
+reprezentând valoarea operației ($X\,Op\,Y$). De fapt, ar trebui ca această
+funcție să întoarcă un număr între 0 și $P-1$ dacă operația este posibilă și
+să nu întoarcă nimic dacă operația este imposibilă, respectiv dacă se încearcă
+o împărțire la 0. Cum acest lucru nu este posibil în Pascal, am asimilat
+valoarea $P$ cu un cod de eroare, iar funcția va întoarce această valoare
+(care nu poate fi atinsă prin operații obișnuite) în cazul unei împărțiri prin
+0. Mai departe, pentru a nu face un test separat dacă rezultatul funcției
+reprezintă o adresă valabilă în cea de-a treia dimensiune a tabloului, am
+preferat să supradimensionăm tabloul cu o unitate și să ignorăm tot ceea ce se
+scrie în coloana $P$.
+
+Să ne ocupăm acum de operațiile aritmetice. Adunarea, scăderea și înmulțirea
+se fac în timp constant. O problemă apare în cazul împărțirii, deoarece ea nu
+mai seamănă deloc cu cea învățată pe mulțimea $\mathbb{R}$. Pentru a calcula
+$X/Y$, trebuie găsit acel număr $Z$ care, înmulțit cu $Y$, să dea $X$. Acest
+lucru se poate face într-o primă fază prin căutare secvențială (se încearcă
+valoarea 0, apoi 1, apoi 2 și așa mai departe; trebuie să existe un cât
+deoarece $P$ este prim). Tehnica are însă influențe neplăcute asupra
+complexității, supărătoare asupra timpului de rulare și dezastruoase asupra
+punctajului obținut. De aceea, este bine ca, în măsura în care timpul o
+permite, să se construiască o tabelă predefinită de calculare a
+inverșilor. Atunci, în loc să se efectueze împărțirea $X/Y$, se efectuează
+înmulțirea $X \times Y^{-1}$. Inversul unui element depinde și de modulul
+ales. Programul care urmează construiește un tabel care a fost importat în
+programul sursă ca o constantă, matricea {\tt Invers} ({\tt Invers[A,B]} este
+inversul lui $B$ modulo $A$). Liniile corespunzătoare unor numere neprime au
+fost totuși inserate, pentru ușurința implementării.
+
+\begin{lstlisting}[language=Pascal]
+program Invert;
+const NMax=30;
+      PMax=23;
+var i,P:Integer;
+
+function Invers(P,K:Integer):Integer;
+var i:Integer;
+begin
+  i:=0;
+  repeat Inc(i) until (K*i) mod P=1;
+  Invers:=i;
+end;
+
+begin
+  Assign(Output,'invers.txt');Rewrite(Output);
+  for P:=2 to PMax do
+    begin
+      Write('{',P:2,'} (');
+      for i:=1 to NMax do
+        begin
+          if (P in [2,3,5,7,11,13,17,19,23]) and (i<P)
+            then Write(Invers(P,i):2)
+            else Write(99);
+          if i<>NMax then Write(',');
+          if i=NMax div 2 then Write(#13#10'      ');
+        end;
+      WriteLn('),');
+    end;
+  Close(Output);
+end.
+\end{lstlisting}
+
+Să analizăm în sfârșit complexitatea: Trebuie completată o matrice, deci
+$O(N^2)$ elemente. Pentru fiecare element din matrice, secvența
+corespunzătoare din vector trebuie spartă în două în toate modurile posibile,
+deci încă $O(N)$. Pentru fiecare descompunere, trebuie combinate în toate
+felurile toate valorile disponibile pentru partea stângă, respectiv
+dreaptă. Cum numărul de valori este $O(P)$, rezultă o complexitate de
+$O(P^2)$. Înmulțind toți acești factori rezultă o complexitate totală de
+$O(N^3 \times P^2)$. Dacă nu am fi făcut împărțirea a două numere modulo P în
+timp constant, ci în $O(P)$, atunci complexitatea totală ar fi fost $O(N^3
+\times P^3)$, deci timpul de rulare putea fi și de 20 de ori mai mare.
+
+Programul de mai jos pare îngrozitor de lung, dar, dacă avem în vedere faptul
+că o bună bucată o reprezintă constanta {\tt Invers}, care este generată,
+putem avea speranțe să-l scriem în timpul alocat.
+
+\begin{lstlisting}[language=Pascal]
+program ParaNT;
+{$B-,I-,R-,S-}
+const NMax=30;
+      PMax=23;
+      NoWay=0;
+      OpNames:String[4]='+-*/';
+      Invers:array[2..PMax,1..NMax] of Integer=
+{ 2}(( 1,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{ 3} ( 1, 2,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{ 4} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{ 5} ( 1, 3, 2, 4,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{ 6} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{ 7} ( 1, 4, 5, 2, 3, 6,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{ 8} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{ 9} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{10} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{11} ( 1, 6, 4, 3, 9, 2, 8, 7, 5,10,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{12} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{13} ( 1, 7, 9,10, 8,11, 2, 5, 3, 4, 6,12,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{14} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{15} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{16} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{17} ( 1, 9, 6,13, 7, 3, 5,15, 2,12,14,10, 4,11, 8,
+      16,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{18} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{19} ( 1,10,13, 5, 4,16,11,12,17, 2, 7, 8, 3,15,14,
+       6, 9,18,99,99,99,99,99,99,99,99,99,99,99,99),
+{20} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{21} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{22} (99,99,99,99,99,99,99,99,99,99,99,99,99,99,99,
+      99,99,99,99,99,99,99,99,99,99,99,99,99,99,99),
+{23} ( 1,12, 8, 6,14, 4,10, 3,18, 7,21, 2,16, 5,20,
+      13,19, 9,17,15,11,22,99,99,99,99,99,99,99,99));
+
+type Matrix=array[1..NMax, 1..NMax, 0..PMax] of Integer;
+       { S-a inclus si valoarea PMax, care nu poate fi
+         atinsa, pentru a se depozita "deseurile" }
+     Vector=array[1..NMax] of Integer;
+var A:Matrix;       { Matricea de calcul }
+    V:Vector;       { Numerele }
+    N,P,D:Integer;
+
+procedure ReadData;
+var i:Integer;
+begin
+  Assign(Input,'input.txt');Reset(Input);
+  ReadLn(P,N,D);
+  for i:=1 to N do Read(V[i]);
+  Close(Input);
+end;
+
+function Expr(X,Y,Op:Integer):Integer;
+{ Calculeaza expresia (X Op Y) unde Op=1 ('+'),
+  Op=2 ('-'), Op=3 ('*'), Op=4 ('/'). Daca Op=4
+  si Y=0 se returneaza valoarea P (care nu poate
+  fi atinsa prin alte operatii corecte). }
+begin
+  case Op of
+    1:Expr:=(X+Y) mod P;
+    2:Expr:=(X+P-Y) mod P;
+    3:Expr:=(X*Y) mod P;
+    4:if Y=0 then Expr:=P  { = imposibil }
+             else Expr:=(X*Invers[P,Y]) mod P
+      { S-a creat o tabela predefinita de inversi,
+        deoarece altfel impartirea se efectua numai
+        in O(P) }
+  end; {case}
+end;
+
+procedure Combine(i,j,k:Integer);
+{ Urmeaza a se combina toate valorile posibile
+  pentru A[i,k] si A[k+1,j] pentru a se afla
+  toate valorile posibile pentru A[i,j] }
+var p1,p2,Op:Integer;
+begin
+  for p1:=0 to P-1 do
+    if A[i,k,p1]<>NoWay
+      then for p2:=0 to P-1 do
+             if A[k+1,j,p2]<>NoWay
+               then { Am gasit doua valori posibile
+                      si aplicam cei patru operatori }
+                    for Op:=1 to 4 do
+                      A[i,j,Expr(p1,p2,Op)]:=k;
+end;
+
+procedure ComposeMatrix;
+var i,j,k,l:Integer;
+begin
+  { Initializarea matricei }
+  for i:=1 to N do
+    for j:=1 to N do
+      for k:=0 to P-1 do A[i,j,P]:=NoWay;
+
+  for i:=1 to N do
+    A[i,i,V[i]]:=1; { sau orice <> NoWay }
+
+  for l:=2 to N do { Lungimea intervalelor }
+    for i:=1 to N-l+1 do
+      begin
+        j:=i+l-1; { S-au fixat [i,j] capetele intervalului }
+        for k:=i to j-1 do { Se alege locul de impartire }
+          Combine(i,j,k);
+      end;
+end;
+
+procedure SeekValues(Lo,Hi,Mid,Value:Integer;
+                     var v1,v2:Integer; var Op:Char);
+{ Se stie unde e "sparta" expresia in doua; se cauta
+  valorile care trebuie obtinute pentru partea stanga,
+  respectiv dreapta, si pentru operator }
+var i,j,k:Integer;
+begin
+  for i:=0 to P-1 do
+    if A[Lo,Mid,i]<>NoWay
+      then for j:=0 to P-1 do
+             if A[Mid+1,Hi,j]<>NoWay
+               then for k:=1 to 4 do
+                      if Expr(i,j,k)=Value
+                        then begin
+                               v1:=i;
+                               v2:=j;
+                               Op:=OpNames[k];
+                               Exit;
+                             end;
+end;
+
+procedure WriteExpression(Lo,Hi,Value:Integer);
+var v1,v2,Place:Integer;
+    Op:Char;
+begin
+  if Lo=Hi
+    then Write(V[Lo])
+    else begin
+           Place:=A[Lo,Hi,Value];
+           SeekValues(Lo,Hi,Place,Value,v1,v2,Op);
+           Write('(');
+           WriteExpression(Lo,Place,v1);
+           Write(Op);
+           WriteExpression(Place+1,Hi,v2);
+           Write(')');
+         end;
+end;
+
+procedure WriteSolution;
+begin
+  Assign(Output,'output.txt');Rewrite(Output);
+  if A[1,N,D]=NoWay
+    then Write('Nu exista solutie')
+    else WriteExpression(1,N,D);
+  WriteLn;
+  Close(Output);
+end;
+
+begin
+  ReadData;
+  ComposeMatrix;
+  WriteSolution;
+end.
+\end{lstlisting}
+
+O posibilă îmbunătățire a programului de sus ar fi să reținem în $A[i,j,r]$ nu
+numai locul unde se face secționarea expresiei, ci și operatorul introdus și
+eventual și valorile care trebuie obținute pe partea stângă, respectiv
+dreaptă. Totuși, volumul de date ar fi crescut corespunzător și ar fi devenit
+greu de manipulat. În schimb, în versiunea prezentă, programul merge puțin mai
+lent, dar nesesizabil. Să vedem de ce. Complexitatea reconstituirii expresiei
+în sine se află astfel: avem de reconstituit $O(N)$ operatori. Pentru fiecare
+din ei, trebuie să căutăm valorile stângă și dreaptă și operatorul în sine,
+deci $O(4 \times P^2)$. Complexitatea totală a reconstituirii datelor este
+$O(N \times P^2)$, adică oricum mult mai mică față de cea a compunerii
+matricei. Este preferabil să nu complicăm structurile de date și codul scris,
+mai ales că diferența ca timp de rulare este infimă.
+
+Propunem ca temă cititorului o versiune a acestei probleme, în care nu se va
+mai lucra în inelul $\mathbb{Z}_P$, ci într-un grup cu elementele $a, b, c, d,
+\dots,$ pentru care se cunoaște tabela de compoziție. În acest caz avem un
+singur operator $\oplus$, iar cerința este să se parantezeze expresia $x_1
+\oplus x_2 \oplus \cdots \oplus x_k$ astfel încât rezultatul să fie $y$.

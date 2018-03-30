@@ -1,0 +1,261 @@
+\section{Problema 11}
+
+Problema celui mai lung prefix a fost dată la a VIII-a Olimpiadă
+Internațională de Informatică, Veszprem 1996. Iată enunțul nemodificat al
+problemei:
+
+{\bf ENUNȚ}: Structura unor compuși biologici este reprezentată prin
+succesiunea constituenților lor. Acești constituenți sunt notați cu litere
+mari. Biologii sunt interesați să descompună o secvență lungă în altele mai
+scurte, numite primitive. Spunem că o secvență $S$ poate fi compusă dintr-un
+set de primitive $P$ dacă există $N$ primitive $p_1, \dots, p_N$ în $P$ astfel
+încât concatenarea $p_1 p_2 \dots p_N$ a primitivelor să fie egală cu
+$S$. Aceeași primitivă poate interveni de mai multe ori în concatenare și nu
+trebuie neapărat ca toate primitivele să fie prezente.
+
+Primele $M$ caractere din $S$ se numesc prefixul lui $S$ de lungime
+$M$. Scrieți un program care primește la intrare un set de primitive $P$ și o
+secvență de constituenți $T$. Programul trebuie sa afle lungimea celui mai
+lung prefix al lui $T$ care se poate compune din primitive din $P$.
+
+{\bf Datele de intrare} apar în două fișiere. Fișierul {\tt INPUT.TXT} descrie
+setul de primitive $P$, iar fișierul {\tt DATA.TXT} conține secvența de
+examinat. Pe prima linie din {\tt INPUT.TXT} se află $N$, numărul de primitive
+din $P$ ($1 \leq N \leq 100$). Fiecare primitivă se dă pe două linii
+consecutive: pe prima lungimea $L$ a primitivei ($1 \leq L \leq 20$), iar pe a
+doua un șir de litere mari de lungime $L$. Toate cele $N$ primitive sunt
+distincte.
+
+Fiecare linie din fișierul {\tt DATA.TXT} conține o literă mare pe prima
+poziție. El se termină cu o linie conținând un punct („.”). Lungimea secvenței
+este cuprinsă între 1 si 500.000.
+
+{\bf Ieșirea}: Pe ecran se va tipări lungimea celui mai lung prefix din $T$
+care poate fi compus din primitive din $P$.
+
+{\bf Exemplu}:
+
+\texttt{
+  \begin{tabular}{|l|l|}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        5   & A \\
+        1   & B \\
+        A   & A \\
+        2   & B \\
+        AB  & A \\
+        3   & C \\
+        BBC & A \\
+        2   & B \\
+        CA  & A \\
+        2   & A \\
+        BA  & B \\
+        \   & C \\
+        \   & B \\
+        \   & . \\
+        \hline
+  \end{tabular}
+}
+
+Pe ecran se va tipări numărul 11.
+
+{\bf Timp de rulare}: 30 secunde pentru un test.
+
+{\bf Timp de implementare}: 1h.
+
+{\bf Complexitate cerută}: $O(S \times L \times N)$, unde $S$ este lungimea
+secvenței.
+
+{\bf REZOLVARE}: Menționăm de la început că datele problemei sunt
+supradimensionate. Nici unul din cele zece teste cu care au fost verificate
+programele nu a depășit în realitate 12 primitive. În schimb, fișierul {\tt
+  DATA.TXT} a fost unic pentru toate testele și a conținut o secvență de
+lungime 500.000.
+
+Problema se rezolvă și în acest caz prin reducerea ei la una similară, dar cu
+date de intrare mai mici. Respectiv, un prefix $S$ al lui $T$ se poate
+descompune în primitive dacă există o primitivă $p_i$ astfel încât $S=S'+p_i$
+și $S'$ se poate descompune în primitive. Am redus împărțirea în primitive a
+lui $S$ la despărțirea în primitive a lui $S'$, care are o lungime mai mică
+decât $S$. O primă modalitate, pur teoretică, de a rezolva problema, este să
+reținem toate prefixele lui $T$ care se pot descompune în primitive; în felul
+acesta, putem studia prefixe din ce în ce mai lungi, bazându-ne pe prefixe mai
+scurte deja studiate. Totuși, este imposibil să ținem minte toate prefixele
+lui $T$, deoarece lungimea medie a unui prefix poate atinge 250.000 caractere.
+
+O îmbunătățire care poate fi adusă acestui algoritm este următoarea: deoarece
+toate prefixele aparțin aceleiași secvențe de constituenți, $T$, este
+suficient să reținem în întregime secvența $T$ și, pentru fiecare prefix ce se
+poate descompune în primitive, păstrăm doar lungimea sa. Făcând abstracție de
+limitările de memorie, putem crea un vector $V$ cu $S$ variabile booleene
+(unde $S \leq 500.000$), iar $V[i]$ va indica dacă subșirul de lungime $i$ din
+$T$ se poate descompune în primitive. $V[i]$ va primi valoarea {\bf True} dacă
+și numai dacă există o primitivă $p$ în $P$ de lungime $L$ astfel încât să fie
+îndeplinite simultan condițiile:
+
+\begin{itemize}
+
+\item $V[i-L] = \mathbf{True}$;
+
+\item secvența de caractere {\tt T[i-L+1]T[i-L+2]$\dots$T[i]} este egală cu
+  $p$.
+
+\end{itemize}
+
+Iată o primă variantă (în pseudocod) a algoritmului:
+
+\vspace{\algskip}
+\begin{algorithmic}[1]
+  \REQUIRE $T$, primitivele
+  \FOR{$i = 1$ la $S$}
+  \IF{există o primitivă $p$ astfel încât $V[i-L]$ și $T[i-L+1]T[i-L+2] \dots T[i] =p$}
+  \STATE $V[i] \leftarrow \mathbf{True}$
+  \ELSE
+  \STATE $V[i] \leftarrow \mathbf{False}$
+  \ENDIF
+  \ENDFOR
+  \STATE caută cel mai mare $i$ pentru care $V[i] = \mathbf{True}$
+  \PRINT $i$
+\end{algorithmic}
+
+Chiar și în acest caz, apare o problemă, deoarece avem nevoie de doi vectori,
+unul de caractere și altul de variabile booleene, ambii de lungime maxim
+500.000. Necesarul de memorie este deci cam de 1MB. Sigur, pentru
+calculatoarele de astăzi această sumă este ușor de alocat, dar problema admite
+oricum o soluție la fel de rapidă și mult mai economică. Iată care este
+principiul:
+
+Pentru a vedea dacă un prefix $S$ de lungime $L$ se poate descompune în
+primitive, noi avem nevoie să cunoaștem dacă prefixele de lungime mai mică se
+pot descompune. Dar avem oare nevoie de toate prefixele? Nu, deoarece noi vom
+concatena unul din prefixele de lungime mai mică cu o primitivă pentru a
+obține noul prefix $S$. Însă primitivele au lungime de maxim 20
+caractere. Așadar, noi nu trebuie să cunoaștem decât dacă prefixele de lungime
+$L-1, L-2, \dots, L-20$ se pot descompune; restul nu ne interesează. În felul
+acesta am eliminat vectorul $V$ și l-am redus la un vector de numai 20 de
+elemente (care în program se numește {\tt CanGet}). La fiecare moment, când se
+prelucrează un nou caracter din secvența de constituenți $T$, primul element
+din {\tt CanGet} se pierde (deoarece informația pe care el o stochează este
+învechită), iar următoarele 19 elemente se deplasează spre stânga cu câte o
+poziție. Al 20-lea element, care acum a rămas disponibil, va fi calculat la
+pasul curent.
+
+O altă modificare pornește de la observația că, datorită aceleiași limitări a
+lungimii primitivelor la 20 de caractere, nu avem nevoie nici măcar să reținem
+întregul vector $T$, ci numai ultimele 20 de litere ale lui. La fiecare pas,
+litera cea mai „veche” din $T$ (adică de indice minim) se va pierde, iar la
+celelalte 19 litere se va adăuga litera nou citită. Avem așadar nevoie doar de
+un string de 20 de caractere, pe care în program l-am numit {\tt Last}. Pentru
+a deplasa spre stânga vectorii {\tt CanGet} și {\tt Last}, se pot folosi fie
+atribuirile succesive, fie rutinele de acces direct la memorie.
+
+Deoarece prefixele care se pot descompune sunt identificate în ordinea
+crescătoare a lungimii, ultimul asemenea prefix găsit este tocmai cel de
+lungime maximă. Dar pentru că, în momentul în care găsim un prefix, nu putem
+ști dinainte că el este ultimul, trebuie să reținem într-o variabilă lungimea
+celui mai lung prefix găsit până la momentul respectiv, variabilă pe care o
+actualizăm de fiecare dată când găsim un nou prefix.
+
+În felul acesta, am reușit să reducem memoria folosită aproape la strictul
+necesar, adică numai la dicționarul de primitive și la doi vectori de câte
+douăzeci de caractere. Se recomandă totuși să se aloce un buffer cât mai mare
+pentru citirea datelor din fișierul {\tt DATA.TXT} pentru mărirea vitezei de
+citire. Repartizarea buffer-ului se face cu procedura Pascal {\tt SetTextBuf}.
+
+O optimizare care nu a fost inclusă în program, fiind lăsată ca temă
+cititorului, este următoarea: dacă la un moment dat, în timpul examinării
+secvenței de constituenți, este întâlnit un șir de cel puțin 20 de prefixe
+consecutive, din care nici unul nu se poate descompune în primitive, atunci
+nici mai departe nu vom mai întâlni vreun prefix care să se poată
+descompune. Explicați de ce. Această optimizare poate să nu aducă uneori nimic
+nou în evoluția programului, dar alteori poate să reducă la zero timpul de
+rulare.
+
+Prezentăm mai jos codul sursă al programului. A fost preferat limbajul Pascal,
+deoarece pune la dispoziție rutine mai comode de manevrare a șirurilor de
+caractere.
+
+\begin{lstlisting}[language=Pascal]
+program LongestPrefix;
+{$B-,D-,I-,R-,S-}
+const NMax=100;
+      LMax=20;
+type Str20=String[LMax+1];
+     LexType=array[1..NMax] of Str20;
+     BooleanVector=array[1..LMax+1] of Boolean;
+     BufferType=array[1..62000] of Byte;
+var Lex:LexType;     { Dictionarul de primitive }
+    N:Integer;       { Numarul de primitive }
+    Biggest:LongInt; { Lungimea maxima }
+    Buf:BufferType;  { Buffer de intrare }
+
+procedure ReadPrimitives;
+var i,Len:Integer;
+begin
+  Assign(Input,'input.txt');
+  Reset(Input);
+  ReadLn(N);
+  for i:=1 to N do
+    begin
+      ReadLn(Len);
+      ReadLn(Lex[i]);
+    end;
+  Close(Input);
+end;
+
+procedure Decompose;
+var Last:Str20;  { Ultimele 20 de caractere citite }
+    CanGet:BooleanVector;
+     { CanGet[i] indica daca Last[i] poate fi
+       ultimul caracter al unei descompuneri }
+    i,L:Integer;
+    Current:LongInt; { Lungimea curenta }
+begin
+  Assign(Input,'data.txt');
+  SetTextBuf(Input,Buf,SizeOf(Buf));
+  Reset(Input);  { Deschide fisierul cu un buffer atasat }
+
+  Biggest:=0;
+  Last[0]:=Chr(LMax+1);
+  FillChar(Last,LMax,'@');
+  FillChar(CanGet,LMax,True);
+  Current:=0;  { Deocamdata nu s-a citit nimic }
+
+  ReadLn(Last[LMax+1]); { Citeste primul caracter }
+  repeat
+    Inc(Current);
+    i:=0;
+    { Cauta o primitiva potrivita }
+    repeat
+      Inc(i);
+      L:=Length(Lex[i]);
+      CanGet[LMax+1]:=CanGet[LMax+1-L]
+        and (Copy(Last,LMax+2-L,L)=Lex[i]);
+    until CanGet[LMax+1] or (i=N);
+    { Am gasit o primitiva? }
+    if CanGet[LMax+1]
+      then Biggest:=Current;
+    { Deplaseaza spre stanga CanGet si Last }
+    Move(CanGet[2],CanGet[1],LMax);
+    Move(Last[2],Last[1],LMax);
+    { Avanseaza la urmatorul caracter }
+    ReadLn(Last[LMax+1]);
+  until Last[LMax+1]='.';
+
+  Close(Input);
+end;
+
+procedure WriteSolution;
+begin
+  Assign(Output,'output.txt');
+  Rewrite(Output);
+  WriteLn(Biggest);
+  Close(Output);
+end;
+
+begin
+  ReadPrimitives;
+  Decompose;
+  WriteSolution;
+end.
+\end{lstlisting}

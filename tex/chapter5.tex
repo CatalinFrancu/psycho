@@ -1,0 +1,916 @@
+\chapter{Despre algoritmi exponențiali și îmbunătățirea lor}
+
+Trebuie să spunem de la bun început că cea mai bună îmbunătățire care i se
+poate aduce unui algoritm în timp exponențial care rezolvă o anumită problemă
+este evitarea lui, adică găsirea - acolo unde este posibil - a unui algoritm
+polinomial care să rezolve aceeași problemă. Există cazuri în care acest lucru
+nu este posibil; în această situație, însă, orice îmbunătățire nu este decât o
+metodă de a ascunde gunoiul sub covor. Un algoritm exponențial rămâne
+exponențial, iar îmbunătățirile aduse îl pot face să meargă de două, de trei,
+de zece ori mai repede, dar nu-l pot transforma într-un algoritm
+polinomial. Creșterea cu două - trei unități a dimensiunii datelor de intrare
+va anihila saltul de la un calculator 486 la un Pentium.
+
+În multe situații, nu se cunoaște nici un algoritm care să funcționeze în timp
+util și să furnizeze soluția optimă a unei probleme. În asemenea cazuri, dacă
+optimalitatea nu este strict necesară, se renunță la ea și se caută algoritmi
+care să producă soluții cât mai apropiate de cea optimă și care să meargă mult
+mai repede. Este intuitiv că, dacă impunem limite mai dure în ceea ce privește
+timpul de rulare al algoritmului, vom avea șanse mai mici să găsim o soluție
+apropiată de optim. Nu vom discuta în această carte despre cum se poate
+realiza un echilibru între abaterea soluției de la optim și timpul necesar
+pentru a o produce. Genul acesta de dileme apar și în cadrul concursului de
+informatică, dar acolo timpul nu permite o analiză laborioasă a problemei. Noi
+vom indica numai modul în care se poate „inventa” un algoritm polinomial în
+locul unuia exponențial și o metodă prin care acest algoritm poate fi
+îmbunătățit pentru ca rezultatele pe care acesta le scoate să nu fie departe
+de adevăr. Aceasta este una din tendințele din ultimii ani de la concursurile
+de informatică. Deoarece toți elevii cunosc problemele „clasice” care s-ar
+putea da la concurs, se încearcă departajarea lor prin urmărirea modului în
+care ei se adaptează la probleme fără o soluție eficientă cunoscută.
+
+Să pornim de la o problemă celebră, cea a comis-voiajorului.
+
+{\bf ENUNȚ}: Se dă un graf complet orientat cu $N \leq 30$ noduri. Fiecare
+muchie are un cost cuprins între 1 și 100. Se cere să se determine un ciclu
+hamiltonian de cost minim. Un ciclu hamiltonian este ciclul care parcurge
+fiecare nod exact o dată. Costul unui ciclu este suma costurilor muchiilor
+componente.
+
+{\bf Intrarea}: Datele de intrare se găsesc în fișierul {\tt INPUT.TXT}, sub
+următoarea formă:
+
+\begin{verbatim}
+N
+A[1,1] A[1,2] ... A[1,N]
+.....
+A[N,1] A[N,2] ... A[N,N]
+\end{verbatim}
+
+unde {\tt A[i,j]} este lungimea muchiei care iese din nodul $i$ și intră în
+nodul $j$. Se garantează că $A[i,i] = 0, \forall 1 \leq i \leq N$.
+
+{\bf Ieșirea} se va face în fișierul {\tt OUTPUT.TXT} pe două linii. Pe prima
+linie se va tipări costul minim găsit, iar pe a doua traseul parcurs ($N$
+numere separate prin spații).
+
+{\bf Exemplu}:
+
+\texttt{
+  \begin{tabular}{| l | l |}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        \begin{tabular}[t]{l}
+          4\\
+          0 3 4 1\\
+          3 0 2 3\\
+          5 2 0 6\\
+          8 1 3 0
+        \end{tabular}
+        &
+        \begin{tabular}[t]{l}
+          9\\
+          1 4 2 3
+        \end{tabular}
+        \\
+    \hline
+  \end{tabular}
+}
+
+{\bf Timp de execuție}: 30 secunde
+
+{\bf Timp de implementare}: 30 minute
+
+{\bf REZOLVARE}: Problema este arhicunoscută și de asemenea este arhicunoscut
+faptul că ea nu admite o rezolvare polinomială. Totuși, dacă această problemă
+vă este dată la un concurs, nu poate constitui o scuză în fața comisiei
+argumentul că problema nu este polinomială. Ea trebuie făcută să meargă cât
+mai bine. Spre deosebire de laboratoarele NASA, unde orice greșeală într-o
+linie de cod poate distruge un modul spațial cu echipaj cu tot, la olimpiadă
+nu se merge pe principiul „totul sau nimic”. Fiecare punct câștigat este bun
+câștigat.
+
+Precizăm că metodele de mai jos se aplică mai degrabă în cazurile în care se
+cere o soluție optimă, dar se oferă punctaje parțiale și în cazul în care
+concurentul oferă o soluție cât de cât apropiată de cea optimă. Există șanse
+ca metodele de mai jos să asigure găsirea chiar a soluției optime pentru mare
+parte din teste, dar aceste șanse variază de la o problemă la alta.
+
+În primul rând, care este deosebirea fundamentală dintre un algoritm
+backtracking și unul greedy? Algoritmul backtracking analizează pe rând
+fiecare soluție posibilă și o alege pe cea mai bună. În felul acesta, el nu
+poate scăpa soluția optimă. Din nefericire, în multe cazuri spațiul soluțiilor
+crește exponențial cu dimensiunea datelor de intrare; în aceste situații
+algoritmii backtracking nu mai sunt practici. În schimb, algoritmii greedy
+(engl. {\it greedy = lacom}) fac o parcurgere a datelor de intrare și, la
+fiecare pas al acestei parcurgeri, aleg o parte (destul de mică) din soluțiile
+posibile, iar pe restul le „aruncă”. La pasul următor se aleg o parte din
+soluțiile rămase și așa mai departe, până când în final rămâne o singură
+soluție care se tipărește.
+
+Criteriul în funcție de care se face trierea soluțiilor este cheia unui
+algoritm greedy. Dacă acest criteriu poate garanta că la fiecare pas al
+algoritmului soluția optimă (sau cel puțin una din soluțiile optime, dacă pot
+exista mai multe) rămâne între soluțiile care sunt păstrate, atunci algoritmul
+greedy funcționează perfect. Demonstrația este ușoară: soluția optimă nu este
+„aruncată” niciodată, iar la sfârșitul algoritmului rămâne o singură soluție,
+de unde rezultă că soluția rămasă este tocmai cea optimă. Asemenea cazuri de
+algoritmi pentru care s-a demonstrat că ei funcționează sunt: algoritmii lui
+Kruskal și Prim pentru găsirea arborelui parțial de cost minim al unui graf,
+algoritmul lui Dijkstra pentru determinarea drumurilor de cost minim de la un
+nod la toate celelalte într-un graf ș.a.m.d.
+
+Putem extinde aceste noțiuni și la domeniul jocurilor logice. De exemplu,
+jocul Nim (pe care probabil îl cunoașteți cu toții) are o strategie sigură de
+câștig pentru anumite poziții, iar pentru celelalte se poate demonstra că nu
+există nici o strategie de câștig. În cazul în care strategia există,
+jucătorului i se oferă o mutare care îl duce spre victorie. Ce este în fond
+această mutare? Tocmai un criteriu de a tria anumite configurații, favorabile
+jucătorului, și de a le ignora pe celelalte.
+
+Există însă probleme pentru care nu s-a găsit (iar uneori s-a și demonstrat că
+nu există) nici un algoritm greedy. Continuând paralela cu jocurile logice,
+există jocuri care nu au nici o strategie de câștig pentru unul din
+jucători. Este cazul jocului de șah. Pentru unele asemenea probleme (cum ar fi
+cea de față, a comis-voiajorului), care au aplicații largi în diferite domenii
+practice, se investesc sume mari în cercetare pentru a se găsi algoritmi cât
+mai buni care să funcționeze într-un timp convenabil.
+
+O situație asemănătoare apare la concursul de informatică, unde se cunoaște de
+la început timpul pus la dispoziție (atât cel pentru implementare, cât și cel
+pentru execuție) și se urmărește obținerea unui punctaj cât mai mare. Iată
+câteva metode destul de eficiente.
+
+\section{„Omorârea” backtracking-ului}
+
+Sintagma aceasta oarecum ilară, care stârnește mila pentru bietul
+backtracking, se aude foarte des pe la ieșirea din sălile de concurs, atunci
+când problema a fost mai „ciudată”, în sensul că foarte puțini concurenți au
+descoperit vreo soluție eficientă la ea. Ce este de fapt „backtracking-ul
+omorât” și în ce situații este el preferabil?
+
+Problema comis-voiajorului sub diverse forme sau alte probleme exponențiale au
+fost propuse în anii trecuți spre rezolvare la concursuri. Dacă vrem să aflăm
+soluția optimă (de cost minim), neavând altă soluție la îndemână, trebuie să
+recurgem la backtracking. Backtracking-ul, după cum se știe, examinează pe
+rând fiecare posibilă soluție. În cazul nostru, backtracking-ul nu are altceva
+de făcut decât să genereze pe rând toate permutările mulțimii ${1, 2, \dots,
+  N}$. Considerând fiecare permutare ca fiind un posibil ciclu hamiltonian
+(știm sigur că oricărei permutări îi corespunde un ciclu hamiltonian, deoarece
+graful este complet), mai trebuie doar să calculăm costul fiecărei permutări
+și să o afișăm pe cea de cost minim. Până aici, nimic deosebit. Iată și sursa
+Pascal:
+
+\begin{lstlisting}[language=Pascal]
+program Hamilton;
+{$B-,I-,R-,S-}
+const NMax=30;
+type Vector=array[1..NMax] of Integer;
+     Matrix=array[1..NMax,1..NMax] of Integer;
+var A:Matrix;
+    Route,BestRoute:Vector;
+    Seen:set of 1..NMax;
+    N,Cost,MinCost:Integer;
+
+procedure ReadData;
+var i,j:Integer;
+begin
+  Assign(Input,'input.txt');Reset(Input);
+  ReadLn(N);
+  for i:=1 to N do
+    begin
+      for j:=1 to N do Read(A[i,j]);
+      ReadLn;
+    end;
+  Close(Input);
+end;
+
+procedure Bkt(Level,Cost:Integer);
+var i:Integer;
+begin
+  if Level=N+1
+    then begin
+           Inc(Cost,A[Route[N],1]);
+           if Cost<MinCost
+             then begin
+                    BestRoute:=Route;
+                    MinCost:=Cost;
+                  end;
+         end
+    else if Cost<MinCost
+           then for i:=1 to N do
+             if not (i in Seen)
+               then begin
+                      Seen:=Seen+[i];
+                      Route[Level]:=i;
+                      Bkt(Level+1,Cost+A[Route[Level-1],i]);
+                      Seen:=Seen-[i];
+                    end;
+end;
+
+procedure WriteSolution;
+var i:Integer;
+begin
+  Assign(Output,'output.txt');Rewrite(Output);
+  WriteLn(MinCost);
+  for i:=1 to N do Write(BestRoute[i],' ');
+  WriteLn;
+  Close(Output);
+end;
+
+begin
+  ReadData;
+  Route[1]:=1;
+  Seen:=[1];
+  MinCost:=MaxInt;
+  Bkt(2,0);
+  WriteSolution;
+end.
+\end{lstlisting}
+
+Programul sub această formă nu se încadrează în timp nici măcar pentru $N=15$
+(cifra depinde și de calculatorul folosit pentru testare, dar nu variază cu
+mai mult de două-trei nivele; să spunem cu generozitate că pe un calculator
+performant programul ar putea merge până la $N=18$ sau 20). Pe de altă parte,
+ideea în sine (algoritmul) de rezolvare nu mai poate fi mult îmbunătățită. Și
+cu toate acestea, programul trebuie să meargă până la $N=30$. Ce putem face?
+
+Desigur, nu există o rezolvare elegantă. Putem însă încerca fel de fel de
+metode de a trișa. Deoarece nu avem timp să examinăm toate soluțiile, trebuie
+să renunțăm la o parte din ele, cu riscul ca printre ele să se afle tocmai
+soluția căutată. Una dintre tehnici este omorârea backtracking-ului. După
+numărul și tipurile soluțiilor pe care le cer, algoritmii backtracking ar
+putea fi împărțiți în mai multe categorii:
+
+\begin{itemize}
+
+\item Cei care furnizează o singură soluție;
+
+\item Cei care, pe baza unei funcții care atașează un cost fiecărei soluții,
+  furnizează soluția de cost minim;
+
+\item Cei care furnizează toate soluțiile.
+\end{itemize}
+
+Backtracking-ul omorât se aplică celui de-al doilea tip de cerințe. Putem face
+în așa fel încât să oprim programul exact la expirarea timpului permis pentru
+rulare și să afișăm cea mai bună soluție găsită până la momentul
+respectiv. Dacă am fost norocoși (termenul este cel mai potrivit în această
+situație), atunci programul nostru a apucat, în timpul pe care i l-am permis,
+să găsească soluția optimă. Dacă nu, putem totuși spera că a fost găsită o
+soluție cât de cât apropiată de cea optimă, pentru care putem eventual să
+primim măcar o parte din punctaj. După cum se vede, omorârea backtracking-ului
+nu promite marea cu sarea, dar este un artificiu binevenit, pentru că există
+trei variante:
+
+\begin{itemize}
+
+\item Programul se încadrează în timp, caz în care backtracking-ul omorât nu
+  aduce nimic în plus;
+
+\item Programul nu se încadrează în timp, dar soluția optimă este găsită în
+  timp, caz în care backtracking-ul simplu nu furnizează nici o soluție (și de
+  obicei este oprit cu Ctrl-Break), pe când backtracking-ul omorât furnizează
+  soluția;
+
+\item Programul nu se încadrează în timp și nici soluția optimă nu este găsită
+  în timp, caz în care backtracking-ul simplu nu furnizează nici o soluție, pe
+  când backtracking-ul omorât furnizează o soluție eventual apropiată de
+  optim.
+
+\end{itemize}
+
+Din experiență se poate spune că membrii comisiei de corectare acordă jumătate
+din punctele pentru un test mai degrabă atunci când li se oferă o soluție
+neoptimă decât atunci când li se oferă o soluție optimă într-un timp
+depășit. Adesea programul este oprit îndată ce timpul de rulare expiră, și
+părerea autorului e că e mai bine așa.
+
+„Omorârea” nu se pretează la celelalte două versiuni de backtracking. Atunci
+când există o singură soluție, nu se mai pune problema de a găsi una apropiată
+de ea. Ori găsim soluția, ori nimic. De exemplu, nu are sens să rezolvăm
+problema de mai sus cu un backtracking omorât dacă știm sigur că nu se acordă
+punctaje parțiale pentru soluții neoptime (dar în general acest lucru nu se
+știe sigur...). Rămâne bineînțeles posibilitatea de a opri programul imediat
+ce soluția a a fost găsită. În cazul în care se cer toate soluțiile, de
+asemenea programul nu poate fi oprit. Atunci când se poate, merită calculat
+numărul de soluții, pentru ca imediat ce am găsit toate soluțiile, să oprim
+programul. Putem aplica backtracking-ul omorât numai dacă știm că se acordă
+punctaj și pentru afișarea unei părți din soluții.
+
+Mai rămâne de stabilit cum anume se face „omorârea” backtracking-ului (și de
+fapt a oricărui program). Există mai multe metode. Prima, asupra căreia nu vom
+insista deoarece ea are „efecte secundare” și, în plus, este foarte lentă,
+constă din două etape:
+
+\begin{itemize}
+
+\item Se setează ceasul sistem la ora 00:00:00 (miezul nopții) cu procedura
+  {\tt SetTime} din unitatea Dos a compilatorului Borland Pascal;
+
+\item Periodic se testează ora cu procedura {\tt GetTime} și se oprește
+  programul atunci când se apropie „ora critică” (în cazul nostru 00:00:30).
+
+\end{itemize}
+
+După cum se vede, marele neajuns al acestei metode este că „dă peste cap”
+ceasul sistem (lucru dezastruos mai ales pentru cei care vin la concurs fără
+ceas...). În afară de aceasta, procedurile {\tt GetTime} și {\tt SetTime}
+apelează la rândul lor întreruperile DOS, ceea ce consumă mult din timpul care
+și așa este limitat.
+
+A doua metodă, care este mai rapidă și nu lasă urme, constă în captarea {\bf
+  întreruperii 8}, adică a {\bf timer}-ului. Timer-ul este o rutină care se
+apelează automat la fiecare 55 de milisecunde, deci cam de 18,2 ori pe
+secundă. În principiu, ea nu face nimic altceva decât să incrementeze ceasul
+sistem cu 55 ms. Pe lângă aceasta, însă, putem adăuga și propriul nostru cod,
+folosind procedurile Pascal {\tt GetIntVec} și {\tt SetIntVec}. Trebuie doar
+să avem grijă ca timer-ul scris de noi să-l apeleze și pe cel vechi, altfel
+ceasul sistem se va opri și cine știe ce altceva se mai poate întâmpla. Vom
+declara deci o variabilă {\tt Time} care va fi decrementată la fiecare apel al
+întreruperii de ceas. Înainte de a intercepta întreruperea 8, vom inițializa
+variabila cu valoarea maximă dorită. Știm că timer-ul se apelează de 18,2 ori
+pe secundă, deci dacă limita de timp pentru un test este de 30 de secunde,
+valoarea inițială pentru variabila {\tt Time} ar putea fi $18,2 \times 30 =
+546$. Este bine să nu calculăm însă timpul la limită, deoarece avem nevoie de
+câteva fracțiuni și pentru tipărirea soluției în fișier, și poate pur și
+simplu ceasul comisiei de corectare o ia puțin înainte. De aceea, e mai sigură
+înmulțirea cu 17 în loc de 18,2.
+
+În momentul în care, prin decrementări succesive, {\tt Time} a ajuns la
+valoarea 0 (sau la o valoare negativă), programul trebuie oprit. Acest lucru
+presupune ieșirea din procedura de backtracking, afișarea soluției și
+restaurarea vechii întreruperi 8, pentru ca programul să nu lase „urme”. Iată
+deci o versiune a programului Pascal care va fi extrem de punctuală...
+
+\begin{lstlisting}[language=Pascal]
+program Hamilton;
+{$B-,I-,R-,S-}
+uses Dos;
+const NMax=30;
+      TimeLimit=30; { secunde }
+
+type Vector=array[1..NMax] of Integer;
+     Matrix=array[1..NMax,1..NMax] of Integer;
+var A:Matrix;
+    Route,BestRoute:Vector;
+    Seen:set of 1..NMax;
+    N,Cost,MinCost:Integer;
+    Time:Integer;  { Contorul }
+    OldTimer:procedure;
+
+procedure MyTimer; interrupt;
+{ Se executa la fiecare 55 ms }
+begin
+  Dec(Time);   { Ne facem treaba... }
+  Inline($9C); { ...pushf... }
+  OldTimer;    { ...si executam si vechiul timer }
+end;
+
+procedure ReadData;
+var i,j:Integer;
+begin
+  Assign(Input,'input.txt');Reset(Input);
+  ReadLn(N);
+  for i:=1 to N do
+    begin
+      for j:=1 to N do Read(A[i,j]);
+      ReadLn;
+    end;
+  Close(Input);
+end;
+
+procedure Bkt(Level,Cost:Integer);
+var i:Integer;
+begin
+  if Level=N+1
+    then begin
+           Inc(Cost,A[Route[N],1]);
+           if Cost<MinCost
+             then begin
+                    BestRoute:=Route;
+                    MinCost:=Cost;
+                  end;
+         end
+    else if (Time>0) and (Cost<MinCost)
+           then for i:=1 to N do
+             if not (i in Seen)
+               then begin
+                      Seen:=Seen+[i];
+                      Route[Level]:=i;
+                      Bkt(Level+1,Cost+A[Route[Level-1],i]);
+                      Seen:=Seen-[i];
+                    end;
+end;
+
+procedure WriteSolution;
+var i:Integer;
+begin
+  Assign(Output,'output.txt');Rewrite(Output);
+  WriteLn(MinCost);
+  for i:=1 to N do Write(BestRoute[i],' ');
+  WriteLn;
+  Close(Output);
+end;
+
+begin
+  Time:=TimeLimit*17;
+  { Captam intreruperea 8 (timer-ul) }
+  GetIntVec(8,@OldTimer);
+  SetIntVec(8,@MyTimer);
+  ReadData;
+  Route[1]:=1;
+  Seen:=[1];
+  MinCost:=MaxInt;
+  Bkt(2,0);
+  WriteSolution;
+  { Restauram timer-ul }
+  SetIntVec(8,@OldTimer);
+end.
+\end{lstlisting}
+
+Și această a doua metodă are neajunsurile ei, deoarece presupune scrierea a
+destul de multe linii de program în plus. În afară de aceasta, instrucțiunea
+de decrementare a variabilei {\tt Time}, precum și apelul suplimentar de
+procedură din cadrul întreruperii de ceas mai reduc puțin timpul dedicat
+calculelor efective. A treia variantă elimină și aceste deficiențe. Ea se
+bazează pe accesarea directă a locației de memorie \$0000:\$046C, unde se
+află, reprezentat pe 4 octeți, numărul de apeluri ale timer-ului (numărul de
+{\bf tacți}) începând de la miezul nopții. Dacă declarăm o variabilă {\tt
+  Time} de tip {\tt Longint} (deoarece acest tip de date ocupă 4 octeți) exact
+la această adresă, folosind clauza Pascal {\tt absolute}, variabila se va
+incrementa la fiecare 55ms, scutindu-ne pe noi de această grijă. Dacă înmulțim
+variabila cu 55/1000, aflăm exact numărul de secunde scurse de la miezul
+nopții. Dacă împărțim acest rezultat la 3600, putem afla ora exactă
+ș.a.m.d. Lucrul care ne interesează pe noi este să setăm o „alarmă” care să
+oprească programul peste 30 de secunde. 30 de secunde înseamnă $30 \times
+18,2$ incrementări ale variabilei {\tt Time}. Folosind în loc de 18,2 valoarea
+17 (pentru a păstra o rezervă), rezultă că trebuie să ne oprim atunci când
+{\tt Time} are o valoare cu $30 \times 17$ mai mare decât la intrarea în
+program. Primul lucru pe care îl va face programul va fi să dea unei variabile
+{\tt Alarm} valoarea {\tt Time} + $30 \times 17$. Periodic (cel mai comod la
+intrarea în procedura backtracking) se va testa valoarea variabilei {\tt Time}
+și atunci când ea este egală cu {\tt Alarm}, se va ieși din program.
+
+\begin{lstlisting}[language=Pascal]
+program Hamilton;
+{$B-,I-,R-,S-}
+const NMax=30;
+      TimeLimit=30; { secunde }
+
+type Vector=array[1..NMax] of Integer;
+     Matrix=array[1..NMax,1..NMax] of Integer;
+var A:Matrix;
+    Route,BestRoute:Vector;
+    Seen:set of 1..NMax;
+    N,Cost,MinCost:Integer;
+    Time:LongInt absolute $0000:$046C;
+    Alarm:LongInt;
+
+procedure SetAlarm;
+begin
+  Alarm:=Time+TimeLimit*17;
+  { Cifra corecta era nu 17, ci 18.2;
+    am pastrat insa o rezerva de siguranta }
+end;
+
+procedure ReadData;
+var i,j:Integer;
+begin
+  Assign(Input,'input.txt');Reset(Input);
+  ReadLn(N);
+  for i:=1 to N do
+    begin
+      for j:=1 to N do Read(A[i,j]);
+      ReadLn;
+    end;
+  Close(Input);
+end;
+
+procedure Bkt(Level,Cost:Integer);
+var i:Integer;
+begin
+  if Level=N+1
+    then begin
+           Inc(Cost,A[Route[N],1]);
+           if Cost<MinCost
+             then begin
+                    BestRoute:=Route;
+                    MinCost:=Cost;
+                  end;
+         end
+    else if (Time<Alarm) and (Cost<MinCost)
+           then for i:=1 to N do
+             if not (i in Seen)
+               then begin
+                      Seen:=Seen+[i];
+                      Route[Level]:=i;
+                      Bkt(Level+1,Cost+A[Route[Level-1],i]);
+                      Seen:=Seen-[i];
+                    end;
+end;
+
+procedure WriteSolution;
+var i:Integer;
+begin
+  Assign(Output,'output.txt');Rewrite(Output);
+  WriteLn(MinCost);
+  for i:=1 to N do Write(BestRoute[i],' ');
+  WriteLn;
+  Close(Output);
+end;
+
+begin
+  SetAlarm;
+  ReadData;
+  Route[1]:=1;
+  Seen:=[1];
+  MinCost:=MaxInt;
+  Bkt(2,0);
+  WriteSolution;
+end.
+\end{lstlisting}
+
+Singura problemă pe care o poate ridica această ultimă versiune este
+următoarea: dacă programul este lansat în execuție la un moment foarte
+apropiat de miezul nopții, atunci variabila {\tt Alarm} va avea o valoare mai
+mare decât numărul de tacți dintr-o zi. Variabila {\tt Time} nu va ajunge
+niciodată la această valoare, deoarece la miezul nopții ea va lua din nou
+valoarea 0. Este totuși puțin probabil să vă fie corectat programul la miezul
+nopții...
+
+\section{Greedy euristic}
+
+După cum am spus, la unii algoritmi greedy, criteriul de departajare
+garantează că soluția optimă nu este niciodată scăpată din vedere. De și mai
+multe ori, totuși, criteriile de departajare nu pot promite acest lucru; în
+general elevii, la ieșirea din sălile de concurs, în cazul unei probleme mai
+controversate, își expun părerile și ideile față de colegii lor, apoi fiecare
+îi demonstrează celuilalt că algoritmul propus de el nu merge, prezentându-i
+un contraexemplu. Momentele cele mai picante se produc atunci când algoritmul
+pare să nu fie corect, dar nici nu se poate găsi un contraexemplu.
+
+În aceste situații, criteriile de departajare a soluțiilor la algoritmii
+greedy se numesc {\bf funcții euristice}, iar algoritmul în sine se numește
+{\bf greedy euristic} (în greaca veche, {\it heuriskein} însemna {\it a
+  afla}). Dacă nu poate promite optimalitatea, funcția euristică trebuie în
+orice caz aleasă cât mai bine, respectiv trebuie să aibă șanse cât mai mari să
+rețină soluția optimă, sau măcar să rețină la fiecare pas soluții cât mai
+apropiate de cea optimă.
+
+Un singur algoritm greedy euristic are șanse mici să găsească soluția
+optimă. Dar algoritmii greedy euristici au unele proprietăți interesante:
+
+\begin{itemize}
+
+\item Se încadrează cu ușurință în timpul de rulare.
+
+\item Sunt ușor de implementat.
+
+\item O modificare cât de mică a funcției euristice poate modifica radical
+  algoritmul și soluția furnizată de el. Deoarece nu avem de unde ști care
+  dintre funcțiile euristice este mai bună (acest lucru depinde de datele pe
+  care este testată problema), ideal este să reținem ambele soluții furnizate
+  și să o alegem pe cea mai bună.
+
+\item De multe ori, datele de intrare sunt vectori sau matrice; în unele
+  situații, sensul în care sunt ele parcurse pentru determinarea soluției nu
+  este important. Schimbând sensul de parcurgere, obținem de asemenea două
+  soluții distincte pe care le putem compara.
+
+\item Aproape întotdeauna, funcțiile euristice conțin teste de genul:
+
+\begin{lstlisting}[language=Pascal]
+if A<B then Actiune1 else Actiune2;
+\end{lstlisting}
+
+Din punct de vedere logic, dacă {\tt A=B} se poate executa oricare din cele
+două acțiuni. Condiția {\tt A<B} este echivalentă cu condiția {\tt
+  A<=B}. Totuși, din punct de vedere al calculatorului, cele două condiții
+sunt absolut diferite și pot produce soluții cu totul diferite. Iată de
+exemplu, două rutine care caută poziția $k$ pe care se află elementul minim
+într-un vector $V$ cu $N$ elemente:
+
+\begin{lstlisting}[language=Pascal]
+k:=1;
+for i:=2 to N do
+  if V[i]<V[k] then k:=i;
+\end{lstlisting}
+
+respectiv
+
+\begin{lstlisting}[language=Pascal]
+k:=1;
+for i:=2 to N do
+  if V[i]<=V[k] then k:=i;
+\end{lstlisting}
+
+Cele două versiuni vor găsi într-adevăr un indice $k$ astfel încât $V[k]$ să
+fie minim. Totuși, dacă există mai multe elemente de valoare minimă, atunci
+prima versiune va întoarce indicele cel mai mic, pe când ultima îl va întoarce
+pe cel mai mare.
+
+\end{itemize}
+
+Iată un exemplu de funcție euristică pentru problema comis-voiajorului: pornim
+din nodul 1 și, la fiecare pas, ne deplasăm în cel mai apropiat nod care nu a
+fost vizitat încă. După ce toate nodurile au fost vizitate, trebuie numai să
+ne deplasăm din ultimul nod vizitat în nodul 1. Luată în sine, această
+euristică nu este strălucită. Ea poate însă să fie „clonată” într-o
+multitudine de variante. În primul rând că nu este obligatoriu să pornim din
+nodul 1. Putem aplica același algoritm pornind pe rând din fiecare nod; la
+sfârșit tipărim soluția de cost minim. Prima variantă a programului Pascal
+este:
+
+\begin{lstlisting}[language=Pascal]
+program Hamilton;
+{$B-,I-,R-,S-}
+const NMax=30;
+type Vector=array[1..NMax] of Integer;
+     Matrix=array[1..NMax,1..NMax] of Integer;
+var A:Matrix;
+    Route,BestRoute:Vector;
+    N,Cost,MinCost,i:Integer;
+
+procedure ReadData;
+var i,j:Integer;
+begin
+  Assign(Input,'input.txt');Reset(Input);
+  ReadLn(N);
+  for i:=1 to N do
+    begin
+      for j:=1 to N do Read(A[i,j]);
+      ReadLn;
+    end;
+  Close(Input);
+end;
+
+procedure Greedy1(Start:Integer;var R:Vector;
+                  var Cost:Integer);
+var i,j,Closest:Integer;
+    Seen:set of 1..NMax;
+begin
+  R[1]:=Start;
+  Cost:=0;
+  Seen:=[Start];
+  for i:=2 to N do
+    begin
+      { Cauta nodul cel mai apropiat }
+      Closest:=MaxInt;
+      for j:=1 to N do
+        if (not (j in Seen)) and (A[R[i-1],j]<Closest)
+          then begin
+                 Closest:=A[R[i-1],j];
+                 R[i]:=j;
+               end;
+      Inc(Cost,Closest);
+      Seen:=Seen+[R[i]];
+    end;
+  { Inchide ciclul }
+  Inc(Cost,A[R[N],Start]);
+end;
+
+procedure Update;
+begin
+  if Cost<MinCost
+    then begin
+           MinCost:=Cost;
+           BestRoute:=Route;
+         end;
+end;
+
+procedure WriteSolution;
+var i:Integer;
+begin
+  Assign(Output,'output.txt');Rewrite(Output);
+  WriteLn(MinCost);
+  for i:=1 to N do Write(BestRoute[i],' ');
+  WriteLn;
+  Close(Output);
+end;
+
+begin
+  ReadData;
+  MinCost:=MaxInt;
+  for i:=1 to N do
+    begin
+      Greedy1(i,Route,Cost);
+      Update;
+    end;
+  WriteSolution;
+end.
+\end{lstlisting}
+
+De sine stătătoare, funcția euristică nu este strălucită. Totuși, ea poate fi
+lesne modificată. Se observă că, în procedura {\tt Greedy1}, instrucțiunea
+
+\begin{lstlisting}[language=Pascal]
+for j:=1 to N do...
+\end{lstlisting}
+
+poate fi înlocuită cu
+
+\begin{lstlisting}[language=Pascal]
+for j:=N downto 1 do...
+\end{lstlisting}
+
+, iar condiția
+
+\begin{lstlisting}[language=Pascal]
+(A[R[i-1],j] < Closest)
+\end{lstlisting}
+
+cu
+
+\begin{lstlisting}[language=Pascal]
+(A[R[i-1],j]<=Closest)
+\end{lstlisting}
+
+Făcând toate combinațiile posibile, rezultă alte trei proceduri, {\tt
+  Greedy2}, {\tt Greedy3} și {\tt Greedy4}, iar noua formă a programului
+principal este:
+
+\begin{lstlisting}[language=Pascal]
+begin
+  ReadData;
+  MinCost:=MaxInt;
+
+  for i:=1 to N do
+    begin
+      Greedy1(i,Route,Cost);
+      Update;
+      Greedy2(i,Route,Cost);
+      Update;
+      Greedy3(i,Route,Cost);
+      Update;
+      Greedy4(i,Route,Cost);
+      Update;
+    end;
+
+  WriteSolution;
+end.
+\end{lstlisting}
+
+După cum se vede, adaosul de proceduri face ca sursa să atingă dimensiuni
+impunătoare, dar efortul necesar pentru a o scrie este aproape aceeași ca și
+când ar fi existat o singură funcție euristică. Practic, trebuie scrisă una
+singură din cele patru funcții, restul rezumându-se la copierea unor blocuri
+cu ajutorul editorului Borland Pascal.
+
+\section{Decizia între greedy euristic și backtracking}
+
+Pentru a ne asigura și mai multe puncte din cele puse în joc, putem încerca
+următoarea combinație: pentru grafuri mici, care pot fi examinate exhaustiv în
+timp de câteva secunde, vom apela la algoritmul backtracking pentru rezolvarea
+problemei. Numai pentru valori mari, pentru care știm sigur că backtracking-ul
+depășește timpul admis, vom apela la funcțiile euristice. Ce înseamnă valori
+„mici” si „mari” se poate aproxima sau se poate determina după câteva
+teste. Aceste valori depind de problemă și de mașina folosită.
+
+Deoarece primele teste pentru fiecare problemă (uneori o treime sau chiar
+jumătate din ele) sunt de dimensiuni mici, e bine dacă vi le puteți asigura
+printr-un backtracking care de regulă se implementează în 15-20 minute.
+
+\section{Combinația greedy euristic + backtracking}
+
+Urmărind prima rezolvare de la punctul (1) - varianta backtracking fără nici
+un fel de modificări - se observă că variabila {\tt MinCost} se inițializează
+cu valoarea {\tt MaxInt}. În felul acesta, prima soluție găsită este implicit
+cea mai bună și durează o vreme până când rezultatele încep să se apropie de
+optim. Pe de altă parte, evaluarea unui anumit lanț din graf și prelungirea
+lui cu noi noduri până la închiderea ciclului hamiltonian nu se fac decât dacă
+costul lanțului nu a depășit deja valoarea {\tt MinCost}. De aici provine
+întrebarea firească: ce-ar fi dacă, în loc să inițializăm variabila {\tt
+  MinCost} cu valoarea {\tt MaxInt}, am lansa mai întâi unul sau mai multe
+greedy-uri euristice (depinde câte apucăm să scriem) pentru a da o valoare mai
+apropiată de adevăr variabilei {\tt MinCost} ? Sigur, cu o floare nu se face
+primăvară, dar în cazul nostru se pot câștiga secunde prețioase. Se poate de
+asemenea ca după aceste greedy-uri să apelăm nu un backtracking simplu, ci
+unul omorât prin orice metodă, caz în care șansele se îmbunătățesc
+considerabil. Programul principal ar putea fi atunci:
+
+\begin{lstlisting}[language=Pascal]
+begin
+  SetAlarm;
+  ReadData;
+  MinCost:=MaxInt;
+  for i:=1 to N do
+    begin
+      Greedy1(i,Route,Cost);
+      Update;
+      Greedy2(i,Route,Cost);
+      Update;
+      Greedy3(i,Route,Cost);
+      Update;
+      Greedy4(i,Route,Cost);
+      Update;
+    end;
+  Route[1]:=1;
+  Seen:=[1];
+  Bkt(2,0);
+  WriteSolution;
+end.
+\end{lstlisting}
+
+\section{Testarea aleatoare a posibilităților}
+
+Oricât ar părea de ciudat, și aceasta este o cale de a ieși din
+încurcătură. Ce-i drept, nu cea mai eficientă, dar atunci când imaginația vă
+joacă feste iar backtracking-ul nu vă surâde, puteți încerca chiar și o
+rezolvare care se bazează puternic pe funcția {\tt Random}. În acest caz, tot
+ce aveți de făcut este să generați aleator cicluri hamiltoniene și să-i
+calculați fiecăruia costul. La sfârșit îl tipăriți pe cel de cost minim
+găsit. Bineînțeles, oprirea programului se va face printr-o „omorâre” de orice
+tip. Timpul de implementare al unei asemenea rezolvări este de ordinul
+minutelor. Această versiune găsește uneori soluția optimă, dar alteori este
+foarte departe de ea. De asemenea, are marele dezavantaj că la două rulări
+consecutive nu generează același rezultat, deoarece procedura {\tt Randomize}
+își extrage variabila {\tt RandSeed} (folosită pentru a genera numere
+aleatoare) pe baza timer-ului... Personal nu o recomand, dar este destul de
+des folosită pe la concursuri. Și este momentul să amintim o urare ce li se
+adresează concurenților care intră în sala de corectare, respectiv „Să fie
+într-un timer bun!”.
+
+\begin{lstlisting}[language=Pascal]
+program Hamilton;
+{$B-,I-,R-,S-}
+const NMax=30;
+      TimeLimit=30; { secunde }
+
+type Vector=array[1..NMax] of Integer;
+     Matrix=array[1..NMax,1..NMax] of Integer;
+var A:Matrix;
+    Route,BestRoute:Vector;
+    Seen:set of 1..NMax;
+    N,Cost,MinCost:Integer;
+    Time:LongInt absolute $0000:$046C;
+    Alarm:LongInt;
+
+procedure SetAlarm;
+begin
+  Alarm:=Time+TimeLimit*17;
+  { Cifra corecta era nu 17, ci 18.2;
+    am pastrat insa o rezerva de siguranta }
+end;
+
+procedure ReadData;
+var i,j:Integer;
+begin
+  Assign(Input,'input.txt');Reset(Input);
+  ReadLn(N);
+  for i:=1 to N do
+    begin
+      for j:=1 to N do Read(A[i,j]);
+      ReadLn;
+    end;
+  Close(Input);
+end;
+
+procedure RandomCycle;
+var i,j:Integer;
+begin
+  Route[1]:=Random(N)+1;
+  Seen:=[Route[1]];
+  Cost:=0;
+  for i:=2 to N do
+    begin
+      repeat Route[i]:=Random(N)+1;
+      until not (Route[i] in Seen);
+      Seen:=Seen+[Route[i]];
+      Inc(Cost,A[Route[i-1],Route[i]]);
+    end;
+  Inc(Cost,A[Route[N],Route[1]]);
+end;
+
+procedure Update;
+begin
+  if Cost<MinCost
+    then begin
+           MinCost:=Cost;
+           BestRoute:=Route;
+         end;
+end;
+
+procedure WriteSolution;
+var i:Integer;
+begin
+  Assign(Output,'output.txt');Rewrite(Output);
+  WriteLn(MinCost);
+  for i:=1 to N do Write(BestRoute[i],' ');
+  WriteLn;
+  Close(Output);
+end;
+
+begin
+  SetAlarm;
+  Randomize;
+  ReadData;
+  MinCost:=MaxInt;
+  while Time<Alarm do
+    begin
+      RandomCycle;
+      Update;
+    end;
+  WriteSolution;
+end.
+\end{lstlisting}

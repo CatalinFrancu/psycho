@@ -1,0 +1,246 @@
+\section{Problema 14}
+
+Continuăm cu două probleme foarte asemănătoare. Atât de asemănătoare, încât
+diferența dintre ele pare - la o privire superficială - neglijabilă. Totuși,
+algoritmul de rezolvare se schimbă fundamental.
+
+{\bf ENUNȚ}: $N$ grămezi de mere trebuie împărțite la $N$ copii. Deoarece
+copiii sunt buni prieteni, trebuie ca împărțirea să se facă în mod echitabil,
+fiecare primind același număr de mere. Spiritul de dreptate al copiilor este
+atât de puternic, încât ei preferă ca unele mere să nu fie date nici unui
+copil, decât ca unii să primească mai multe mere ca alții. O condiție
+suplimentară este ca fie toate merele dintr-o grămadă să fie împărțite
+copiilor, fie grămada să nu mai fie împărțită deloc. Desigur, interesul este
+ca fiecare copil să primească un număr cât mai mare de mere.
+
+Să se selecteze un număr de grămezi din cele $N$ astfel încât numărul total de
+mere să se dividă cu $N$, iar suma selectată să fie maximă. Dacă există mai
+multe soluții, se cere una singură.
+
+{\bf Intrarea}: Fișierul de intrare {\tt INPUT.TXT} conține pe prima linie
+numărul $N$ de grămezi ($1 \leq N \leq 100$). Pe a doua linie se dau
+cantitățile de mere din cele $N$ grămezi ($N$ numere naturale pozitive, toate
+mai mici ca 200, separate prin spații).
+
+{\bf Ieșirea}: În fișierul {\tt OUTPUT.TXT} se va scrie pe prima linie numărul
+maxim de mere găsit. Pe a doua linie se vor tipări indicii grămezilor
+selectate, în ordine crescătoare.
+
+{\bf Exemplu}:
+
+\texttt{
+  \begin{tabular}{|l|l|}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        4 & 12 \\
+        3 2 5 7 & 1 2 4 \\
+        \hline
+  \end{tabular}
+}
+
+{\bf Timp de implementare}: 45 minute - maxim o oră.
+
+{\bf Timp de rulare}: 1 secundă.
+
+{\bf Complexitate cerută}: $O(N^2)$.
+
+{\bf REZOLVARE}: O primă modalitate, de altfel foarte comodă, este să
+verificăm toate posibilitățile de a selecta grămezi. Aceasta presupune să
+generăm toate submulțimile mulțimii de grămezi, iar pentru fiecare submulțime
+să calculăm suma merelor. În felul acesta putem afla submulțimea pentru care
+suma merelor se divide cu $N$ și este maximă. Din nefericire, această soluție,
+banal de implementat, are o complexitate exponențială, mai precis $O(N \times
+2^N)$, deoarece există $2^N$ submulțimi ale mulțimii grămezilor și pentru
+fiecare submulțime putem calcula suma merelor în timp liniar. Prin urmare,
+suntem departe de complexitatea cerută în enunț.
+
+Punctul de plecare pentru rezolvarea corectă a problemei este din nou
+principiul de optimalitate al programării dinamice. Să notăm cu $M[1], M[2],
+\dots, M[N]$ cantitățile de mere din fiecare grămadă. Să considerăm că
+submulțimea optimă conține în total $S$ mere, iar grămada cu numărul $N$ face
+parte din ea. Fie $K$ restul împărțirii lui $M[N]$ la $N$, deci
+
+\begin{equation}
+  M[N] \equiv K \pmod{N}
+\end{equation}
+
+Atunci suma $S - M[N]$ dă restul $(N-K) \bmod N$ la împărțirea prin $N$, de
+unde deducem că
+
+\begin{equation}
+  S - M[N] \equiv N - K \pmod{N}
+\end{equation}
+
+De asemenea, putem afirma că $S - M[N]$ este cea mai mare dintre toate sumele
+care se pot obține folosind grămezile $1, 2, \dots, N-1$ și care dau același
+rest la împărțirea prin $N$. Demonstrația nu este grea: dacă ar exista o sumă
+mai mare decât $S - M[N]$ congruentă cu $N - K$ modulo $N$, am putea folosi
+această sumă și grămada $M[N]$ pentru a obține o sumă $S'>S$ astfel încât
+
+\begin{equation}
+  S' \equiv 0 \pmod{N}
+\end{equation}
+
+Această observație ne sugerează și metoda de rezolvare a problemei. Pentru a
+afla care este submulțimea de sumă maximă, avem două variante:
+
+\begin{itemize}
+
+\item Grămada $N$ face parte din această submulțime, caz în care trebuie să
+  descoperim cea mai mare sumă care se poate obține adunând grămezi dintre
+  primele $N-1$ și care dă restul $N - K$ la împărțirea prin $N$;
+
+\item Grămada $N$ nu face parte din această submulțime, caz în care trebuie să
+  descoperim cea mai mare sumă care se poate obține adunând grămezi dintre
+  primele $N-1$ și care se împarte exact la $N$.
+
+\end{itemize}
+
+Pentru că nu putem ști de la început dacă grămada a $N$-a face sau nu parte
+din submulțimea maximală, trebuie să avem răspunsul pregătit pentru ambele
+situații. Mai mult, pentru a putea afla care sunt sumele maxime formate cu
+primele $N-1$ grămezi care dau diferite resturi (în cazul nostru 0 sau $N -
+K$) la împărțirea prin $N$, trebuie să reluăm exact aceeași problemă: grămada
+cu numărul $N-1$ poate face sau nu parte din submulțime. În concluzie, putem
+formaliza problema astfel: avem nevoie să putem răspunde la toate întrebările
+de forma „Care este suma maximă care se poate forma cu grămezi din primele $P$
+astfel încât restul la împărțirea prin $N$ să fie $Q$?”. Vom nota răspunsul la
+această întrebare cu $R[P,Q]$ (unde $1 \leq P \leq N$ și $0 \leq Q <
+N$). Răspunsurile tuturor întrebărilor se pot deci dispune într-o matrice $R$,
+iar scopul nostru este să-l aflăm pe $R[N,0]$. Am observat că pentru a-l putea
+afla pe $R[P,Q]$ avem nevoie de două valori din linia $P$-1 a matricei (după
+cum grămada $P$ face sau nu parte din submulțimea optimă). Pentru a afla toate
+elementele liniei $P$ a matricei, este deci foarte probabil să avem nevoie de
+întreaga linie $P-1$.
+
+Astfel, problema se reduce la a compune o linie a matricei din cea
+precedentă. Dacă presupunem că grămada $P$ nu intră în componența submulțimii
+optime, atunci linia $P$ este identică cu linia $P-1$:
+
+\begin{equation}
+  R[P,Q] = R[P - 1, Q], \quad \forall 0 \leq Q < N
+\end{equation}
+
+Dacă presupunem că grămada $P$ face parte din submulțime, atunci avem
+egalitatea:
+
+\begin{equation}
+  R[P,Q] = R[P - 1, (Q - M[P]) \bmod N] + M[P], \quad \forall 0 \leq Q < N
+\end{equation}
+
+Alegând dintre aceste variante pe cea care ne convine mai mult, obținem:
+
+\begin{equation}
+  R[P,Q] =  \max
+  \begin{Bmatrix}
+    R[P - 1, Q] \\
+    R[P - 1, (Q - M[P]) \bmod N] + M[P]
+  \end{Bmatrix}
+  \quad \forall 0 \leq Q < N
+\end{equation}
+
+În felul acesta se completează fără nici un fel de probleme matricea $R$. După
+cum am spus, $R[N,0]$ indică suma maximă divizibilă cu $N$. Mai rămâne de
+văzut cum se face reconstituirea soluției. De fapt, nu avem decât să parcurgem
+aceleași etape ale raționamentului, dar în sens invers. Respectiv: dacă
+$R[N,0] = R[N-1,0]$, atunci deducem că grămada a $N$-a nu a fost folosită
+pentru a se obține suma maximă și avem nevoie să obținem suma maximă
+divizibilă cu $N$ din primele $N-1$ grămezi (adică $R[N-1,0]$). Dacă $R[N,0]
+\neq R[N-1,0]$, atunci grămada a $N$-a a fost folosită și avem nevoie să
+obținem suma maximă de rest $N-M[N]$ modulo $P$ folosind primele $N-1$
+grămezi. Pe cazul general, pentru a obține suma maximă de rest $Q$ folosind
+primele $P$ grămezi, avem două posibilități:
+
+\begin{itemize}
+
+\item Dacă $R[P,Q] = R[P-1,Q]$, atunci grămada $P$ nu este folosită și trebuie
+  să obținem același rest $Q$ folosind doar primele $P-1$ grămezi;
+
+\item Dacă $R[P,Q] \neq R[P-1,Q]$, atunci grămada $P$ este folosită și trebuie
+  să obținem restul $Q- M[P]$ modulo $N$ folosind primele $P-1$ grămezi.
+
+\end{itemize}
+
+Menționăm că programul este puțin diferit de ceea ce s-a explicat până acum,
+în sensul că prima linie din matricea $R$ corespunde ultimei grămezi de mere,
+a doua linie corespunde penultimei grămezi de mere ș.a.m.d. Cu alte cuvinte,
+grămezile de mere sunt procesate în ordine inversă. Am făcut acest lucru
+pentru a ușura procedura de aflare a soluției; se observă că prima oară se
+decide dacă ultima grămadă face parte din submulțime, apoi penultima etc. Deci
+și la găsirea soluției se generează grămezile în ordine inversă. Prin această
+dublă inversiune, indicii grămezilor de mere selectate vor fi listați în
+ordine crescătoare. Dacă am fi prelucrat grămezile de mere în ordinea lor din
+fișier, s-ar fi impus scrierea unei proceduri recursive pentru afișarea
+soluției.
+
+Să facem și calculul complexității acestui program. Citirea datelor se face în
+$O(N)$, la fel și reconstituirea soluției. Pentru a completa o linie din
+matrice, avem nevoie să parcurgem linia precedentă, adică $O(N)$. Pentru
+compunerea întregii matrice, timpul necesar este pătratic.
+
+Mai trebuie făcută o singură observație referitoare la modul de inițializare a
+matricei. Vom adăuga în matricea $R$ linia cu numărul 0, care va conține
+sumele maxime ce se pot obține fără a folosi nici o grămadă. Desigur, se poate
+obține numai suma 0, care dă restul 0 la împărțirea prin $N$, iar alte sume nu
+se pot obține. Vom pune deci $R[0,0]=0$ și $R[0,i]=\mathbf{Impossible}$ pentru
+orice $1 \leq i < N$, unde $\mathbf{Impossible}$ este o constantă specială
+(preferabil negativă, pentru a nu se confunda cu valorile obișnuite din
+matrice).
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#define NMax 101
+#define Impossible -30000
+
+int M[NMax], R[NMax][NMax], N;
+void ReadData(void)
+{ FILE *F = fopen("input.txt", "rt");
+  int i;
+
+  fscanf(F, "%d\n", &N);
+  for (i=1; i<=N; fscanf(F, "%d", &M[i++]));
+  fclose(F);
+}
+
+void Share(void)
+{ int i,j;
+
+  R[0][0]=0;
+  for (i=1; i<N; R[0][i++]=Impossible);
+
+  for (i=1; i<=N; i++)
+    {
+      for (j=0; j<N; j++)
+        R[i][j] = R[i-1][j];
+      for (j=0; j<N; j++)
+        if (R[i-1][j] != Impossible
+           && R[i-1][j] + M[N+1-i] > 
+              R[i][ (R[i-1][j]+M[N+1-i]) % N ])
+         R[i][ (R[i-1][j]+M[N+1-i]) % N ] =
+         R[i-1][j] + M[N+1-i];
+    }
+}
+
+void WriteSolution(void)
+{ FILE *F = fopen("output.txt", "wt");
+  int i,j;
+
+  fprintf(F, "%d\n", R[N][0]);
+  j=0;
+  for (i=N; i; i--)
+    if (R[i][j] != R[i-1][j])
+      {
+        fprintf(F, "%d ", N+1-i);
+        j = (j + N - M[N+1-i]%N) % N;
+      }
+  fprintf(F, "\n");
+  fclose(F);
+}
+
+void main(void)
+{
+  ReadData();
+  Share();
+  WriteSolution();
+}
+\end{lstlisting}

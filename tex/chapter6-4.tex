@@ -1,0 +1,422 @@
+\section{Problema 4}
+
+Continuăm cu o problemă care a fost de asemenea dată spre rezolvare la a
+VIII-a Olimpiadă Internațională de Informatică, Veszprem 1996. Problema în
+sine nu a fost foarte grea și mulți elevi au luat punctaj maxim. Totuși,
+enunțul permite unele modificări interesante care practic schimbă cu totul
+problema.
+
+{\bf ENUNȚ}: Să considerăm următorul joc de două persoane. Tabla de joc constă
+într-o secvență de întregi pozitivi. Cei doi jucători mută pe rând. Mutarea
+fiecărui jucător constă în alegerea unui număr de la unul din cele două capete
+ale secvenței. Numărul ales este șters de pe tablă. Jocul se termină când
+toate numerele au fost selectate. Primul jucător câștigă dacă suma numerelor
+alese de el este mai mare sau egală cu cea a numerelor alese de cel de-al
+doilea jucător. În caz contrar, câștigă al doilea jucător.
+
+Dacă tabla conține inițial un număr par de elemente, atunci primul jucător are
+o strategie de câștig. Trebuie să scrieți un program care implementează
+strategia cu care primul jucător câștigă jocul. Răspunsurile celui de-al
+doilea jucător sunt date de un program rezident. Cei doi jucători comunică
+prin trei proceduri ale modulului {\tt Play} care v-a fost pus la
+dispoziție. Procedurile sunt {\tt StartGame}, {\tt MyMove} și {\tt
+  YourMove}. Primul jucător începe jocul apelând procedura fără parametri {\tt
+  StartGame}. Dacă alege numărul de la capătul din stânga, el va apela
+procedura {\tt MyMove('L')}. Analog, apelul de procedură {\tt MyMove('R')}
+trimite un mesaj celui de-al doilea jucător prin care îl informează că a ales
+numărul de la capătul din dreapta. Cel de-al doilea jucător, deci computerul,
+mută imediat, iar primul jucător poate afla mutarea acestuia executând
+procedura {\tt YourMove(C)}, unde {\tt C} este o variabilă de tip {\tt Char}
+(în C/C++ apelul este {\tt YourMove(\&C)}). Valoarea lui {\tt C} este {\tt
+  'L'} sau {\tt 'R'}, după cum numărul ales este de la capătul din stânga sau
+din dreapta.
+
+{\bf Intrarea}: Prima linie din fișierul {\tt INPUT.TXT} conține dimensiunea
+inițială $N$ a tablei. $N$ este par și $2 \leq N \leq 100$. Următoarele $N$
+linii conțin fiecare câte un număr, reprezentând conținutul tablei de la
+stânga la dreapta. Fiecare număr este cel mult 200.
+
+{\bf Ieșirea}: Când jocul se termină, programul trebuie să scrie rezultatul
+final în fișierul text {\tt OUTPUT.TXT}. Fișierul conține două numere pe prima
+linie, reprezentând suma numerelor alese de primul, respectiv de cel de-al
+doilea jucător. Programul trebuie să joace un joc corect și ieșirea trebuie să
+corespundă jocului jucat.
+
+{\bf Exemplu}:
+
+\texttt{
+  \begin{tabular}{| l | l |}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        6 & 15 14 \\
+        4 & \\
+        7 & \\
+        2 & \\
+        9 & \\
+        5 & \\
+        2 & \\
+    \hline
+  \end{tabular}
+}
+
+{\bf Timp limită de execuție}: 20 secunde pentru un test.
+
+Acesta a fost enunțul original, la care va trebui să facem câteva modificări,
+în parte deoarece nu putem folosi modulul {\tt Play}, în parte pentru a face
+problema mai restrictivă:
+
+\begin{itemize}
+
+\item Mutările vor fi anunțate pe ecran prin tipărirea unui caracter {\tt 'L'}
+  sau {\tt 'R'};
+
+\item Mutările celui de-al doilea jucător vor fi comunicate de un partener
+  uman, prin introducerea de la tastatură a unui caracter {\tt 'L'} sau {\tt
+    'R'};
+
+\item Rezultatul final se va tipări pe ecran, sub aceeași formă (pereche de
+  numere).
+
+\item Timpul de gândire pentru fiecare mutare trebuie să fie cât mai mic
+  (practic răspunsul să fie instantaneu);
+
+\item {\bf Complexitatea totală} a calculelor efectuate să fie $O(N)$.
+
+\item {\bf Timpul de implementare} a fost cam de 1h 40 min. Propunem reducerea
+  lui la 30 minute.
+
+\end{itemize}
+
+{\bf REZOLVARE}: Este ușor de demonstrat că o rezolvare „greedy” a problemei
+(la fiecare mutare jucătorul 1 alege numărul mai mare) nu atrage întotdeauna
+câștigul. Iată un contraexemplu:
+
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    column sep = 0.5em,
+    nodes=cell,
+  },
+  cell/.style = {rectangle, draw, minimum width=1.5em, minimum height=1.5em},
+]{
+  \matrix[mat] {
+    7 \& 10 \& 1 \& 2 \\
+  };
+}
+
+La prima mutare, jucătorul 1 poate să aleagă fie numărul 7, fie numărul
+2. Dacă se va „lăcomi” la 7, jucătorul 2 va lua numărul 10 și inevitabil va
+câștiga. Soluția pentru primul jucător este să ia numărul 2, apoi, indiferent
+de ce va juca partenerul său, va putea lua numărul 10 și va câștiga.
+
+Iată o soluție izbitor de simplă de complexitate $O(N)$: La citirea datelor se
+face suma elementelor aflate pe poziții pare și a celor aflate pe poziții
+impare. Să presupunem că suma elementelor de ordin par este mai mare sau egală
+cu cea a elementelor de ordin impar (cazul invers se tratează analog). Atunci,
+dacă primul jucător ar putea să aleagă toate elementele de ordin par (care
+sunt într-adevăr $N/2$, adică atâtea câte are el dreptul să aleagă), ar
+câștiga jocul. Jucătorul 1 poate începe jocul prin a lua primul sau ultimul
+element din secvență, deci îl va alege pe ultimul, care are număr de ordine
+par. Al doilea jucător are de ales între primul și al $N-1$-lea element,
+ambele având număr de ordine impar. Indiferent ce variantă o va adopta, primul
+jucător va avea din nou acces la un element de pe o poziție pară. Dacă
+jucătorul 2 alege elementul din stânga (primul), atunci jucătorul 1 va putea
+lua elementul de după el (al doilea), iar dacă jucătorul 2 alege elementul din
+dreapta (al $N-1$-lea), atunci jucătorul 1 va putea lua elementul dinaintea el
+(al $N-2$-lea). Deci primul jucător nu are altceva de făcut decât să repete
+mutările făcute de cel de-al doilea. Să privim de exemplu desfășurarea jocului
+pe tabla dată în enunț:
+
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    row sep=0.5em,
+    column sep=0.5em,
+    nodes=cell,
+  },
+  cell/.style = {draw, minimum width=1.5em, minimum height=1.5em},
+  row 1/.style = {draw=white, nodes={minimum height=2em}},
+  noborder/.style={column #1/.style={nodes={draw=none}}},
+  noborder/.list={1, 8},
+]{
+  \matrix[mat] (m) {
+    Jucătorul 1 \& 1 \& 2 \& 3 \& 4 \& 5 \& 6 \& Jucătorul 2 \\
+    0           \& 4 \& 7 \& 2 \& 9 \& 5 \& 2 \& 0  \\
+    2           \& 4 \& 7 \& 2 \& 9 \& 5 \&   \& 0  \\
+    2           \& 4 \& 7 \& 2 \& 9 \&   \&   \& 5  \\
+    11          \& 4 \& 7 \& 2 \&   \&   \&   \& 5  \\
+    11          \&   \& 7 \& 2 \&   \&   \&   \& 9  \\
+    18          \&   \&   \& 2 \&   \&   \&   \& 9  \\
+    18          \&   \&   \&   \&   \&   \&   \& 11 \\
+  };
+
+  \node at ([yshift=-1em]m.south) {$7 + 9 + 2 > 4 + 2 + 5$};
+}
+
+Programul în sine nici nu are nevoie să mai rețină vectorul de numere în
+memorie, din moment ce primul jucător nu are altceva de făcut decât să imite
+mutările celui de-al doilea. Un calcul al sumelor la citirea datelor este
+suficient. Complexitatea $O(N)$ este optimă, deoarece vectorul trebuie parcurs
+cel puțin o dată pentru citirea configurației inițiale a tablei.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+
+void main(void)
+{ FILE *F=fopen("input.txt","rt");
+  int SEven,SOdd,N,i,K;
+
+  fscanf(F,"%d\n",&N);
+  for (i=1, SEven=SOdd=0; i<=N; i++)
+    { fscanf(F, "%d\n", &K);
+      if (i&1) SOdd+=K;
+        else SEven+=K;
+    }
+  fclose(F);
+
+  printf("Mutarea mea: %c\n", SEven>=SOdd ? 'R' : 'L');
+  for (i=1; i<N/2; i++)
+    { printf("Mutarea dvs. (L/R) ? ");
+      printf("Mutarea mea: %c\n", getchar());
+      getchar(); /* Caracterul newline */
+    }
+  printf("Mutarea dvs. (L/R) ? ");
+  getchar();
+
+  if (SEven>=SOdd)
+    printf("%d %d\n", SEven, SOdd);
+    else printf("%d %d\n", SOdd, SEven);
+}
+\end{lstlisting}
+
+O a doua variantă a enunțului aduce unele condiții suplimentare:
+
+\begin{itemize}
+
+\item Se cere să se tipărească numai diferența maximă de scor pe care o poate
+  obține primul jucător, considerând că ambii parteneri joacă perfect;
+
+\item {\bf Complexitatea cerută} este $O(N^2)$.
+
+\item {\bf Timpul de implementare} este de 45 minute, maxim 1h.
+
+\end{itemize}
+
+{\bf REZOLVARE}: Trebuie mai întâi să lămurim ce se înțelege prin „joc
+perfect”. Jucătorul 1 are întotdeauna victoria la îndemână (metoda este
+arătată mai sus), dar nu la orice scor. Jucătorul 2 urmărește să minimizeze
+diferența de scor. Fie $D$ diferența de scor cu care se termină un joc. $D$
+poate lua diferite valori pentru aceeași configurație inițială a tablei, în
+funcție de mutările făcute de cei doi jucători. Fie $D_{MAX}$ diferența maximă
+de scor pe care o poate obține primul jucător indiferent de mutările celui
+de-al doilea. Exact această valoare trebuie aflată. $D_{MAX}$ nu este
+propriu-zis o diferență maximă. Jucătorul 1 poate să câștige și la diferențe
+mai mari decât $D_{MAX}$, dar trebuie ca jucătorul 2 să-l „ajute”. Să reluăm
+exemplul cu 4 numere:
+
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    column sep = 0.5em,
+    nodes=cell,
+  },
+  cell/.style = {rectangle, draw, minimum width=1.5em, minimum height=1.5em},
+]{
+  \matrix[mat] {
+    7 \& 10 \& 1 \& 2 \\
+  };
+}
+
+În acest caz, primul jucător are asigurat scorul 12-8 (deci diferența
+4). Pentru aceasta, el începe prin a lua numărul 2, apoi, orice ar replica
+celălalt, va lua numărul 10, jucătorului 2 revenindu-i așadar numerele 1 și
+7. El poate obține și scorul 17-3 (jucătorul 1 ia numărul 7, celălalt ia 2,
+jucătorul 1 ia 10, iar celălalt ia 1), dar aceasta se întâmplă numai dacă
+jucătorul 2 face o greșeală. După cum am arătat mai sus, dacă primul jucător
+începe luând numărul 7, el pierde în mod normal partida. Iată deci că în acest
+caz $D_{MAX}=4$.
+
+Pentru a putea afla diferența maximă de scor, este bine să privim mereu în
+adâncime. Există patru variante în care ambii parteneri pot face câte o
+mutare:
+
+\begin{enumerate}
+
+\item Ambii jucători aleg numere din partea stângă;
+
+\item Ambii aleg numere din partea dreaptă;
+
+\item Primul jucător alege numărul din stânga, iar celălalt pe cel din
+  dreapta;
+
+\item Primul jucător alege numărul din dreapta, iar celălalt pe cel din
+  stânga;
+
+\end{enumerate}
+
+În urma oricărei variante de mutare, secvența se scurtează cu două
+elemente. Dacă am putea cunoaște dinainte care este rezultatul jocului pentru
+fiecare din secvențele scurte, am putea să decidem care variantă de joc este
+cea mai convenabilă pentru secvența inițială, ținând cont și de modul de joc
+al jucătorului al doilea. Tocmai de aici vine și ideea de rezolvare. Să notăm
+cu $A[1], A[2], ..., A[N]$ secvența citită la intrare. Vom construi o
+matrice $D$ cu $N$ linii și $N$ coloane, unde $D[i,j]$ este diferența maximă
+pe care o poate obține jucătorul 1 pentru secvența $A[i], A[i+1], \dots,
+A[j]$. Bineînțeles, sunt luate în considerare numai secvențele de lungime
+pară. Scopul nostru este să-l aflăm pe $D[1,N]$.
+
+Elementele matricei pe care le putem afla fără multă bătaie de cap sunt
+$D[1,2]$, $D[2,3]$, $\dots$, $D[N-1,N]$. Într-adevăr, dintr-o secvență de
+numai două numere, primului jucător îi revine cel mai mare, iar celui de-al
+doilea - cel mai mic. Așadar
+
+\begin{equation}
+  D[i,i + 1] = |A[i] - A[i + 1]|
+\end{equation}
+
+Cum calculăm $D[i,j]$ dacă cunoaștem valorile matricei $D$ pentru toate
+subsecvențele incluse în secvența $A[i], A[i+1], ..., A[j]$? După cum am mai
+spus, avem patru variante:
+
+\centeredTikzFigure[
+  scale=0.7,
+  every node/.style={scale=0.7, anchor=base west},
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+  },
+  header/.style={text width=9em, yshift=4em},
+]{
+  \matrix[mat] (m) {
+    \node[header] {Elementul selectat de primul jucător}; \&
+    \node[header] {Elementul selectat de al doilea jucător}; \&
+    \node[header] {Rezultatul pentru secvența rămasă}; \&
+    \node[header] {Rezultatul final}; \\
+    $A[i]$ \&
+    $A[i + 1]$ \&
+    $D[i + 2, j]$ \&
+    $R_1 = D[i + 2, j] + A[i] - A[i + 1]$ \\
+    \&
+    $A[j]$ \&
+    $D[i + 1, j - 1]$ \&
+    $R_2 = D[i + 1, j - 1] + A[i] - A[j]$ \\
+    $A[j]$ \&
+    $A[i]$ \&
+    $D[i + 1, j - 1]$ \&
+    $R_3 = D[i + 1, j - 1] + A[j] - A[i]$ \\
+    \&
+    $A[j - 1]$ \&
+    $D[i, j - 2]$ \&
+    $R_4 = D[i, j - 2] + A[j] - A[j - 1]$ \\
+  };
+
+  \draw[->] (m-2-1.east) -- (m-2-2.west);
+  \draw[->] (m-2-2.east) -- (m-2-3.west);
+  \draw[->] (m-2-3.east) -- (m-2-4.west);
+  \draw[->] (m-2-1.east) -- (m-3-2.west);
+  \draw[->] (m-3-2.east) -- (m-3-3.west);
+  \draw[->] (m-3-3.east) -- (m-3-4.west);
+
+  \draw[->] (m-4-1.east) -- (m-4-2.west);
+  \draw[->] (m-4-2.east) -- (m-4-3.west);
+  \draw[->] (m-4-3.east) -- (m-4-4.west);
+  \draw[->] (m-4-1.east) -- (m-5-2.west);
+  \draw[->] (m-5-2.east) -- (m-5-3.west);
+  \draw[->] (m-5-3.east) -- (m-5-4.west);
+}
+
+Trebuie să ținem minte că, dacă primul jucător optează să-l aleagă pe $A[i]$
+(una din primele două variante), atunci jucătorul 2 va juca în așa fel încât
+pierderea să fie minimă, iar scorul final va fi $\min(R_1,R_2)$. Dacă
+jucătorul 1 alege varianta 3 sau 4, scorul final va fi $\min(R_3,R_4)$. Dar
+jucătorul 1 este primul la mutare, deci va alege varianta care îi maximizează
+profitul. Rezultatul este
+
+\begin{equation}
+  D[i,j] = \max(\min(R_1, R_2), \min(R_3, R_4))
+\end{equation}
+
+adică
+
+\begin{align}
+  \begin{split}
+    D[i,j] = \max( & A[i] + \min(D[i + 2, j] - A[i + 1], D[i + 1, j - 1] - A[j]), \\
+    & A[j] + \min(D[i + 1, j - 1] - A[i], D[i, j - 2] - A[j - 1]))
+  \end{split}
+\end{align}
+
+Matricea $D$ se completează pe diagonală, pornind de la diagonala principală
+și mergând până în colțul de N-E. Iată cum arată matricea atașată datelor de
+intrare din enunț:
+
+\begin{equation}
+  D =
+  \begin{pmatrix}
+    X & 3 & X & 10 & X & 7 \\
+    X & X & 5 & X & 9 & X \\
+    X & X & X & 7 & X & 4 \\
+    X & X & X & X & 4 & X \\
+    X & X & X & X & X & 3 \\
+    X & X & X & X & X & X
+  \end{pmatrix}
+\end{equation}
+
+Pentru exemplul din enunț, răspunsul este deci $D_{MAX}=7$. Cum elementele
+matricei sunt parcurse cel mult o dată, rezultă o complexitate de $O(N^2)$.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <stdlib.h>
+#define NMax 101
+
+int D[NMax][NMax], A[NMax], N;
+
+void ReadData(void)
+{ FILE *F=fopen("input.txt","rt");
+  int i;
+
+  fscanf(F,"%d\n",&N);
+  for (i=1; i<=N;)
+    fscanf(F, "%d\n", &A[i++]);
+  fclose(F);
+}
+
+int Min(int A, int B)
+{
+  return A<B ? A : B;
+}
+
+int Max(int A, int B)
+{
+  return A>B ? A : B;
+}
+
+void FindMax(void)
+{ int i,j,k;
+
+  for (i=1;i<N;i++)
+    D[i][i+1]=abs(A[i]-A[i+1]);
+  for (k=3;k<=N-1;k++)
+    for (i=1;i+k<=N;i++)
+      { j=i+k;
+        D[i][j]=Max(A[i]+Min(D[i+2][j]-A[i+1],
+                             D[i+1][j-1]-A[j]),
+                    A[j]+Min(D[i+1][j-1]-A[i],
+                             D[i][j-2]-A[j-1]));
+      }
+  printf("Diferenta maxima este %d\n",D[1][N]);
+}
+
+void main(void)
+{
+  ReadData();
+  FindMax();
+}
+\end{lstlisting}
+
+Programul prezentat mai sus poate fi optimizat, dacă timpul o permite și dacă
+acest lucru este necesar. Lăsăm cititorul să încerce să rezolve aceeași
+problemă folosind o cantitatate de memorie direct proporțională cu $N$.

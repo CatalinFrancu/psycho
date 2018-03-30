@@ -1,0 +1,329 @@
+\section{Problema 9}
+
+Iată o problemă care necesită pentru reducerea complexității un artificiu
+asemănător celui din problema codului Prüfer. Ea a fost propusă în 1995 la
+concursul de selecție a echipelor României pentru IOI și CEOI. Deși cerința
+este puțin modificată pentru a nu ne izbi de dificultăți secundare, ideea
+generală de abordare este aceeași.
+
+{\bf ENUNȚ}: Președintele companiei X dorește să organizeze o petrecere cu
+angajații. Această companie are o structură ierarhică în formă de
+arbore. Fiecare angajat are asociat un număr întreg reprezentând măsura
+sociabilității sale. Pentru ca petrecerea să fie agreabilă pentru toți
+participanții, președintele dorește să facă invitațiile astfel încât:
+
+\begin{itemize}
+
+\item el însuși să participe la petrecere;
+
+\item pentru nici un participant la petrecere să nu fie invitat și șeful lui
+  direct;
+
+\item suma măsurilor sociabilităților invitaților să fie maximă.
+
+\end{itemize}
+
+Se cere să se spună care este suma maximă a sociabilităților care se poate obține.
+
+{\bf Intrarea} se face din fișierul {\tt INPUT.TXT} care conține trei linii de
+forma:
+
+\begin{verbatim}
+N
+T(1) T(2) ... T(N)
+S(1) S(2) ... S(N)
+\end{verbatim}
+
+unde $N$ este numărul de angajați ai companiei, inclusiv președintele ($N \leq
+1000$), $T(k)$ este numărul de ordine al șefului direct al lui $k$ (dacă $T(k)
+= 0$, atunci $k$ este președintele), iar $S(k)$ este măsura sociabilității lui
+$k$. Valorile vectorului $S$ sunt de tipul întreg.
+
+{\bf Ieșirea}: Pe ecran se va tipări suma maximă a sociabilităților ce se
+poate obține.
+
+{\bf Exemplu}: Pentru intrarea:
+
+\begin{verbatim}
+7
+2 5 2 5 0 4 2
+2 5 3 13 8 4 3
+\end{verbatim}
+
+pe ecran se va afișa numărul 20 (fiindcă la petrecere participă 1, 3, 5, 6 și
+7).
+
+{\bf Timp de implementare}: 1h - 1h 15min.
+
+{\bf Timp de rulare}: 2-3 secunde.
+
+{\bf Complexitate cerută}: $O(N)$. De asemenea, menționăm că s-a specificat $N
+\leq 1000$ numai pentru ca programul sursă de mai jos să nu se complice și să
+distragă atenția asupra unor lucruri neimportante. În mod normal, limita
+trebuia să fie $N \leq 10.000$.
+
+{\bf REZOLVARE}: Vom expune mai întâi principiul de rezolvare al problemei,
+apoi vom aborda detaliile de implementare.
+
+Algoritmul are la bază programarea dinamică și necesită o parcurgere de jos în
+sus a arborelui, decizia pentru fiecare nod depinzând de valorile tuturor
+fiilor lui. Ne propunem să aflăm două caracteristici pentru fiecare nod $k$:
+
+\begin{itemize}
+
+\item $P(k)$ - suma maximă a sociabilităților care se poate obține în
+  subarborele de rădăcină $k$ în cazul în care $k$ participă la petrecere;
+
+\item $Q(k)$ - suma maximă a sociabilităților care se poate obține în
+  subarborele de rădăcină $k$ în cazul în care $k$ nu participă la petrecere;
+
+\end{itemize}
+
+Dacă reușim să determinăm aceste caracteristici, nu ne rămâne decât să-l
+tipărim pe $P(R)$ ($R$ fiind rădăcina arborelui). Într-adevăr, problema cere
+să se determine suma maximă a sociabilităților din întregul arbore, adică din
+subarborele de rădăcină $R$. În plus, se mai cere ca $R$ să participe la
+petrecere. Rămâne de aflat cum se stabilește relația între caracteristicile
+unui nod și cele ale fiilor săi.
+
+\begin{itemize}
+
+\item Dacă angajatul $k$ participă la petrecere, atunci automat nici unul din
+  subordonații săi direcți nu participă, și obținem relația:
+
+  \begin{equation}
+    P(k) = S(k) + \sum_j Q(j), \quad j \text{ fiu al lui } k
+  \end{equation}
+
+\item Dacă angajatul $k$ nu participă la petrecere, atunci subordonații săi
+  direcți pot să participe sau nu la petrecere, după cum este mai avantajos,
+  și obținem relația:
+
+  \begin{equation}
+    Q(k) = \sum_j \max(P(j), Q(j)), \quad j \text{ fiu al lui } k
+  \end{equation}
+
+\end{itemize}
+
+Problema care se pune acum este cum să facem parcurgerea arborelui într-un mod
+cât mai avantajos. Pseudocodul (recursiv) sub forma sa cea mai generală este:
+
+\vspace{\algskip}
+\begin{algorithm}
+  \floatname{algorithm}{Procedura}
+  \caption{Calcul($k$, $P$, $Q$)}
+  \begin{algorithmic}[1]
+    \STATE $P \leftarrow S(k)$
+    \STATE $Q \leftarrow 0$
+    \FORALL{$j$ fiu al lui $k$}
+    \STATE Calcul($j$, $P_1$, $Q_1$)
+    \STATE $P \leftarrow P + Q_1$
+    \STATE $Q \leftarrow Q + \max(P_1, Q_1)$
+    \ENDFOR
+    \RETURN $P$, $Q$
+  \end{algorithmic}
+\end{algorithm}
+
+Soluția „de bun simț” este de a construi arborele alocat dinamic. Ar apărea
+însă o sumedenie de dificultăți. În primul rând, arborele este general, deci
+nu se cunoaște numărul maxim de fii pe care îi poate avea un nod (pe cazul cel
+mai defavorabil, rădăcina poate avea $N-1$ fii). Aceasta înseamnă că legătura
+trebuie să fie de tip tata (fiecare nod pointează la tatăl său), ceea ce
+complică procedura de parcurgere: nu se poate apela procedura recursiv,
+dintr-un nod pentru toți fiii săi, deoarece nu se cunosc fiii, ci numai tatăl!
+O altă modalitate de alocare a arborelui ar fi cu doi pointeri pentru fiecare
+nod: unul către primul său fiu și unul către fratele său din dreapta (exemplul
+din enunț are reprezentate grafic mai jos cele două metode de construcție).
+
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    anchor=north,
+    column sep=4em,
+    row sep=1em,
+  },
+  level/.style={sibling distance=10em/#1},
+  row 1/.style={
+    nodes=tree,
+  },
+  tree/.style={circle, draw, minimum size=2.2em},
+  edge from parent/.style={draw, <-},
+]{
+  \matrix[mat] {
+    \node {5}
+    child { node {2}
+      child { node {1} }
+      child { node {3} }
+      child { node {7} }
+    }
+    child { node {4}
+      child { node {6} }
+    };
+    %
+    \&
+    %
+    \node (t2) {5}
+    child { node (n2) {2} edge from parent[draw, ->]
+      child { node (n1){1} edge from parent[draw, ->] }
+    };
+    \node[anchor=center] (n4) at ([xshift=12em]n2.center) {4};
+    \node[anchor=center] (n3) at ([xshift=4em]n1.center) {3};
+    \node[anchor=center] (n7) at ([xshift=8em]n1.center) {7};
+    \node[anchor=center] (n6) at ([xshift=12em]n1.center) {6};
+    %
+    \draw[->] (n2) -- (n4);
+    \draw[->] (n4) -- (n6);
+    \draw[->] (n1) -- (n3);
+    \draw[->] (n3) -- (n7);
+    \\
+    Legătură de tip tată \&
+    \node[xshift=6em] {Legătură de tip fiu + frate}; \\
+  };
+}
+
+Probabil că veți fi de acord cu mine că e riscant să te aventurezi la o
+asemenea implementare în timp de concurs, deoarece lucrul cu pointeri
+presupune o atenție deosebită. Greșelile sunt mai greu de observat și de multe
+ori duc la blocarea calculatorului, care trebuie resetat mereu, pierzându-se
+astfel o mulțime de timp. Trebuie deci căutată o metodă de parcurgere a
+arborelui care să nu necesite o alocare dinamică a memoriei. Putem încerca
+astfel: inițial $P(i)=S(i)$ și $Q(i)=0$ pentru orice nod. Urmează acum să
+tratăm pe rând fiecare nod. Cum? Știm că pentru fiecare nod $k$, numerele
+$P(k)$ și $Q(k)$ intervin în expresia lui $P(T(k))$ și $Q(T(k))$. Uitându-ne
+la formulele de mai sus, observăm că tot ce avem de făcut este să incrementăm
+$P(T(k))$ cu $Q(k)$ și $Q(T(k))$ cu $\max(P(k), Q(k))$.
+
+Există o singură problemă: Pentru a putea folosi numerele $P(k)$ și $Q(k)$
+trebuie să ne asigurăm că ele au fost deja calculate corect, în funcție de
+caracteristicile tuturor fiilor lui $k$. În cazul frunzelor, problema este
+rezolvată, deoarece ele nu au fii. Pentru nodurile interne, este necesar să
+știm câți fii au ele și câți din aceștia au fost tratați. În momentul în care
+toți fiii unui nod au fost tratați, poate fi tratat și nodul în sine. În
+program, vectorul $F$ reține numărul de fiii netratați ai fiecărui nod. La
+tratarea unui nod $k$ se face decrementarea lui $F(T(k))$. Un nod $k$ poate fi
+ales spre tratare dacă $F(k)=0$. Se observă că formatul datelor de intrare
+permite cu ușurință construcția vectorului $F$ (numărul de fii al lui $k$ este
+egal cu numărul de apariții al lui $k$ în vectorul $T$).
+
+Un algoritm mai ușor de implementat ar fi:
+
+\vspace{\algskip}
+\begin{algorithmic}[1]
+  \STATE numără fiii fiecărui nod
+  \FOR{$i = 1$ la $N-1$}
+  \STATE caută un nod $k$ cu $F(k)=0$
+  \STATE $P(T(k)) \leftarrow P(T(k))+Q(k)$
+  \STATE $Q(T(K)) \leftarrow Q(T(K))+\max(P(k),Q(k))$
+  \STATE $F(T(K)) \leftarrow F(T(K))-1$
+  \ENDFOR
+  \PRINT $P(R)$
+\end{algorithmic}
+
+Partea delicată a acestui algoritm este căutarea unui nod $k$ cu
+$F(k)=0$. Dacă ea se face secvențial, pornind de fiecare dată de la primul nod
+și cercetând fiecare element, programul care rezultă are complexitatea
+$O(N^2)$. Această căutare trebuie deci optimizată, și iată cum: În principiu,
+putem căuta nodurile cu $F(k)=0$ mergând numai în sensul crescător al
+indicilor în vector. Vom folosi, ca și la problema codului lui Prüfer, două
+variabile: $K$ și $Next$. $K$ este nodul tratat în prezent, iar $Next$ este
+nodul care urmează a fi tratat la pasul următor, așadar $Next > K$. După
+tratarea nodului $K$ și decrementarea lui $F(T(k))$, pot surveni trei
+situații:
+
+\begin{enumerate}
+
+\item $F(T(k))>0$ și în vectorul $F$ nu a apărut nici un alt element zero, caz
+  în care nimic nu se schimbă, algoritmul continuând cu tratarea nodului
+  $Next$;
+
+\item $F(T(k))=0$ și $T(k)>Next$, caz în care de asemenea se poate trata nodul
+  $Next$ (deoarece selectarea nodurilor cu $F(k)=0$ se face în ordine
+  crescătoare a indicilor);
+
+\item $F(T(k))=0$ și $T(k)<Next$, caz în care se va trata mai întâi nodul
+  $T(k)$, urmând a se reveni apoi la nodul $Next$.
+
+\end{enumerate}
+
+Pentru motivele explicate la codul lui Prüfer, acest algoritm nu necesită
+menținerea unei stive, iar timpul total de căutare este $O(N)$. Facem
+observația că nu se poate găsi un algoritm mai bun, deoarece trebuie parcurse
+toate cele $N$ noduri ale arborelui.
+
+Iată în încheiere cum arată arborele cu valorile $P$ și $Q$ atașate fiecărui
+nod:
+
+\centeredTikzFigure[
+  level/.style={sibling distance=15em/#1},
+  every node/.style = {circle, draw, minimum size=3em, font=\Large},
+  every label/.style = {draw=none, font=\scriptsize, minimum size=1em},
+]{
+  \node [label=north west:{\begin{tabular}{l}S=8\\P=20\\Q=21\end{tabular}}] {5}
+  child { node [label=north west:{\begin{tabular}{l}S=5\\P=5\\Q=8\end{tabular}}] {2}
+    child { node [label=south:{\begin{tabular}{l}S=2\\P=2\\Q=0\end{tabular}}] {1} }
+    child { node [label=south:{\begin{tabular}{l}S=3\\P=3\\Q=0\end{tabular}}] {3} }
+    child { node [label=south:{\begin{tabular}{l}S=3\\P=3\\Q=0\end{tabular}}] {7} }
+  }
+  child { node [label=north east:{\begin{tabular}{l}S=13\\P=13\\Q=4\end{tabular}}] {4}
+    child { node [label=south:{\begin{tabular}{l}S=4\\P=4\\Q=0\end{tabular}}] {6} }
+  };
+}
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#define NMax 1000
+typedef long Vector[NMax+1];
+
+Vector T,S,P,Q,F; /* T = Vectorul de tati,
+                     S = sociabilitatile,
+                     P,Q = caracteristicile,
+                     F = numarul de fii */
+int N,Root;
+
+void InitData(void)
+{ int i;
+  FILE *InF=fopen("input.txt","rt");
+
+  fscanf(InF,"%d",&N);
+  for (i=1;i<=N+1;F[i++]=0);
+  for (i=1;i<=N;i++)
+    { fscanf(InF,"%d",&T[i]);
+      if (T[i]) F[T[i]]++; else Root=i;
+    }
+  for (i=1;i<=N;i++) fscanf(InF,"%d",&S[i]);
+  fclose(InF);
+
+  for (i=1;i<=N;P[i++]=S[i]);
+  for (i=1;i<=N;Q[i++]=0);
+}
+
+void FindNext(int *K,int *Next)
+{ F[T[*K]]--;
+  F[*K]=-1;
+  if ((F[T[*K]]>0) || (T[*K]>*Next))
+    { *K=*Next;
+      while (F[*Next]) (*Next)++;
+    }
+    else *K=T[*K];
+}
+
+void TraverseTree(void)
+{ int K=0,Next,i;
+
+  do; while (F[++K]);
+  Next=K; do; while (F[++Next]);
+  for (i=1;i<N;i++)
+    { P[T[K]]+=Q[K];
+      Q[T[K]]+=(P[K]>Q[K]) ? P[K] : Q[K];
+      FindNext(&K,&Next);
+    }
+}
+
+void main(void)
+{
+  InitData();
+  TraverseTree();
+  printf("%ld\n",P[Root]);
+}
+\end{lstlisting}

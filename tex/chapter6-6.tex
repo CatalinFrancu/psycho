@@ -1,0 +1,600 @@
+
+\section{Problema 6}
+
+Propunem în continuare o problemă care s-a dat la Olimpiada Națională de
+Informatică, Suceava 1996, la clasa a XII-a. Menționăm că un singur concurent
+a reușit să o ducă la bun sfârșit în timpul concursului. Problema se numește
+„Cartierul Enicbo”.
+
+{\bf ENUNȚ}: În orașul Acopan s-a construit un nou cartier. Noul cartier are
+patru bulevarde paralele și un număr de $N$ străzi perpendiculare pe
+ele. Există deci în total $4N$ intersecții. Furgoneta oficiului poștal trebuie
+să distribuie poșta în fiecare zi; în acest scop, furgoneta pleacă de la
+oficiul poștal aflat la intersecția bulevardului 1 cu strada 1 și, urmând
+rețeaua stradală, trece exact o dată prin fiecare intersecție astfel încât să
+încheie traseul în punctul de plecare.
+
+Conducerea oficiului poștal roagă participanții la olimpiadă să o ajute să
+afle în câte moduri distincte se poate stabili traseul furgonetei.
+
+{\bf Intrarea}: Programul va citi de la tastatură valoarea lui $N$ ($2 \leq N
+\leq 200$).
+
+{\bf Ieșirea}: Pe ecran se va afișa soluția (numărul de trasee distincte
+pentru valoarea respectivă a lui $N$).
+
+{\bf Exemplu}: Pentru $N=3$ există 4 soluții (se citește de la tastatură
+numărul 3 și se afișează pe ecran numărul 4). Iată soluțiile efective:
+
+\newcommand\enicboContour[5]{
+  \draw[grid] (0,0) grid (#1,#2);
+
+  \enicboContourNoGrid{#3}{#4}{#5}
+}
+
+\newcommand\enicboContourNoGrid[3]{
+  \def\lx{#1} \def\ly{#2}
+  \foreach \x[remember=\x as \lx]/\y[remember=\y as \ly] in {#3} {
+    \draw[->-] (\lx,\ly) -- (\x,\y);
+  }
+}
+
+\newcommand\enicboSquares[1]{
+  \foreach \x/\y in {#1} {
+    \node[times] at ($(\x+0.5,\y+0.5)$) {$\times$};
+  }
+}
+
+\newcommand\enicboDots[2]{
+  \foreach \x in {#1} {
+    \foreach \y in {#2} {
+      \node at (\x,\y) {$\cdots$};
+    }
+  }
+}
+
+\tikzset{
+  grid/.style = {gray!50,very thin},
+  ->-/.style={
+    thick,
+    decoration={
+      markings,
+      mark=at position .65 with {\arrow{>},
+      },
+    },
+    postaction={decorate},
+  },
+  times/.style = {
+    font=\Large,
+  }
+}
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    column sep=2em,
+    row sep=2em,
+  },
+]{
+  \matrix[mat] {
+    \enicboContour{2}{3}{0}{0}{
+      0/1, 0/2, 0/3, 1/3, 2/3, 2/2, 1/2, 1/1, 2/1, 2/0, 1/0, 0/0
+    }
+    \&
+    \enicboContour{2}{3}{0}{0}{
+      1/0, 2/0, 2/1, 1/1, 1/2, 2/2, 2/3, 1/3, 0/3, 0/2, 0/1, 0/0
+    }
+    \\
+    \enicboContour{2}{3}{0}{0}{
+      0/1, 1/1, 1/2, 0/2, 0/3, 1/3, 2/3, 2/2, 2/1, 2/0, 1/0, 0/0
+    }
+    \&
+    \enicboContour{2}{3}{0}{0}{
+      1/0, 2/0, 2/1, 2/2, 2/3, 1/3, 0/3, 0/2, 1/2, 1/1, 0/1, 0/0
+    }
+    \\
+  };
+}
+
+{\bf Timp de execuție}: 30 secunde pentru un text
+
+{\bf Timp de implementare}: 1h 30 min.
+
+{\bf Complexitate cerută}: $O(N^2)$
+
+{\bf REZOLVARE}: Primul lucru care ne vine în gând este „se cere numărul de
+cicluri hamiltoniene într-un graf, deci problema e exponențială”. Rezolvarea
+backtracking nu e deloc greu de implementat, dar nu are nici o șansă să meargă
+pentru valori mari ale lui $N$. Afirmația de mai sus este corectă, dar
+incompletă; din această cauză concluzia este falsă. Se scapă din vedere faptul
+că graful nu este oarecare, ci are un aspect foarte particular.
+
+Și în această problemă vom încerca să utilizăm soluțiile locale (pentru valori
+mici ale lui $N$) pentru aflarea soluției globale. Respectiv, vom rezolva
+problema pentru $N=2$, apoi o vom extinde pentru $N=3, 4$ și așa mai
+departe. Pentru început, însă, încercăm să simplificăm enunțul, reducând
+problema la una echivalentă, dar mai simplă.
+
+Să considerăm o posibilă soluție pentru $N=5$:
+
+\centeredTikzFigure[]{
+  \enicboContour{4}{3}{0}{0}{
+    0/1, 0/2, 0/3, 1/3, 1/2, 1/1, 2/1, 2/2, 2/3, 3/3, 4/3, 4/2, 3/2, 3/1, 4/1,
+    4/0, 3/0, 2/0, 1/0, 0/0
+  }
+  \enicboSquares{0/0, 0/1, 0/2, 1/0, 2/0, 2/1, 2/2, 3/0, 3/2}
+}
+
+În loc să lucrăm cu segmente în această rețea, vom lucra cu ochiuri. Furgoneta
+parcurge un ciclu, deci închide în circuitul ei un număr de ochiuri. Am marcat
+aceste ochiuri cu un „$\times$” în figura de mai sus. Așadar, oricărui drum al
+furgonetei i se poate atașa o matrice cu 3 linii și $N-1$ coloane, în care
+unele celule sunt bifate cu „$\times$”, iar altele nu. Să vedem în primul rând
+care este corespondența între numărul de circuite hamiltoniene și numărul de
+matrice de acest tip.
+
+Se observă că pentru orice circuit există un altul căruia îi este atașată
+aceeași matrice. Circuitul pereche este tocmai circuitul parcurs în sens
+invers, care închide în interior aceleași ochiuri de rețea:
+
+\centeredTikzFigure[]{
+  \enicboContour{4}{3}{0}{0}{
+    1/0, 2/0, 3/0, 4/0, 4/1, 3/1, 3/2, 4/2, 4/3, 3/3, 2/3, 2/2, 2/1, 1/1, 1/2,
+    1/3, 0/3, 0/2, 0/1, 0/0
+  }
+  \enicboSquares{0/0, 0/1, 0/2, 1/0, 2/0, 2/1, 2/2, 3/0, 3/2}
+}
+
+Acest lucru se întâmplă deoarece transformarea graf-matrice ignoră sensul de
+parcurgere a circuitului hamiltonian. De aici rezultă că pentru a calcula
+numărul de circuite hamiltoniene trebuie să calculăm numărul de matrice și
+să-l înmulțim cu 2.
+
+În continuare, să analizăm câteva proprietăți ale matricelor în discuție.
+
+\begin{property}
+  Elementele bifate cu „$\times$” în matrice formează o singură figură conexă.
+\end{property}
+
+\begin{proof}
+  Dacă figura nu ar fi conexă, adică dacă ar exista mai multe figuri, ele nu
+  ar putea fi înconjurate de furgonetă într-un singur drum. De remarcat că
+  {\bf toate} pătratele înconjurate de furgonetă trebuie bifate cu $\times$,
+  deci furgoneta nu poate înconjura pătrate nebifate.
+\end{proof}
+
+De aceea, traseul de mai jos (care prezintă o porțiune oarecare de circuit)
+este imposibil.
+
+\centeredTikzFigure[]{
+  \enicboContour{3}{3}{}{}{}
+  \enicboSquares{0/1, 0/2, 2/1}
+  \enicboDots{-1, 4}{0.5, 1.5, 2.5}
+}
+
+Conexitatea se referă numai la vecinătatea pe latură, nu și pe colț. Spre
+exemplu, figura de mai jos este incorectă, deoarece, pentru a o înconjura,
+furgoneta trebuie să treacă de două ori prin punctul încercuit:
+
+\centeredTikzFigure[]{
+  \enicboContour{3}{3}{3}{1}{2/1, 1/1, 1/2, 2/2, 3/2}
+  \enicboContourNoGrid{0}{3}{1/3, 1/2, 0/2}
+  \enicboSquares{0/2, 1/1, 2/1}
+  \enicboDots{-1, 4}{0.5, 1.5, 2.5}
+
+  \draw (1,2) circle (0.2);
+}
+
+\begin{property}
+  Elementele bifate cu „$\times$” formează o structură aciclică.
+\end{property}
+
+\begin{proof}
+  Dacă structura ar fi ciclică, ar rezulta că elementele bifate cu „$\times$”
+  închid între ele elemente nebifate, pe care furgoneta însă nu poate să le
+  ocolească.
+\end{proof}
+
+Iată un exemplu de ciclicitate:
+
+\centeredTikzFigure[]{
+  \enicboContour{3}{3}{}{}{}
+  \enicboSquares{0/0, 0/1, 0/2, 1/0, 1/2, 2/0, 2/1, 2/2}
+  \enicboDots{-1, 4}{0.5, 1.5, 2.5}
+  \node[times] at (1.5,1.5) {?};
+}
+
+Practic, situația de mai sus obligă furgoneta să facă două drumuri: unul pe
+exterior și unul în jurul ochiului marcat cu „?”.
+
+\begin{property}
+  Nici un nod interior al rețelei nu poate avea toate cele patru ochiuri
+  vecine marcate cu „$\times$”.
+\end{property}
+
+\begin{proof}
+  Dacă ar exista un asemenea nod, el nu ar putea fi parcurs de furgonetă, deci
+  ciclul nu ar mai fi hamiltonian. Este cazul nodului încercuit în figura
+  următoare:
+\end{proof}
+
+\centeredTikzFigure[]{
+  \enicboContour{3}{3}{0}{3}{1/3, 1/2, 2/2, 3/2, 3/1, 2/1, 2/0, 1/0, 0/0}
+  \enicboSquares{0/0, 0/1, 0/2, 1/0, 1/1, 2/1}
+  \enicboDots{-1, 4}{0.5, 1.5, 2.5}
+
+  \draw (1,1) circle (0.2);
+}
+
+\begin{property}
+  Structura elementelor bifate cu „$\times$” în cadrul matricei este
+  arborescentă.
+\end{property}
+
+\begin{proof}
+  Rezultă imediat din punctele anterioare: figura este conexă și aciclică.
+\end{proof}
+
+\begin{property}
+  Numărul de celule bifate este $P = 2N - 1$.
+\end{property}
+
+\begin{proof}
+  Folosim inducția matematică. Să presupunem că structura noastră ar avea un
+  singur pătrat bifat. Atunci structura ar avea patru laturi „la
+  vedere”. Traseul furgonetei care ocolește structura ar avea patru laturi. O
+  structură de două pătrate (desigur lipite) va avea șase laturi la vedere:
+
+  \centeredTikzFigure[]{
+    \enicboContour{2}{1}{0}{0}{0/1, 1/1, 2/1, 2/0, 1/0, 0/0}
+    \enicboSquares{0/0, 1/0}
+    \node at (0.5, 1.5) {1};
+    \node at (1.5, 1.5) {2};
+    \node at (2.5, 0.5) {3};
+    \node at (1.5, -0.5) {4};
+    \node at (0.5, -0.5) {5};
+    \node at (-0.5, 0.5) {6};
+  }
+
+  Să ne imaginăm acum că orice structură cu $k$ pătrate are $S_k$ laturi la
+  vedere. Trebuie să demonstrăm că toate structurile cu $k+1$ pătrate au
+  același număr de laturi la vedere și să aflăm efectiv acest număr,
+  $S_{k+1}$. Cel de-al $k+1$-lea pătrat trebuie alipit la structura deja
+  existentă în așa fel încât să nu se închidă nici un ciclu. El se va lipi
+  deci de o latură la vedere a unui pătrat din structură. În acest fel, va
+  dispărea o latură la vedere, dar vor apărea trei în loc. Numărul de laturi
+  la vedere va crește prin urmare cu 2. Această cifră nu depinde de locul în
+  care este alipit al $k+1$-lea pătrat, nici de forma structurii deja
+  existente, deci am demonstrat că toate structurile arborescente cu $k$
+  pătrate au același număr de laturi la vedere. Pentru a afla efectiv acest
+  număr, pornim de la relațiile recurente stabilite prin inducție și eliminăm
+  recurența:
+
+  \begin{equation}
+    \begin{split}
+      S_{k + 1} & = S_k + 2 \\
+      S_1 & = 4
+    \end{split}
+    \Biggr\}
+    \implies S_k = 2k + 2
+  \end{equation}
+
+  Deoarece numărul total de noduri al rețelei este de $4N$, rezultă că
+  structura noastră trebuie să aibă $4N$ laturi la vedere. Notând cu $P$
+  numărul de pătrate bifate din matrice și rezolvând ecuația de mai jos,
+  rezultă valoarea lui $P$:
+
+  \begin{equation}
+    2P + 2 = 4N \implies P = 2N - 1 = 2(N - 1) + 1
+  \end{equation}
+
+  Cum numărul de coloane al matricei este $N-1$, deducem că în medie pe
+  fiecare coloană se vor afla două pătrate bifate, cu excepția uneia pe care
+  se vor afla trei pătrate bifate.
+\end{proof}
+
+La nivel local, proprietatea este de asemenea respectată: numărul de pătrate
+bifate din primele $k$ coloane ale matricei este $2k$, existând posibilitatea
+să mai fie un pătrat suplimentar. De exemplu, în figura dată mai sus pentru
+$N=5$, în primele două coloane se află patru elemente „$\times$”, deci o medie
+de două pătrate pe fiecare coloană. În primele trei coloane există șapte
+elemente „$\times$”, adică o medie de două pătrate pe coloană și un surplus de
+un pătrat. Lăsăm ca temă cititorului să demonstreze că în primele $k$ coloane
+există întotdeauna fie $2k$, fie $2k+1$ pătrate. Orice număr mai mare duce la
+ciclicitatea figurii, orice număr mai mic duce la neconexitatea ei.
+
+Pe fiecare coloană există opt combinații posibile de elemente bifate și
+nebifate, pe care le vom codifica cu numere de la 0 la 7, conform unei
+numărători binare:
+
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    nodes in empty cells,
+    column sep=1em,
+    row 1/.style=times,
+    row 2/.style=times,
+    row 3/.style=times,
+    row 4/.style = {
+      font=\normalsize,
+      nodes = {draw=none, yshift=-1.5em},
+    }
+  },
+  times/.style = {
+    nodes={draw},
+    font=\Large,
+    anchor=center,
+    minimum height=2em,
+    minimum width=2em,
+  }
+]{
+  \matrix[mat] {
+    \& \& \& \& $\times$ \& $\times$ \& $\times$ \& $\times$ \\
+    \& \& $\times$ \& $\times$ \& \& \& $\times$ \& $\times$ \\
+    \& $\times$ \& \& $\times$ \& \& $\times$ \& \& $\times$ \\
+    0 \& 1 \& 2 \& 3 \& 4 \& 5 \& 6 \& 7 \\
+  };
+}
+
+Să vedem acum care dintre aceste combinații rămân valabile. O coloană de tipul
+0 nu poate exista, deoarece ea ar „rupe” matricea în două bucăți separate,
+deci proprietatea de conexitate nu ar fi respectată.
+
+Dacă pe coloana $k$ se află o combinație de tipul 3, ce s-ar putea afla pe
+coloana $k+1$?
+
+\centeredTikzFigure[]{
+  \enicboContour{2}{3}{}{}{}
+  \enicboSquares{0/0, 0/1, 1/1, 1/2}
+  \enicboDots{-1, 3}{0.5, 1.5, 2.5}
+
+  \node at (0.5, -0.5) {$k$};
+  \node at (1.5, -0.5) {$k + 1$};
+
+  \node at (2, 4) (a) {$A$};
+  \node at (2.8, 0) (b) {$B$};
+
+  \draw (a.west) -- (1,3);
+  \draw (b.west) -- (1,1);
+}
+
+Pentru ca punctul $A$ să se afle pe traseul furgonetei, este obligatoriu să
+bifăm pătratul de sub el. Pentru a menține conexitatea figurii apărute,
+trebuie bifat și pătratul din centrul coloanei $k+1$. Cea de-a treia celulă a
+coloanei $k+1$ nu poate fi bifată, deoarece punctul $B$ ar fi înconjurat din
+patru părți de celule bifate, lucru care s-a stabilit că este imposibil. Se
+vede că singura combinație posibilă pentru coloana $k+1$ este 6. Ce combinație
+putem pune pe coloana $k+2$? Printr-un raționament analog, deducem că numai
+combinația 3:
+
+\centeredTikzFigure[
+  label/.style={font=\small},
+]{
+  \enicboContour{4}{3}{}{}{}
+  \enicboSquares{0/0, 0/1, 1/1, 1/2, 2/0, 2/1, 3/1, 3/2}
+  \enicboDots{-1, 5}{0.5, 1.5, 2.5}
+
+  \node[label] at (0.5, -0.5) {$k$};
+  \node[label] at (1.5, -0.5) {$k + 1$};
+  \node[label] at (2.5, -0.5) {$k + 2$};
+  \node[label] at (3.5, -0.5) {$k + 3$};
+}
+
+Iată că, pentru a putea respecta condițiile de corectitudine a matricei, am fi
+nevoiți să continuăm la nesfârșit cu coloane cu combinațiile 3-6-3-6 etc. Deci
+niciuna din aceste combinații nu poate apărea în matrice.
+
+În continuare, vom defini mai multe șiruri de forma $S_k(i,t)$, unde:
+
+\begin{itemize}
+
+\item $k$ este numărul unei coloane;
+
+\item $i$ este un număr de combinație (respectiv 1, 2, 4, 5 sau 7);
+
+\item $t$ este un număr care poate avea valoarea 0 sau 1.
+
+\end{itemize}
+
+$S_k(i,t)$ semnifică „numărul de matrice (corecte) cu $k$ coloane astfel încât
+pe coloana cu numărul $k$ să se afle combinația $i$, iar surplusul de pătrate
+bifate peste media de două pătrate pe fiecare coloană să fie $t$”. De exemplu,
+$S_7(5,1)$ reprezintă numărul de matrice corecte (care respectă regulile de
+construcție) cu 7 coloane, astfel încât pe ultima coloană să se afle
+combinația 5 și să existe un surplus de 1 pătrat (adică numărul total de
+pătrate să fie $2 \times 7 + 1 = 15$).
+
+Facem observația că pe a $N-1$-a coloană se pot afla doar combinațiile 5 sau 7
+(pentru a acoperi colțurile de NE și SE ale grafului), iar surplusul de
+pătrate trebuie să fie 1 (deoarece în $N-1$ coloane trebuie să se afle
+$P=2(N-1)+1$ pătrate bifate). Deci scopul nostru este să calculăm suma
+$S_{N-1}(5,1) + S_{N-1}(7,1)$ și să o înmulțim cu 2 ca să aflăm numărul de
+cicluri hamiltoniene.
+
+De asemenea, remarcăm că șirurile $S_k(1,1)$, $S_k(2,1)$ și $S_k(4,1)$ nu sunt
+definite. Aceasta deoarece combinațiile 1, 2 și 4 au un singur pătrat bifat pe
+coloană, adică mai puțin decât media de două pătrate. Este imposibil ca după
+adăugarea unei asemenea coloane să mai existe un surplus. (deoarece ar rezulta
+că în primele $k$-1 coloane exista un surplus de două pătrate). La polul opus,
+șirul $S_k(7,0)$ nu este definit, deoarece combinația 7 are toată coloana
+bifată, adică peste medie, deci nu se poate să nu apară un surplus de pătrate
+bifate.
+
+Mai trebuie stabilite formulele de recurență între șirurile $S_k(1,0)$,
+$S_k(2,0)$, $S_k(4,0)$, $S_k(5,0)$, $S_k(5,1)$ și $S_k(7,1)$. Termenii
+inițiali ai recurenței sunt:
+
+\begin{itemize}
+
+\item $S_1(1,0)=0$ deoarece matricea nu poate începe cu combinația 1
+
+\item $S_1(2,0)=0$ deoarece matricea nu poate începe cu combinația 2
+
+\item $S_1(4,0)=0$ deoarece matricea nu poate începe cu combinația 4
+
+\item $S_1(5,0)=1$ deoarece există o singură matrice de o coloană cu
+  combinația 5
+
+\item $S_1(5,1)=0$ deoarece combinația 5 are două pătrate, deci nu există
+  surplus
+
+\item $S_1(7,1)=1$ deoarece există o singură matrice de o coloană cu
+  combinația 7
+
+\end{itemize}
+
+Pentru a stabili relația de recurență pentru șirul $S_k(1,0)$, ne întrebăm:
+cărei coloane îi poate urma coloana $k$ de tip 1 astfel încât să nu mai existe
+surplus? Dacă observăm că pe coloana $k$ avem un singur element bifat (deci
+sub medie), rezultă că pe coloana $k-1$ exista un surplus de un pătrat. Deci
+coloana $k-1$ putea fi de tipul 5 sau 7, acestea fiind singurele tipuri de
+coloană după care poate exista un surplus. Rezultă formula:
+
+\begin{equation}
+  S_k(1,0)=S_{k-1}(5,1)+S_{k-1}(7,1)
+\end{equation}
+
+Printr-o simetrie perfectă se calculează aceeași formulă și pentru șirul
+$S_k(4,0)$:
+
+\begin{equation}
+  S_k(4,0)=S_{k-1}(5,1)+S_{k-1}(7,1)
+\end{equation}
+
+La șirul $S_k(2,0)$, mai trebuie făcută observația că o coloană de tip 2 nu
+poate urma unei coloane de tip 5, deoarece se strică conexitatea
+figurii. Rezultă:
+
+\begin{equation}
+  S_k(2,0)=S_{k-1}(7,1)
+\end{equation}
+
+Șirul $S_k(5,0)$ provine din adăugarea unei coloane de tipul 5 după o coloană
+de tipul 1, 4 sau 5. Coloana $k-1$ nu poate fi de tipul 2 deoarece figura
+rezultată nu este conexă, nici de tipul 7 deoarece ar rezulta că în primele
+$k-2$ coloane media de celule bifate este mai mică decât 2.
+
+\begin{equation}
+  S_k(5,0)=S_{k-1}(1,0)+S_{k-1}(4,0)+S_{k-1}(5,0)
+\end{equation}
+
+Șirul $S_k(5,1)$ provine din adăugarea unei coloane de tipul 5 după o coloană
+de tipul 5 sau 7, deoarece tipul de coloană 5 are două pătrate bifate, deci
+conservă surplusul:
+
+\begin{equation}
+  S_k(5,1)=S_{k-1}(5,1)+S_{k-1}(7,1)
+\end{equation}
+
+În sfârșit, o coloană de tip 7 poate urma oricărui tip de coloană pentru care
+surplusul este 0, adică:
+
+\begin{equation}
+  S_k(7,1)=S_{k-1}(1,0)+S_{k-1}(2,0)+S_{k-1}(4,0)+S_{k-1}(5,0)
+\end{equation}
+
+Acestea sunt formulele de recurență. Rezultatul care trebuie afișat pe ecran
+este $2[S_{N-1}(5,1)+S_{N-1}(7,1)]$, deoarece după $N-1$ coloane surplusul
+trebuie să fie 1, iar colțurile matricei trebuie să fie bifate. Se observă că
+$S_k(1,0)=S_k(4,0)=S_k(5,1)$. Practic, problema se reduce la trei
+șiruri. Notăm:
+
+\begin{equation}
+  \begin{split}
+    A_k & = S_k(5,0) \\
+    B_k & = S_k(1,0) = S_k(4,0) = S_k(5,1) \\
+    C_k & = S_k(7,1) \implies S_k(2,0)=C_{k-1}
+  \end{split}
+\end{equation}
+
+De aici rezultă grupul de relații:
+
+\begin{equation}
+  \begin{cases}
+    A_k & = A_{k - 1} + 2B_{k - 1} \\
+    B_k & = B_{k - 1} + C_{k - 1} \\
+    C_k & = A_{k - 1} + 2B_{k - 1} + C_{k - 2} = A_k + C_{k - 2}
+  \end{cases}
+\end{equation}
+
+și
+
+\begin{equation}
+  \begin{cases}
+    A_1 & = 1 \\
+    B_1 & = 0 \\
+    C_1 & = 1
+  \end{cases}
+\end{equation}
+
+Noi avem nevoie de valoarea 
+
+\begin{equation}
+  2(B_{N-1} + C_{N-1}) = 2B_N
+\end{equation}
+
+Programul de mai jos nu face decât să implementeze calculul acestor șiruri
+recurente. Trebuie avut grijă însă cu reprezentarea internă a numerelor,
+deoarece pentru $N=200$ valorile ajung la 81 de cifre. Este deci necesară
+reprezentarea numerelor ca șiruri de cifre.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <mem.h>
+
+typedef int Huge[85];
+Huge A,B,C,C2,HTemp;
+int N,k;
+
+void Atrib(Huge H, int V)
+/* H <- V */
+{
+  memset(H,0,sizeof(Huge));
+  H[0]=1;
+  H[1]=V;
+}
+
+void Add(Huge A, Huge B)
+/* A <- A+B */
+{ int i,T=0;
+
+  if (B[0]>A[0])
+    { for (i=A[0]+1;i<=B[0];) A[i++]=0;
+      A[0]=B[0];
+    }
+    else for (i=B[0]+1;i<=A[0];) B[i++]=0;
+  for (i=1;i<=A[0];i++)
+    { A[i]+=B[i]+T;
+      T=A[i]/10;
+      A[i]%=10;
+    }
+  if (T) A[++A[0]]=T;
+}
+
+void WriteHuge(Huge H)
+{ int i;
+
+  for (i=H[0];i;printf("%d",H[i--]));
+  printf("\n");
+}
+
+void main(void)
+{
+  printf("N=");scanf("%d",&N);
+  Atrib(A,1);
+  Atrib(B,0);
+  Atrib(C,1);
+  Atrib(C2,0);
+  for (k=2;k<=N;k++)
+    { memmove(HTemp,C,sizeof(Huge));
+      Add(A,B);Add(A,B);  /* A(k) = A(k-1) + 2*B(k-1) */
+      Add(B,C);           /* B(k) = B(k-1) + C(k-1)   */
+      memmove(C,A,sizeof(Huge));
+      Add(C,C2);          /* C(k) = A(k) + C(k-2)     */
+      memmove(C2,HTemp,sizeof(Huge)); /* noul C(K-2) */
+    }
+  Add(B,B);               /* Rezultatul este 2*B(n)   */
+  WriteHuge(B);
+}
+\end{lstlisting}

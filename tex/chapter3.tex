@@ -1,0 +1,750 @@
+\chapter{Lucrul cu structuri mari de date}
+
+De multe ori în practică, atât la concursuri cât și atunci când scriem
+programe care vehiculează un volum mai mare de date, avem nevoie de structuri
+de date de mari dimensiuni. După cum se știe, însă, compilatorul Borland
+Pascal nu permite definirea de structuri de date mai mari de 64 KB. Ce facem
+dacă, spre exemplu, avem nevoie de un vector cu sute de mii de elemente sau de
+o matrice pătratică de $400 \times 400$ elemente ?
+
+O primă soluție este să schimbăm limbajul de programare folosit și să ne
+orientăm spre C / C++ sau alte limbaje în care gestiunea datelor voluminoase
+se face mai comod pentru utilizator. De fapt, programele scrise „la domiciliu”
+se scriu mai degrabă în C decât în Pascal, deoarece codul generat este mai
+eficient. Din nefericire, compilatorul de C este destul de lent, cel puțin în
+comparație cu cel de Pascal și, deși există destui concurenți care lucrează în
+C la olimpiadă, Pascal-ul mi se pare o alegere mai bună atunci când timpul de
+implementare contează decisiv.
+
+În aceste condiții, se impune găsirea unor modalități de a ne supune rigorilor
+limbajului Pascal și de a „înghesui” cumva datele în memorie. Chiar dacă
+dispunem de memorie extinsă, segmentarea la 64 KB a datelor ridică destul de
+multe probleme. Vom trata pe rând câteva cazuri.
+
+\section{Vectori de tip boolean de mari dimensiuni}
+
+În Borland Pascal, variabilele de tip logic ({\tt Boolean}) se reprezintă pe
+un octet. Se știe însă că variabilele booleene pot lua doar două valori, deci
+un singur bit ar fi suficient pentru a le reprezenta. Motivul acestei aparente
+„risipe” de memorie este viteza de rulare a programului. Regiștrii lucrează la
+nivel de octet, iar operațiile la nivel de bit sunt mai costisitoare din punct
+de vedere al timpului. În plus, cei șapte biți care ar fi economisiți nu ar
+putea fi folosiți decât cel mult pentru alte variabile booleene.
+
+În unele cazuri, însă, comprimarea variabilelor logice la un singur bit este
+necesară, această misiune revenindu-i programatorului. Iată un exemplu de
+problemă de concurs:
+
+{\bf ENUNȚ}: Se dau $N - 1$ numere naturale distincte cuprinse între 1 și
+$N$. Să se tipărească cel de-al $N$-lea număr (cel care lipsește).
+
+{\bf Intrarea} se face din fișierul {\tt INPUT.TXT}, care conține pe prima
+linie valoarea lui $N$ ($N \leq 500.000$), iar pe următoarele $N - 1$ linii
+câte un număr cuprins între 1 și $N$.
+
+{\bf Ieșirea}: pe ecran se va tipări numărul care lipsește.
+
+{\bf Exemplu}: Pentru fișierul de intrare:
+
+\begin{verbatim}
+  5
+  3
+  2
+  5
+  1
+\end{verbatim}
+
+rezultatul tipărit pe ecran va fi 4.
+
+{\bf Complexitate cerută}: $O(N)$.
+
+{\bf Timp de implementare}: 30 minute.
+
+{\bf REZOLVARE}: O soluție foarte elegantă a problemei este următoarea: se
+știe că suma primelor $N$ numere naturale este
+
+\begin{equation}
+  S_N = \frac{N(N + 1)}{2}
+\end{equation}
+
+Se calculează suma $S'$ a numerelor din fișierul de intrare, iar numărul lipsă
+este $K = S_N - S'$. Această metodă are un dezavantaj care o face
+inutilizabilă: $S_{500.000}$ este aproximativ $125 \cdot 10^9$, adică un număr
+mult prea mare chiar și pentru tipul de date {\tt Longint}. Ar trebui să se
+memoreze numerele foarte mari pe un vector de cifre, apoi ar trebui scrise
+funcțiile pentru adunarea și scăderea unor asemenea numere (vezi capitolul al
+II-lea), lucru destul de incomod dacă se ține seama de timpul de implementare.
+
+Pentru a memora tot vectorul în memorie este nevoie de $500.000 \times 4 =
+2.000.000$ octeți, adică foarte mult, iar găsirea valorii care lipsește ar
+presupune în cel mai bun caz o sortare în $O(N \log N)$, care ar depăși
+complexitatea cerută. Ar mai fi soluția de a căuta pe rând fiecare număr în
+fișier și de a tipări primul număr pe care nu-l găsim. În cazul cel mai rău,
+însă, algoritmul ar face $N$ parcurgeri ale fișierului de intrare și $N^2$
+comparații, deci ar depăși de asemenea complexitatea cerută, ca să nu mai
+vorbim de timpul de rulare.
+
+Rezolvarea cea mai la îndemână este de a construi un vector de variabile
+booleene cu $N$ elemente. Se face apoi citirea datelor și se bifează în vector
+fiecare număr citit. Apoi se parcurge vectorul și se caută singurul element
+nebifat. Această versiune face o singură parcurgere a fișierului, adică
+minimul posibil.
+
+Mai rămâne de văzut cum operăm cu un vector de 500.000 de variabile
+booleene. Dacă fiecare variabilă ar ocupa un octet, necesarul de memorie ar fi
+de 500.000 de octeți, care sunt greu de găsit în memoria de bază. Dacă însă
+alocăm câte un bit pentru fiecare element, necesarul de memorie este 500.000 /
+8 = 62.500 octeți, adică o sumă rezonabilă care, mai mult, încape într-un
+singur segment de memorie și poate fi alocată static fără probleme. Cum se
+poate accesa și modifica valoarea unui bit din acest vector comprimat? Vom
+numerota vectorul nostru începând de la 0, deci ultimul său element va fi
+$V[62.499]$. Primii săi opt biți (biții 0...7, adică octetul $V[0]$) vor fi
+variabilele logice atașate numerelor 1...8, următorii opt biți (biții 8...15,
+adică octetul $V[1]$) vor fi variabilele logice atașate numerelor 9...16, și
+așa mai departe. Ultimii opt biți (biții 499.992...499.999, adică octetul
+$V[62.499]$) vor fi variabilele logice atașate numerelor 499.993...500.000. În
+general, bitul cu numărul $X$ indică dacă numărul $X + 1$ a fost găsit sau
+nu. Iată cum ar putea arăta vectorul la un moment oarecare al citirii din
+fișier:
+
+\centeredTikzFigure[
+  byte/.style = {matrix of nodes, ampersand replacement=\&, anchor=west, nodes=bit},
+  bit/.style = {rectangle, draw, minimum width=1em, minimum height=1em},
+  bitLabel/.style = {font=\scriptsize, anchor=north, yshift=-2.5em},
+]{
+  % bytes and \cdots
+  \matrix[byte] (m1) {
+    1 \& 0 \& 0 \& 0 \& 1 \& 0 \& 1 \& 0 \\
+  };
+  \node[anchor=west] (byteDots) at (m1.east) {$\cdots$};
+  \matrix[byte] (m2) at (byteDots.east) {
+    0 \& 1 \& 0 \& 1 \& 0 \& 0 \& 1 \& 1 \\
+  };
+  \matrix[byte] (m3) at ([xshift=1em]m2.east) {
+    1 \& 0 \& 0 \& 1 \& 0 \& 0 \& 0 \& 1 \\
+  };
+
+  % byte labels
+  \node[anchor=south] at (m1.north) {$V[62.499]$};
+  \node[anchor=south] at (m2.north) {$V[1]$};
+  \node[anchor=south] at (m3.north) {$V[0]$};
+
+  % bit labels
+  \node[bitLabel] (l1) at (m1-1-1.south) {bitul 499.999};
+  \node[bitLabel] at (m1-1-4.south east) {$\cdots$};
+  \node[bitLabel] (l2) at (m1-1-8.south) {bitul 499.992};
+
+  \node[bitLabel] (l3) at (m2-1-1.south) {bitul 15};
+  \node[bitLabel] at (m2-1-4.south east) {$\cdots$};
+  \node[bitLabel] (l4) at (m2-1-8.south) {bitul 8};
+
+  \node[bitLabel] (l5) at (m3-1-1.south) {bitul 7};
+  \node[bitLabel] at (m3-1-4.south east) {$\cdots$};
+  \node[bitLabel] (l6) at (m3-1-8.south) {bitul 0};
+
+  % arrows
+  \draw[->] (l1.north) -- (m1-1-1.south);
+  \draw[->] (l2.north) -- (m1-1-8.south);
+  \draw[->] (l3.north) -- (m2-1-1.south);
+  \draw[->] (l4.north) -- (m2-1-8.south);
+  \draw[->] (l5.north) -- (m3-1-1.south);
+  \draw[->] (l6.north) -- (m3-1-8.south);
+}
+
+Vectorul este reprezentat „pe dos”, ceea ce ar putea să pară ciudat la prima
+vedere. Am făcut însă acest lucru deoarece, în cadrul octetului, biții sunt
+numerotați în ordine crescătoare de la dreapta spre stânga și am ținut să
+păstrăm aceeași ordine și pentru numerotarea octeților în vector.
+
+Primul octet semnifică că numărul 1 a fost întâlnit, numerele 2, 3 și 4 nu au
+fost întâlnite încă, numărul 5 a fost găsit etc. Trebuie acum să vedem cum se
+face efectiv modificarea vectorului. Inițial toți biții au valoarea 0. Se
+citește din fișier un număr $X$ și trebuie ca al $X-1$-lea bit să fie setat pe
+1.
+
+Mai întâi trebuie aflat în ce octet se află al $X-1$-lea bit. Se observă
+imediat că în octetul $Oct = (X-1) \bdiv 8$. De exemplu, biții 0..7 se află în
+octetul 0, biții 7..15 în octetul 1 ș.a.m.d. Mai e nevoie să știm al câtulea
+bit este bitul nostru în cadrul octetului. El va fi pe poziția $B = (X-1)
+\bmod 8$ (numărătoarea începe de la 0). În sfârșit, trebuie să setăm bitul
+respectiv la valoarea 1. În problema de mai sus, singura operație necesară
+este modificarea unui bit din 0 în 1. Vom trata însă cazul cel mai general,
+când se cere setarea unui bit la o anumită valoare (0 sau 1) fără a se ști ce
+valoare a avut el înainte.
+
+Să pornim de la un exemplu particular urmând ca apoi să generalizăm
+rezultatul. Se cere să se seteze bitul 2 al octetului $A = 00110010$ la
+valoarea 1. Pentru aceasta, putem folosi o mască logică în care numai bitul 2
+este setat pe 1, iar ceilalți sunt 0, adică masca $M = 00000100$. Între
+octeții $A$ și $M$ se poate face acum un SAU logic:
+
+\begin{verbatim}
+  A  00110010 SAU
+  M  00000100
+     --------
+  B  00110110
+\end{verbatim}
+
+Se observă că $B$ = $A$ cu excepția bitului 2, care a luat valoarea 1. Acest
+fapt este ușor de explicat: 0 este element neutru în raport cu operația SAU
+($0\; \mathrm{SAU}\; X = X,\; \forall X$) și deci biții de valoare 0 din $M$
+nu modifică biții corespunzători din $A$. În schimb, $1\; \mathrm{SAU}\; X =
+1,\; \forall X$, deci bitul 2 din $B$ va lua valoarea 1 indiferent de valoarea
+bitului corespunzător din $A$.
+
+Revenind la cazul nostru, octetul {\tt Oct} are o valoare oarecare cuprinsă
+între 0 și 255, iar noi trebuie să-i setăm bitul $B$ ($0 \leq B \leq 7$) la
+valoarea 1. Masca $M$ va avea toți biții de valoare 0, cu excepția bitului $B$
+care va avea valoarea 1. Aceasta înseamnă ca masca $M$ are valoarea $M = 2^B$
+= {\tt 1 shl B}. Operația pe care o avem de făcut este:
+
+\begin{lstlisting}[language=Pascal]
+V[Oct] := V[Oct] or (1 shl B)
+\end{lstlisting}
+
+Să luăm acum un exemplu pentru a vedea cum se setează un bit oarecare la
+valoarea 0. Fie $A = 01101101$. Se cere să setăm bitul 5 la valoarea 0. De
+data aceasta, vom folosi o mască în care toți biții sunt 1, mai puțin al 5-lea
+și vom aplica operația ȘI logic:
+
+\begin{verbatim}
+  A 01101101 ȘI
+  M 11011111
+    --------
+  B 01001101
+\end{verbatim}
+
+Se observă că $B = A$ cu excepția bitului 5, care a trecut de la valoarea 1 la
+valoarea 0. Aceasta deoarece 1 este element neutru în raport cu operația ȘI
+($1\; \mathrm{\text{ȘI}}\; X = X,\; \forall X$) și deci biții de valoare 1 din
+$M$ nu modifică biții corespunzători din $A$. În schimb, $0\;
+\mathrm{\text{ȘI}}\; X = 0,\; \forall X$, deci bitul 5 din $B$ va lua valoarea
+0 indiferent de valoarea bitului corespunzător din $A$.
+
+Să ne întoarcem la problema noastră: trebuie setat bitul $B$ din octetul {\tt
+  Oct} la valoarea 0. Pentru a construi masca $M$ remarcăm că un octet cu toți
+biții de valoare 1 este egal cu 255. Din 255 trebuie să scădem ({\tt 1 shl
+  B}), deci operația necesară este:
+
+\begin{lstlisting}[language=Pascal]
+V[Oct] := V[Oct] and (255 - (1 shl Bit))
+\end{lstlisting}
+
+Mai avem nevoie și să testăm valoarea unui bit. Să luăm de exemplu $A =
+00101111$ și să aflăm ce valoare au biții 3 și 7. Folosim măștile $M_3 =
+00001000$ și $M_7 = 10000000$, aplicând de fiecare dată operația ȘI logic.
+
+\begin{verbatim}
+  A  00101111 ȘI                A   00101111 ȘI
+  M3 00001000                   M7  10000000
+     --------                       --------
+     00001000                       00000000  
+\end{verbatim}
+
+În ce caz rezultatul poate fi diferit de 0? Șapte dintre biții măștii sunt 0,
+deci biții corespunzători din B vor fi oricum 0. Cel de-al optulea depinde de
+bitul respectiv din $A$: dacă acesta este 0, rezultatul va fi 0, dacă este 1,
+rezultatul va fi diferit de 0. Revenind la problemă, testul care trebuie făcut
+este:
+
+\begin{lstlisting}[language=Pascal]
+V[Oct] and (1 shl Bit) <>  0
+\end{lstlisting}
+
+Cel mai bine este să se creeze o „interfață” care să aibă implementate cele
+două funcții (setarea și testarea unui bit). După aceasta nu se va mai accesa
+direct vectorul, ci numai prin intermediul acestor funcții. În felul acesta,
+dacă vor apărea erori de funcționare din cauza lucrului cu vectorul, vom ști
+unde să le căutăm.
+
+Inițializarea vectorului se poate face prin două metode: una, mai elegantă,
+constă în folosirea funcției de atribuire pentru fiecare element al său în
+parte. A doua, mai rapidă, constă în suprascrierea cu valoarea 0 a tuturor
+celor 62.500 de elemente ale vectorului $V$, printr-un acces direct al
+memoriei (procedura {\tt FillChar} din Pascal).
+
+În program, pentru creșterea vitezei, s-au făcut următoarele modificări:
+
+\begin{itemize}
+
+\item $(X-1) \bdiv 8$ înseamnă $(X-1) \bdiv 2^3$, adică {\tt (X-1) shr 3};
+
+\item $(X-1) \bmod 8$ reprezintă ultimii 3 biți din reprezentarea binară a
+  lui $X - 1$, adică {\tt (X-1) and 7} (deoarece 7 în binar este 00000111).
+
+\item {\tt 255 - (1 shl A) = 255 xor (1 shl A)}. Cu alte cuvinte, schimbarea
+  unui singur bit din 1 în 0 se poate face atât prin scădere, cât și printr-un
+  SAU exclusiv, a doua variantă fiind mai rapidă.
+
+\end{itemize}
+
+\begin{lstlisting}[language=Pascal]
+program VectorDeBiti;
+type Vector=array[0..62499] of Byte;
+var V:Vector;
+    N,X,i:LongInt;
+
+function GetValue(X:LongInt):Boolean;
+begin
+  GetValue:=V[Pred(X) shr 3] and (1 shl (Pred(X) and 7))<>0;
+end;
+
+procedure SetValue(X:LongInt;B:Boolean);
+begin
+  if B
+    then V[Pred(X) shr 3]:=V[Pred(X) shr 3] or
+                           (1 shl (Pred(X) and 7))
+    else V[Pred(X) shr 3]:=V[Pred(X) shr 3] and
+                           ($FF xor (1 shl (Pred(X) and 7)));
+end;
+
+begin
+  FillChar(V,SizeOf(V),0);
+  Assign(Input,'input.txt');Reset(Input);
+  ReadLn(N);
+  for i:=1 to N-1 do
+    begin
+      ReadLn(X);
+      SetValue(X,True);
+    end;
+  Close(Input);
+  i:=0;
+  repeat Inc(i) until not GetValue(i);
+  WriteLn(i);
+end.
+\end{lstlisting}
+
+
+\section{Vectori de dimensiuni mari cu elemente de valori mici}
+
+Metoda descrisă la punctul anterior se poate aplica și în alte două cazuri
+particulare. Dacă elementele vectorului de care avem nevoie pot lua nu doar
+două valori, ci patru valori (0, 1, 2, 3), atunci ele se pot reprezenta pe doi
+biți. În concluzie, într-un octet putem „înghesui” patru elemente ale
+vectorului, iar pe un segment de memorie se pot reprezenta peste 250.000
+elemente. În cazul în care elementele vectorului iau valori între 0 și 15, ele
+se reprezintă pe 4 biți (în limba engeză, grupul de 4 biți poartă un nume
+special - {\it nibble}), adică două elemente pe un octet, iar pe un segment
+încap peste 125.000 elemente. Vom trata numai al doilea caz, lăsându-l pe
+primul ca temă.
+
+Vom folosi de asemenea un vector $V$ cu 62.500 elemente numerotate cu începere
+de la 0. Octetul 0 va fi folosit pentru a memora primele două elemente din
+vectorul dat, octetul 1 va memora al treilea și al patrulea element
+etc. Octetul 62.499 va memora elementele 124.999 și 125.000. Să vedem de
+exemplu cum se memorează vectorul (5, 12, 4, 11, 0, 15).
+
+\centeredTikzFigure[
+  byte/.style = {matrix of nodes, ampersand replacement=\&, anchor=west, nodes=bit},
+  bit/.style = {rectangle, draw, minimum width=1em, minimum height=1em},
+  byteLabel/.style = {anchor=south, yshift=0.5em},
+  accolade/.style = {decorate, decoration={brace, amplitude=0.5em, raise=0.8em, mirror}},
+  nlabel/.style = {below=1.5em, font=\scriptsize},
+]{
+  % bytes
+  \matrix[byte] (m1) {
+    1 \& 1 \& 1 \& 1 \& 0 \& 0 \& 0 \& 0 \\
+  };
+  \matrix[byte] (m2) at (m1.east) {
+    1 \& 0 \& 1 \& 1 \& 0 \& 1 \& 0 \& 0 \\
+  };
+  \matrix[byte] (m3) at (m2.east) {
+    1 \& 1 \& 0 \& 0 \& 0 \& 1 \& 0 \& 1 \\
+  };
+
+  % byte labels
+  \node[byteLabel] at (m1.north) {$V[2]$};
+  \node[byteLabel] at (m2.north) {$V[1]$};
+  \node[byteLabel] at (m3.north) {$V[0]$};
+
+  % nibble dividers
+  \draw[line width=1pt] (m1.north) -- (m1.south);
+  \draw[line width=1pt] (m2.north) -- (m2.south);
+  \draw[line width=1pt] (m3.north) -- (m3.south);
+
+  % nibble labels and decorations
+  \draw[accolade] (m1-1-1.south west) to node[nlabel] {nibble 5} (m1-1-4.south east);
+  \draw[accolade] (m1-1-5.south west) to node[nlabel] {nibble 4} (m1-1-8.south east);
+  \draw[accolade] (m2-1-1.south west) to node[nlabel] {nibble 3} (m2-1-4.south east);
+  \draw[accolade] (m2-1-5.south west) to node[nlabel] {nibble 2} (m2-1-8.south east);
+  \draw[accolade] (m3-1-1.south west) to node[nlabel] {nibble 1} (m3-1-4.south east);
+  \draw[accolade] (m3-1-5.south west) to node[nlabel] {nibble 0} (m3-1-8.south east);
+}
+
+Avem nevoie de aceleași operații ca și în cazul precedent:
+
+\begin{itemize}
+
+\item Setarea valorii unui element, indiferent de valoarea sa precedentă;
+
+\item Aflarea valorii unui element;
+
+\item Inițializarea vectorului.
+
+\end{itemize}
+
+Pentru a seta valoarea elementului cu numărul $X$ ($1 \leq X \leq 125.000$),
+trebuie alterat nibble-ul cu numărul $X-1$. În ce octet se află acest nibble?
+În octetul $Oct = (X-1) \bdiv 2$. Ce poziție ocupă nibble-ul în cadrul
+octetului? Poziția $Nib = (X-1) \bmod 2$. Să luăm acum un caz particular și să
+vedem cum se face modificarea propriu-zisă, urmând ca apoi să generalizăm.
+
+Se dă octetul $A = 01110010$ și se cere ca nibble-ul 1 (cel din stânga) să fie
+setat la valoarea 13 (în binar 1101). Se observă că nibble-ul stâng are deja o
+altă valoare, deci în primul rând trebuie „curățată zona”, respectiv nibble-ul
+trebuie adus la valoarea 0. Cum? Probabil ați învățat deja, cu o mască
+logică. Cum toți patru biții trebuie puși pe 0, iar ceilalți patru trebuie să
+rămână nealterați, folosim masca $M_1 = 00001111$ și aplicăm operatorul ȘI
+logic:
+
+\begin{verbatim}
+  A   01110010 ȘI
+  M1  00001111
+      --------
+  A’  00000010.
+\end{verbatim}
+
+Așadar nibble-ul 0 a rămas nemodificat, iar nibble-ul 1 are valoarea 0. Acum
+putem aduna pur și simplu nibble-ul de valoare 13. Pentru aceasta, luăm
+numărul 13 (în binar 1101) și îl deplasăm spre stânga cu 4 poziții, pentru a-l
+alinia în dreptul nibble-ului 1, după care efectuăm un SAU logic (se poate
+face și adunarea, dar ea este mai lentă din punct de vedere al
+calculatorului).
+
+\begin{verbatim}
+  A’  00000010 SAU
+  M2  11010000
+      --------
+  B   11010010
+\end{verbatim}
+
+Să presupunem acum că voiam să setăm nibble-ul drept la aceeași valoare,
+13. Ce aveam de făcut? „Curățam” jumătatea dreaptă a octetului printr-un ȘI
+logic cu masca $M_1 = 11110000$, apoi făceam un SAU logic cu nibble-ul 13:
+
+\begin{verbatim}
+  A   01110010 ȘI
+  M1  11110000
+      --------
+  A’  01110000 SAU
+  M2  00001101
+      --------
+  B   01111101
+\end{verbatim}
+
+Metoda generală este deci următoarea. Se construiește masca $M_1$ cu care se
+setează pe 0 nibble-ul dorit. Masca se obține scăzând din octetul „plin”
+11111111 (zecimal 255, hexazecimal \$FF) valoarea 1111 (zecimal 15,
+hexazecimal \$0F), deplasată la stânga cu 4 poziții dacă {\tt Nib = 1}. O
+primă formă a instrucțiunii de construire a măștii ar fi:
+
+\begin{lstlisting}[language=Pascal]
+if Nib=1 then M1:=$FF - ($0F shl 4)
+         else M1:=$FF - $0F
+\end{lstlisting}
+
+Pentru a evita instrucțiunea {\tt if}, destul de mare consumatoare de timp, se
+poate calcula direct
+
+\begin{lstlisting}[language=Pascal]
+M1:=$FF xor ($0F shl (Nib shl 2))
+\end{lstlisting}
+
+deoarece {\tt Nib shl 2} este 0 dacă $Nib = 0$ și 4 dacă $Nib = 1$. S-a
+înlocuit scăderea cu operația SAU exclusiv, pentru motivul arătat la punctul
+1.
+
+Apoi se adună, după aceeași metodă, valoarea $K$ dorită ($0 \leq K \leq 15$):
+
+\begin{lstlisting}[language=Pascal]
+V[Oct] = (V[Oct] and ($FF xor ($0F shl (Nib shl 2))))
+         or (K shl (Nib shl 2))
+\end{lstlisting}
+
+Să vedem cum se află valoarea unui nibble. Să presupunem că se dă octetul $A =
+01111010$ și se cere să se afle nibble-ul 1 (cel din stânga). Pentru aceasta,
+se face un ȘI logic cu masca $M = 11110000$ (deoarece ultimii patru biți nu
+interesează), iar rezultatul se deplasează spre dreapta cu 4 biți:
+
+\begin{verbatim}
+  A   01111010 ȘI
+  M   11110000
+      --------
+  A’  01110000 >>>>
+      --------
+  B   00000111
+\end{verbatim}
+
+Deci nibble-ul stâng are valoarea 7. Revenind la cazul nostru, valoarea $K$ a
+nibble-ului $Nib$ din octetul $Oct$ este:
+
+\begin{lstlisting}[language=Pascal]
+K = (V[Oct] and ($0F shl (Nib shl 2))) shr (Nib shl 2)
+\end{lstlisting}
+
+Se recomandă și în acest caz scrierea unor funcții și folosirea vectorului $V$
+numai prin intermediul acestor funcții. În cazul inițializării vectorului,
+dacă toate elementele trebuie puse la valoarea 0, se poate folosi totuși
+procedura {\tt FillChar}, care e mult mai rapidă decât apelarea funcțiilor
+noastre pentru fiecare element în parte.
+
+Prezentăm mai jos numai un program demonstrativ despre modul de lucru cu
+aceste funcții:
+
+\begin{lstlisting}[language=Pascal]
+program Nibbles;
+type Vector=array[0..62499] of Byte;
+var V:Vector;
+
+function GetValue(X:LongInt):Word;
+var Oct,Nib:Word;
+begin
+  Oct:=Pred(X) shr 1;
+  Nib:=Pred(X) and 1;
+  GetValue:=(V[Oct] and ($0F shl (Nib shl 2)))
+            shr (Nib shl 2);
+end;
+
+procedure SetValue(X:LongInt;K:Word);
+var Oct,Nib:Word;
+begin
+  Oct:=Pred(X) shr 1;
+  Nib:=Pred(X) and 1;
+  V[Oct]:=(V[Oct] and ($FF xor ($0F shl (Nib shl 2))))
+          or (K shl (Nib shl 2));
+end;
+
+begin
+  FillChar(V,SizeOf(V),0);
+  SetValue(12345,12);
+  SetValue(12346,13); { Doi nibble de pe acelasi octet }
+  WriteLn(GetValue(12345),' ',GetValue(12346));
+end.
+\end{lstlisting}
+
+\section{Alocarea dinamică a matricelor de mari dimensiuni}
+
+Să presupunem că avem nevoie de o matrice cu 400 linii și 400 coloane cu
+elemente de tip {\tt Integer}. Necesarul de memorie este deci de $400 \times
+400 \times 2 = 320.000$ octeți, adică mult mai mult decât un segment. O cale
+foarte comodă de a rezolva această dificultate este de a declara matricea
+drept un vector de pointeri la vectori, ca în figura de mai jos:
+
+% Outputs a row. Overwrites object IDs.
+\newcommand{\ptrToArray}[2]{
+  \node[leader] (h1) at (#1) {#2};
+  \node[cell] (c1) at (h1.east) {};
+  \matrix[mat] (m1) at (c1.east) {
+    \ \& \ \& \ \\
+  };
+  \draw[->] (c1.center) -- (m1-1-1.west);
+  \node[anchor=west] (dots1) at (m1.east) {$\cdots$};
+  \node[cell] (t1) at (dots1.east) {};
+}
+\centeredTikzFigure[
+  leader/.style = {minimum width=4em, anchor=north, yshift=-1em},
+  mat/.style = {matrix of nodes, ampersand replacement=\&, anchor=west, xshift=2em, nodes=cell},
+  cell/.style = {rectangle, draw, minimum width=2em, minimum height=2em, anchor=west},
+  cellLabel/.style = {font=\scriptsize, anchor=west},
+]{
+  % first row
+  \node (placeholder) {};
+  \ptrToArray{placeholder}{$A[1]$}
+
+  % column headers
+  \node[anchor=south] at (m1-1-1.north) {1};
+  \node[anchor=south] at (m1-1-2.north) {2};
+  \node[anchor=south] at (m1-1-3.north) {3};
+  \node[anchor=south] at (t1.north) {400};
+
+  % more rows
+  \ptrToArray{h1.south}{$A[2]$}
+  \ptrToArray{h1.south}{$A[3]$}
+
+  % skip
+  \node[leader] (h1) at (h1.south) {$\vdots$};
+
+  % last row
+  \ptrToArray{h1.south}{$A[400]$}
+}
+
+Dimensiunea vectorului de pointeri este de $400 \times 4 = 1600$ octeți (un
+pointer se reprezintă pe 4 octeți). Dimensiunea unei linii din matrice este de
+$400 \times 2 = 800$ octeți. Așadar, fiecare structură de date încape pe un
+segment. Vectorii sunt alocați dinamic la intrarea în program.
+
+Metoda este comod de implementat (practic singura diferență este că elementul
+de la coordonatele $(i,j)$ din matrice nu va mai fi adresat cu {\tt A[i,j]},
+ci cu {\tt A[i]\^{}[j]}) și nu este consumatoare de timp (adresarea unui
+element mai presupune, pe lângă cele două incrementări datorate indicilor, și
+o indirectare datorată pointerului).
+
+Iată un exemplu demonstrativ de folosire a acestei structuri de date, care
+calculează suma numerelor naturale de la 1 la 100.
+
+\begin{lstlisting}[language=Pascal]
+program VPV;
+type Vector=array[1..400] of Integer;
+     Matrix=array[1..400] of ^Vector;
+var A:Matrix;
+    i:Integer;
+
+begin
+  for i:=1 to 400 do New(A[i]);
+  A[1]^[1]:=1;
+  for i:=2 to 100 do A[i]^[i]:=A[i-1]^[i-1]+i;
+  WriteLn(A[100]^[100]);
+end.
+\end{lstlisting}
+
+\section{Fragmentarea matricelor de mari dimensiuni}
+
+O altă soluție pentru a reprezenta în memorie structuri de date care depășesc
+un segment este de a le fragmenta în bucăți mai mici, fiecare din acestea
+nedepășind un segment. Pentru a accesa un element oarecare al structurii,
+depistăm întâi fragmentul din care el face parte, apoi îl localizăm în cadrul
+fragmentului.
+
+Să considerăm același exemplu al unei matrice $A$ de dimensiuni $400 \times
+400$ cu elemente de tip {\tt Integer}. Spațiul necesar este de 320.000 octeți,
+adică mai mult de 4 segmente de câte 64 KB și mai puțin de 5. Să spunem că am
+dori să fragmentăm această matrice în 5 matrice $B[0], B[1], B[2], B[3],
+B[4]$, fiecare având câte 400 linii și 80 de coloane (vom numerota liniile de
+la 0 la 399 și coloanele de la 0 la 79).  Cele 5 matrice se vor aloca dinamic,
+fiecare încăpând pe un segment (așadar vectorul $B$ este un vector de pointeri
+la matrice).
+
+Unde se va regăsi elementul $A[i,j]$ ? Primele 80 de coloane din matricea $A$
+se vor afla în matricea $B[0]$, următoarele 80 de coloane din $A$ se vor afla
+în matricea $B[1]$ ș.a.m.d. Coloana $j$ a matricei $A$ se va afla prin urmare
+în matricea $B[j \bdiv 80]$. Linia $i$ va fi aceeași, iar coloana pe care se
+află elementul $A[i,j]$ în cadrul matricei $B[j \bdiv 80]$ este $j \bmod 80$.
+
+Acum se vede de ce, pentru a calcula mai rapid câtul și restul împărțirilor,
+este bine ca numărul de coloane la care se face fragmentarea să fie o putere a
+lui 2, astfel încât operațiile $\bdiv$ și $\bmod$ să se poată înlocui
+printr-un {\tt shr} și un {\tt and}. Pentru problema noastră, cea mai
+rezonabilă cifră este 64, ceea ce înseamnă că avem nevoie de $\lceil 400/64
+\rceil = 7$ fragmente (prin rotunjire în sus a rezultatului). De fapt, prin
+alocarea a 7 segmente (numerotate de la 0 la 6) se creează $7 \times 64 = 448$
+de coloane, cu 48 mai mult decât era necesar. Se pierde deci o cantitate de
+memorie de $48 \times 400 \times 2 = 38.400$ octeți. În cazul în care această
+memorie nu este vitală, se poate face „risipă”, câștigându-se în schimb
+viteză.
+
+Iată cum ar arăta matricea fragmentată la 64 de coloane:
+
+\centeredTikzFigure[
+  % array style
+  arrayCell/.style = {rectangle, draw, minimum width=2.5em, minimum height=2.5em},
+  array/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    nodes=arrayCell,
+  },
+  % matrix style
+  cell/.style = {rectangle, draw, minimum width=2.5em, minimum height=2.5em, anchor=west},
+  noBorder/.style = {nodes={draw=none}},
+  tall/.style = {minimum height=4em},
+  wide/.style = {nodes={minimum width=4em}},
+  hspace1/.style = {nodes={minimum width=4em}},
+  hspace2/.style = {nodes={minimum width=8em}},
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    scale=0.5,
+    every node/.style={scale=0.5},
+    nodes=cell,
+    row 1/.style=noBorder,
+    row 5/.style={noBorder, tall},
+    row 7/.style=noBorder,
+    column 1/.style=noBorder,
+    column 5/.style={noBorder, wide},
+    column 7/.style={noBorder, hspace1},
+    column 11/.style={noBorder, wide},
+    column 13/.style={noBorder, hspace2},
+    column 17/.style={noBorder, wide},
+    column 20/.style={noBorder, wide},
+  },
+]{
+  % array
+  \matrix[array] (a) {
+    $B[0]$ \& $B[1]$ \& $B[2]$ \& $B[3]$ \& $B[4]$ \& $B[5]$ \& $B[6]$ \\
+  };
+
+  % matrix -- all chunks in one matrix
+  \matrix[mat, anchor=north] (m) at ([yshift=-3em]a.south) {
+    \  \& 0 \& 1 \& 2 \& $\cdots$ \& 63 \& \  \&
+    0 \& 1 \& 2 \& $\cdots$ \& 63 \& \  \&
+    0 \& 1 \& 2 \& $\cdots$ \& 15 \& 16 \& $\cdots$ \& 63 \\
+
+    0 \& \  \& \  \& \  \& $\cdots$ \& \  \& \  \&
+    \  \& \  \& \  \& $\cdots$ \& \  \& \  \&
+    \  \& \  \& \  \& $\cdots$ \& \  \& \  \& $\cdots$ \& \ \\
+
+    1 \& \  \& \  \& \  \& $\cdots$ \& \  \& \  \&
+    \  \& \  \& \  \& $\cdots$ \& \  \& \  \&
+    \  \& \  \& \  \& $\cdots$ \& \  \& \  \& $\cdots$ \& \ \\
+
+    2 \& \  \& \  \& \  \& $\cdots$ \& \  \& \  \&
+    \  \& \  \& \  \& $\cdots$ \& \  \& \  \&
+    \  \& \  \& \  \& $\cdots$ \& \  \& \  \& $\cdots$ \& \ \\
+
+    $\vdots$ \& $\vdots$ \& $\vdots$ \& $\vdots$ \& \  \& $\vdots$ \& \  \&
+    $\vdots$ \& $\vdots$ \& $\vdots$ \& \  \& $\vdots$ \& \  \&
+    $\vdots$ \& $\vdots$ \& $\vdots$ \& \  \& $\vdots$ \& $\vdots$ \& \  \& $\vdots$ \\
+
+    399 \& \  \& \  \& \  \& $\cdots$ \& \  \& \  \&
+    \  \& \  \& \  \& $\cdots$ \& \  \& \  \&
+    \  \& \  \& \  \& $\cdots$ \& \  \& \  \& $\cdots$ \& \ \\
+
+    \  \& 0 \& 1 \& 2 \& $\cdots$ \& 63 \& \  \&
+    64 \& 65 \& 66 \& $\cdots$ \& 127 \& \  \&
+    384 \& 385 \& 386 \& $\cdots$ \& 399 \& 400 \& $\cdots$ \& 447 \\
+  };
+
+  % some matrix borders in the background
+  \begin{scope}[on background layer]
+    \draw[densely dotted, fill=gray!20] (m-1-19.north west) rectangle (m-7-21.south east);
+    \draw (m-2-2.north west) rectangle (m-6-6.south east);
+    \draw (m-2-8.north west) rectangle (m-6-12.south east);
+    \draw (m-2-14.north west) rectangle (m-6-18.south east);
+    \draw (m-2-19.north west) rectangle (m-6-21.south east);
+  \end{scope}
+
+  % arrows
+  \draw[->] (a-1-1.south) -- (m-1-5.north west);
+  \draw[->] (a-1-2.south) -- (m-1-11.north west);
+  \draw[->] (a-1-7.south) -- (m-1-17.north west);
+}
+
+Prezentăm mai jos un scurt exemplu de fragmentare, care face același lucru ca
+și programul de la punctul anterior. S-au scris, ca și în cazurile precedente,
+două funcții, una pentru modificarea unui element și una pentru aflarea
+valorii lui. De asemenea, {\tt X div 64} a fost înlocuit peste tot cu {\tt X
+  shr 6}, iar {\tt X mod 64} cu {\tt X and 63}.
+
+\begin{lstlisting}[language=Pascal]
+program Fragment;
+type FragType=array[0..399,0..63] of Integer;
+     Matrix=array[0..6] of ^FragType;
+var B:Matrix;
+    i:Integer;
+
+function GetValue(i,j:Integer):Integer;
+begin
+  GetValue:=B[j shr 6]^[i,j and 63];
+end;
+
+procedure SetValue(i,j,Value:Integer);
+begin
+  B[j shr 6]^[i,j and 63]:=Value;
+end;
+
+begin
+  for i:=0 to 6 do New(B[i]);
+  SetValue(1,1,1);
+  for i:=2 to 100 do SetValue(i,i,GetValue(i-1,i-1)+i);
+  WriteLn(GetValue(100,100));
+end.
+\end{lstlisting}

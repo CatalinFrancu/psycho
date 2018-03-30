@@ -1,0 +1,798 @@
+\section{Problema 3}
+
+Problema de mai jos este un exemplu de situație în care căutarea exhaustivă a
+soluției este cea mai bună alegere. Ea a fost propusă spre rezolvare la a
+VIII-a Olimpiadă Internațională de Informatică, Veszprem, Ungaria 1996.
+
+{\bf ENUNȚ}: Văzând succesul cubului său magic, Rubik a inventat versiunea
+plană a jocului, numit „pătrate magice”. Se folosește o tablă compusă din 8
+pătrate de dimensiuni egale. Cele opt pătrate au culori distincte, codificate
+prin numere de la 1 la 8, ca în figura următoare:
+
+\centeredTikzFigure[
+  mat/.style = {matrix of nodes, ampersand replacement=\&, nodes=cell},
+  cell/.style = {rectangle, draw, minimum width=1.5em, minimum height=1.5em},
+]{
+  \matrix[mat] {
+    1 \& 2 \& 3 \& 4 \\
+    8 \& 7 \& 6 \& 5 \\
+  };
+}
+
+Configurația tablei se poate reprezenta într-un vector cu 8 elemente citind
+cele opt pătrate, începând din colțul din stânga sus și mergând în sens
+orar. De exemplu, configurația din figură se reprezintă prin vectorul (1, 2,
+3, 4, 5, 6, 7, 8). Aceasta este configurația inițială a tablei.
+
+Unei configurații i se pot aplica trei transformări elementare, identificate
+prin literele „A”, „B” și „C”:
+
+\begin{itemize}
+
+\item „A”  schimbă între ele cele două linii ale tablei;
+
+\item „B”  rotește circular spre dreapta întregul dreptunghi (cu o poziție);
+
+\item „C”  rotește în sens orar cele patru pătrate centrale (cu o poziție);
+
+\end{itemize}
+
+Efectele transformărilor elementare asupra configurației inițiale sunt
+reprezentate în figura de mai jos:
+
+\centeredTikzFigure[
+  mat/.style = {matrix of nodes, ampersand replacement=\&, nodes=cell},
+  cell/.style = {rectangle, draw, minimum width=1.5em, minimum height=1.5em},
+  caption/.style = {font=\large\bf, yshift=-1em},
+]{
+  \matrix[mat] (m1) {
+    8 \& 7 \& 6 \& 5 \\
+    1 \& 2 \& 3 \& 4 \\
+  };
+
+  \matrix[mat] (m2) at (5, 0) {
+    4 \& 1 \& 2 \& 3 \\
+    5 \& 8 \& 7 \& 6 \\
+  };
+
+  \matrix[mat] (m3) at (10, 0) {
+    1 \& 7 \& 2 \& 4 \\
+    8 \& 6 \& 3 \& 5 \\
+  };
+
+  \node[caption] at (m1.south) {A};
+  \node[caption] at (m2.south) {B};
+  \node[caption] at (m3.south) {C};
+}
+
+Din configurația inițială se poate ajunge în orice configurație folosind doar
+combinații de tranformări elementare. Trebuie să scrieți un program care
+calculează o secvență de transformări elementare care să aducă tabla de la
+configurația inițială la o anumită configurație finală cerută.
+
+{\bf Intrarea}: Fișierul {\tt INPUT.TXT} conține 8 întregi pe aceeași linie,
+separați prin spații, descriind configurația finală.
+
+Ieșirea se va face în fișierul {\tt OUTPUT.TXT}. Pe prima linie a acestuia se
+va tipări lungimea $L$ a secvenței de transformări, iar pe fiecare din
+următoarele $L$ linii se va tipări câte un caracter „A”, „B” sau „C”,
+corespunzător mutărilor care trebuie efectuate.
+
+{\bf Exemplu}:
+
+\texttt{
+  \begin{tabular}{| l | l |}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        2 6 8 4 5 7 3 1 & 7 \\
+        & B \\
+        & C \\
+        & A \\
+        & B \\
+        & C \\
+        & C \\
+        & B \\
+    \hline
+  \end{tabular}
+}
+
+{\bf Timp limită pentru un test}: 20 secunde.
+
+{\bf Timp de implementare}: 1h 30min - 1h 45min
+
+{\bf Note}:
+
+\begin{enumerate}
+
+\item La concurs s-au acordat, pentru fiecare test, două puncte dacă se
+  furniza o soluție și încă două dacă lungimea ei nu depășea 300 de mutări.
+
+\item Concurenților li s-a furnizat un program auxiliar, {\tt MTOOL.EXE}, cu
+  care se puteau verifica soluțiile furnizate.
+
+\end{enumerate}
+
+{\bf REZOLVARE}: Și la această problemă se întrevăd două abordări, ca și în
+problema ceasurilor: una bazată pe mutări predefinite, iar cealaltă pe o
+căutare exhaustivă a soluției. De data aceasta însă, prima este
+neinspirată. Să le analizăm pe rând pe fiecare, plecând de la următoarele
+considerente:
+
+\begin{itemize}
+
+\item Dacă se aplică de două ori la rând mutarea A, tabla rămâne nemodificată;
+
+\item Dacă se aplică de patru ori consecutiv una din mutările B sau C, tabla
+  rămâne nemodificată;
+
+\item Ordinea în care se efectuează mutările contează.
+
+\end{itemize}
+
+Soluția pe care autorul a prezentat-o la concurs avea predefinite mai multe
+mutări care schimbau între ele oricare două pătrate vecine de pe
+tablă. Mergând din aproape în aproape, fiecare pătrat era adus în poziția
+corespunzătoare. Spre exemplu, succesiunea de mutări predefinite care duceau
+la configurația din exemplu este:
+
+\centeredTikzFigure[
+  mat/.style = {matrix of nodes, ampersand replacement=\&, nodes=cell},
+  cell/.style = {rectangle, draw, minimum width=1.5em, minimum height=1.5em},
+  emph/.style = {fill=gray!50!white},
+]{
+  % the 8 boards
+  \matrix[mat] (m1) {
+    \node[emph]{1}; \& \node[emph]{2}; \& 3 \& 4 \\
+    8 \& 7 \& 6 \& 5 \\
+  };
+
+  \matrix[mat] (m2) at (3.5, 0) {
+    2 \& \node[emph]{1}; \& 3 \& 4 \\
+    8 \& \node[emph]{7}; \& 6 \& 5 \\
+  };
+
+  \matrix[mat] (m3) at (7, 0) {
+    2 \& 7 \& 3 \& 4 \\
+    \node[emph]{8}; \& \node[emph]{1}; \& 6 \& 5 \\
+  };
+
+  \matrix[mat] (m4) at (10.5, 0) {
+    2 \& 7 \& \node[emph]{3}; \& 4 \\
+    1 \& 8 \& \node[emph]{6}; \& 5 \\
+  };
+
+  \matrix[mat] (m5) at (0, -2) {
+    2 \& \node[emph]{7}; \& \node[emph]{6}; \& 4 \\
+    1 \& 8 \& 3 \& 5 \\
+  };
+
+  \matrix[mat] (m6) at (3.5, -2) {
+    2 \& 6 \& 7 \& 4 \\
+    1 \& \node[emph]{8}; \& \node[emph]{3}; \& 5 \\
+  };
+
+  \matrix[mat] (m7) at (7, -2) {
+    2 \& 6 \& \node[emph]{7}; \& 4 \\
+    1 \& 3 \& \node[emph]{8}; \& 5 \\
+  };
+
+  \matrix[mat] (m8) at (10.5, -2) {
+    2 \& 6 \& 8 \& 4 \\
+    1 \& 3 \& 7 \& 5 \\
+  };
+
+  % arrows
+  \draw[->] (m1.east) -- (m2.west);
+  \draw[->] (m2.east) -- (m3.west);
+  \draw[->] (m3.east) -- (m4.west);
+  \draw[->] (m4.east) -- ++(0.75,0);
+  \draw[->] (m5.east) -- (m6.west);
+  \draw[->] (m6.east) -- (m7.west);
+  \draw[->] (m7.east) -- (m8.west);
+}
+
+Această soluție funcționează instantaneu și este relativ ușor de
+implementat. Ea are însă defectul că soluția furnizată este extrem de lungă,
+ajungând frecvent la 500 de mutări. Din cele zece teste date, numai trei s-au
+încadrat în limita de 300 de mutări. Iată mai jos și sursa Pascal prezentată
+la concurs, care a câștigat numai 26 din cele 40 de puncte acordate pentru
+problemă:
+
+\begin{lstlisting}[language=Pascal]
+program Magic;
+{$B-,I-,R-,S-}
+{ Tabla este 1 2 3 4
+             A B C D }
+const r12='BCBBB'; { Roteste in sens orar coloanele 12 }
+      r23='C';     { Roteste in sens orar coloanele 23 }
+      r34='BBBCB'; { Roteste in sens orar coloanele 34 }
+      r14='BBCBB'; { Roteste in sens orar coloanele 41 }
+
+      plBCD=r12+r23+r34+r14; { Permuta patratele BCD }
+      PL234=plBCD+'A'+plBCD+'A'; { Permuta coloanele 234 }
+
+      { SXY schimba intre ele coloanele X si Y }
+      S14='B'+PL234;
+      S12='BBB'+S14+'B';
+      S23='BB'+S14+'BB';
+      S34='B'+S14+'BBB';
+      S13=r12+r12+r23+r23+r12+r12;
+      S24='B'+S13+'BBB';
+
+      { RevXY schimba intre ele patratele vecine X si Y }
+      RevC3=plBCD+r23+r12+r12+r34+r34+'BBB'+plBCD+'A';
+      RevD4='BBB'+RevC3+'B';
+      RevB2='B'+RevC3+'BBB';
+      RevA1='BB'+RevC3+'BB';
+
+      Rev23='C'+RevC3+'CCC';
+      Rev12='B'+Rev23+'BBB';
+      Rev34='BBB'+Rev23+'B';
+      Rev14='BB'+Rev23+'BB';
+
+      RevAB='A'+Rev12+'A';
+      RevBC='A'+Rev23+'A';
+      RevCD='A'+Rev34+'A';
+      RevAD='A'+Rev14+'A';
+
+type Matrix=array[1..2,1..4] of Integer;
+     Vector=array[1..60000] of Char;
+var A,B:Matrix;
+    V:Vector;
+    N:Integer;
+
+procedure MakeAMatrix;
+begin
+  A[1,1]:=1;
+  A[1,2]:=2;
+  A[1,3]:=3;
+  A[1,4]:=4;
+  A[2,1]:=8;
+  A[2,2]:=7;
+  A[2,3]:=6;
+  A[2,4]:=5;
+end;
+
+procedure ReadBMatrix;
+begin
+  Assign(Input,'input.txt');
+  Reset(Input);
+  Read(B[1,1]);
+  Read(B[1,2]);
+  Read(B[1,3]);
+  Read(B[1,4]);
+  Read(B[2,4]);
+  Read(B[2,3]);
+  Read(B[2,2]);
+  Read(B[2,1]);
+  Close(Input);
+end;
+
+procedure AddString(S:String);
+{ Adauga o secventa la sirul-solutie }
+var i:Integer;
+begin
+  for i:=1 to Length(S) do
+    begin
+      Inc(N);
+      V[N]:=S[i];
+    end;
+end;
+
+procedure FindElement(K:Integer;var X,Y:Integer);
+{ Cauta un element intr-o permutare }
+var i,j:Integer;
+begin
+  for i:=1 to 2 do
+    for j:=1 to 4 do
+      if A[i,j]=K then begin
+                         X:=i;
+                         Y:=j;
+                         Exit;
+                       end;
+end;
+
+procedure Switch(var X,Y:Integer);
+{ Schimba intre ele doua numere }
+var IAux:Integer;
+begin
+  IAux:=X;X:=Y;Y:=IAux;
+end;
+
+procedure Process;
+{ Transforma pozitia in pozitia B prin schimbari
+  repetate ale elementelor vecine }
+var i,j,k,l,m:Integer;
+begin
+  for j:=1 to 4 do
+    for i:=1 to 2 do
+      begin
+        FindElement(B[i,j],k,l);
+        { Gaseste elementul care trebuie adus
+          pe pozitia (i,j) }
+        if k<>i then begin
+                       { Il aduce pe linia corecta }
+                       case l of
+                         1:AddString(RevA1);
+                         2:AddString(RevB2);
+                         3:AddString(RevC3);
+                         4:AddString(RevD4);
+                       end; {case}
+                       Switch(A[k,l],A[i,l]);
+                       k:=i;
+                     end;
+        for m:=l downto j+1 do
+          { Il aduce pe coloana corecta }
+          begin
+            if k=1
+              then case m of
+                     2:AddString(Rev12);
+                     3:AddString(Rev23);
+                     4:AddString(Rev34);
+                   end
+              else case m of
+                     2:AddString(RevAB);
+                     3:AddString(RevBC);
+                     4:AddString(RevCD);
+                   end;
+            Switch(A[k,m],A[k,m-1]);
+          end;
+      end;
+end;
+
+procedure Cut(K,D:Integer);
+{ Taie din vectorul V D pozitii incepand cu K }
+var i:Integer;
+begin
+  for i:=K to N-D do
+    V[i]:=V[i+D];
+  Dec(N,D);
+end;
+
+procedure Reduce;
+{ Reduce secventele de mutari identice }
+var i:Integer;
+begin
+  i:=1;
+  repeat
+    case V[i] of
+      'A':if (i<=N-1) and (V[i+1]='A')
+            then Cut(i,2)
+            else Inc(i);
+      'B':if (i<=N-3) and (V[i+1]='B')
+            and (V[i+2]='B') and (V[i+3]='B')
+            then Cut(i,4)
+            else Inc(i);
+      'C':if (i<=N-3) and (V[i+1]='C')
+            and (V[i+2]='C') and (V[i+3]='C')
+            then Cut(i,4)
+            else Inc(i);
+    end; {case}
+  until i=N;
+end;
+
+procedure WriteSolution;
+var i:Integer;
+begin
+  Assign(Output,'output.txt');
+  Rewrite(Output);
+  WriteLn(N);
+  for i:=1 to N do WriteLn(V[i]);
+  Close(Output);
+end;
+
+begin
+  N:=0;
+  MakeAMatrix;
+  ReadBMatrix;
+  Process;
+  Reduce;
+  WriteSolution;
+end.
+\end{lstlisting}
+
+Singura soluție pare deci a fi una de tipul Branch and Bound, care nu este
+tocmai la îndemână. Cu toate acestea, numărul total de configurații posibile
+ale tablei este de numai 8! = 40.320. Într-adevăr, fiecare poziție de pe tablă
+se reprezintă printr-o permutare a mulțimii {1,2,3,4,5,6,7,8}. Se poate face
+deci cu ușurință o căutare exhaustivă a soluției. Aceasta simplifică mult
+structurile de date folosite (implementarea Branch and Bound folosește
+structuri destul de încâlcite). În plus, practica arată că se poate ajunge în
+orice configurație în mai puțin de 25 de mutări.
+
+Algoritmul de căutare este cunoscut sub numele de algoritmul lui Lee și are la
+bază următoarea idee: Se pornește cu configurația inițială, care este depusă
+într-o coadă. La fiecare pas se extrage prima configurație disponibilă din
+coadă, se efectuează pe rând fiecare din cele trei mutări și se obțin trei
+succesori. Aceștia sunt adăugați la sfârșitul cozii, dacă nu există deja în
+coadă. Acest pas se numește {\bf expandare}. Expandarea continuă până când
+elementul selectat spre expandare este tocmai configurația finală.
+
+Figura următoare indică modul de expandare a cozii, cu mențiunea că printr-o
+succesiune de litere ne-am referit la configurația care se obține efectuând
+mutările respective:
+
+\centeredTikzFigure[
+  scale=0.8,
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    row sep=1em,
+    column sep=3em,
+    nodes=cell,
+  },
+  cell/.style = {scale=0.8, anchor=west},
+  conf/.style = {rectangle, draw, anchor=west, xshift=1em},
+]{
+  \matrix[mat] {
+    \& {\bf Configurații expandate} \& {\bf Coada de configurații neexpandate}
+    \\
+    Pasul 0:
+    \&
+    \&
+    \node[conf] {Inițială};
+    \\
+    Pasul 1:
+    \&
+    \node[conf] {Inițială};
+    \&
+    \node[conf] (a1) {A};
+    \node[conf] (a2) at (a1.east) {B};
+    \node[conf] (a3) at (a2.east) {C};
+    \draw[-latex] (a1) -- (a2);
+    \draw[-latex] (a2) -- (a3);
+    \\
+    Pasul 2:
+    \&
+    \node[conf] (b1) {Inițială};
+    \node[conf] (b2) at (b1.east) {A};
+    \&
+    \node[conf] (b3) {B};
+    \node[conf] (b4) at (b3.east) {C};
+    \node[conf] (b5) at (b4.east) {AB};
+    \node[conf] (b6) at (b5.east) {AC};
+    \draw[-latex] (b3) -- (b4);
+    \draw[-latex] (b4) -- (b5);
+    \draw[-latex] (b5) -- (b6);
+    \\
+    Pasul 3:
+    \&
+    \node[conf] (c1) {Inițială};
+    \node[conf] (c2) at (c1.east) {A};
+    \node[conf] (c3) at (c2.east) {B};
+    \&
+    \node[conf] (c4) {C};
+    \node[conf] (c5) at (c4.east) {AB};
+    \node[conf] (c6) at (c5.east) {AC};
+    \node[conf] (c7) at (c6.east) {BB};
+    \node[conf] (c8) at (c7.east) {BC};
+    \draw[-latex] (c4) -- (c5);
+    \draw[-latex] (c5) -- (c6);
+    \draw[-latex] (c6) -- (c7);
+    \draw[-latex] (c7) -- (c8);
+    \\
+    Pasul 4:
+    \&
+    \node[conf] (d1) {Inițială};
+    \node[conf] (d2) at (d1.east) {A};
+    \node[conf] (d3) at (d2.east) {B};
+    \node[conf] (d4) at (d3.east) {C};
+    \&
+    \node[conf] (d5) {AB};
+    \node[conf] (d6) at (d5.east) {AC};
+    \node[conf] (d7) at (d6.east) {BB};
+    \node[conf] (d8) at (d7.east) {BC};
+    \node[conf] (d9) at (d8.east) {CA};
+    \node[conf] (d10) at (d9.east) {CB};
+    \node[conf] (d11) at (d10.east) {CC};
+    \draw[-latex] (d5) -- (d6);
+    \draw[-latex] (d6) -- (d7);
+    \draw[-latex] (d7) -- (d8);
+    \draw[-latex] (d8) -- (d9);
+    \draw[-latex] (d9) -- (d10);
+    \draw[-latex] (d10) -- (d11);
+    \\
+  };
+}
+
+Se observă că, la pasul 2, în coadă au fost adăugate doar configurațiile „AB”
+și „AC”, iar configurația „AA” nu, deoarece prin efectuarea de două ori a
+mutării „A” se revine la configurația inițială, care a fost deja expandată. De
+asemenea, la pasul 3, după expandarea configurației „B” au fost adăugate în
+coadă numai configurațiile „BB” și „BC”, deoarece configurația „BA” este
+echivalentă cu configurația „AB”, aflată deja în listă.
+
+Pseudocodul algoritmului este:
+
+\vspace{\algskip}
+\begin{algorithmic}[1]
+  \STATE citește datele de intrare
+  \STATE inițializează coada cu configurația inițială
+  \WHILE{primul element al cozii nu este configurația finală}
+  \STATE expandează primul element al cozii
+  \FOR{$i = A, B, C$}
+  \IF{succesorul $i$ nu a fost deja pus în coadă}
+  \STATE adaugă succesorul $i$ în coadă
+  \ENDIF
+  \ENDFOR
+  \STATE șterge primul element al cozii
+  \ENDWHILE
+  \STATE reconstituie șirul de mutări
+\end{algorithmic}
+
+Algoritmul de mai sus garantează și găsirea soluției optime (în număr minim de
+mutări). Rămân de lămurit două lucruri: (1) Cum ne dăm seama dacă o
+configurație există deja în coadă și (2) cum se face reconstituirea soluției.
+
+Pentru a afla dacă o configurație mai există în listă, cea mai simplă metodă
+ar fi o căutare secvențială a listei. Totuși, această versiune ar fi extrem de
+lentă, deoarece coada atinge rapid dimensiuni respectabile (de ordinul miilor
+de elemente). În plus, un element al listei ar reține configurația
+propriu-zisă (un vector cu opt elemente), ceea ce ar duce la un consum ridicat
+de memorie. Testul de egalitate a doi vectori ar fi și el costisitor din punct
+de vedere al timpului.
+
+Există însă o altă metodă mai simplă. Am demonstrat că numărul de configurații
+posibile ale tablei este 8! = 40.320.  Dacă am putea găsi o funcție bijectivă
+$H: \mathbf{P_8} \to \{0, 1, \dots, 40.319\}$, unde $\mathbf{P_8}$ este
+mulțimea permutărilor de 8 elemente, atunci ar fi suficient un vector
+caracteristic cu 40.320 elemente. De îndată ce introducem în coadă o nouă
+configurație $K$, nu avem decât să bifăm elementul corespunzător din vectorul
+caracteristic. Înainte de a adăuga o configurație în coadă, testăm dacă nu
+cumva elementul corespunzător ei a fost deja bifat, semn că nodul a mai fost
+vizitat.
+
+Cum se construiește funcția $H$? Pentru orice permutare $p \in \mathbf{P_8}$,
+$H(p)$ este poziția lui $p$ în ordonarea lexicografică a lui $\mathbf{P_8}$
+(începând de la 0):
+
+\begin{align*}
+H(1, 2, 3, 4, 5, 6, 7, 8) & = 0 \\
+H(1, 2, 3, 4, 5, 6, 8, 7) & = 1 \\
+H(1, 2, 3, 4, 5, 7, 6, 8) & = 2 \\
+\cdots \\
+H(8, 7, 6, 5, 4, 3, 1, 2) & = 40.318 \\
+H(8, 7, 6, 5, 4, 3, 2, 1) & = 40.319 \\
+\end{align*}
+
+Se observă că primele 7! = 5.040 elemente din ordonare au pe prima poziție un
+1, următoarele 5.040 au pe prima poziție un 2 etc. De asemenea, dintre
+elementele care au pe prima poziție un 1, primele 6! = 720 au pe a doua
+poziție un 2, următoarele 720 au pe a doua poziție un 3 etc.
+
+Să calculăm de exemplu $H(2, 6, 8, 4, 5, 7, 3, 1)$. Prima cifră a permutării
+este 2, deci se adaugă 7! = 5.040. Rămân cifrele 1, 3, 4, 5, 6, 7 și 8. A doua
+cifră a permutării este 6, a cincea ca valoare dintre cifrele rămase, deci se
+adaugă $4 \times 6! = 2.880$. Rămân cifrele 1, 3, 4, 5, 7 și 8 etc. Se aplică
+procedeul până la ultima cifră și rezultă:
+
+\begin{tabular}{|l|l|l|}
+  \hline
+  Cifre rămase           & Permutarea & Valoarea adăugată \\ \hline
+  1, 2, 3, 4, 5, 6, 7, 8 & 2          & $1 \times 7! = 5.040$ \\
+  1, 3, 4, 5, 6, 7, 8    & 6          & $4 \times 6! = 2.880$ \\
+  1, 3, 4, 5, 7, 8       & 8          & $5 \times 5! = 600$ \\
+  1, 3, 4, 5, 7          & 4          & $2 \times 4! = 48$ \\
+  1, 3, 5, 7             & 5          & $2 \times 3! = 12$ \\
+  1, 3, 7                & 7          & $2 \times 2! = 4$ \\
+  1, 3                   & 3          & $1 \times 1! = 1$ \\
+  1                      & 1          & $0 \times 0! = 0$ \\ \hline
+                         &            & $H(p) = 8.585 $\\ \hline
+\end{tabular}
+
+Reciproc se construiește permutarea când i se cunoaște valoarea atașată:
+
+\small{
+  \begin{tabular}{|l|l|l|l|l|}
+    \hline
+    Cifre nefolosite       & $H(p)$ &                      & Cifra selectată & \\ \hline
+    1, 2, 3, 4, 5, 6, 7, 8 & 8.585  & $8.585 \bdiv 7! = 1$ & 2 & $8.585 \bmod 7! = 3.545$ \\
+    1, 3, 4, 5, 6, 7, 8    & 3.545  & $3.545 \bdiv 6! = 4$ & 6 & $3.545 \bmod 6! = 665$ \\
+    1, 3, 4, 5, 7, 8       & 665    & $665 \bdiv 5! = 5$   & 8 & $665 \bmod 5! = 65$ \\
+    1, 3, 4, 5, 7          & 65     & $65 \bdiv 4! = 2$    & 4 & $65 \bmod 4! = 17$ \\
+    1, 3, 5, 7             & 17     & $17 \bdiv 3! = 2$    & 5 & $17 \bmod 3! = 5$ \\
+    1, 3, 7                & 5      & $5 \bdiv 2! = 2$     & 7 & $5 \bmod 2! = 1$ \\
+    1, 3                   & 1      & $1 \bdiv 1! = 1$     & 3 & $1 \bmod 1! = 0$ \\
+    1                      & 0      & $0 \bdiv 0! = 0$     & 1 & \\ \hline
+  \end{tabular}
+}
+
+Rezultă $p = (2, 6, 8, 4, 5, 7, 3, 1)$.
+
+Această metodă de căutare are și avantajul că în listă se va ține un singur
+număr pe doi octeți, făcându-se economie de memorie. Expandarea unui nod
+constă din trei pași:
+
+\begin{enumerate}
+
+\item Se extrage primul număr din listă și se reconstituie configurația
+  atașată;
+
+\item Se fac cele trei mutări, obținându-se trei succesori;
+
+\item Pentru fiecare succesor se calculează funcția $H$ și dacă configurația
+  nu este găsită în listă, este adăugată.
+
+\end{enumerate}
+
+Pentru a face reconstituirea soluției avem nevoie de date
+suplimentare. Respectiv, vectorul caracteristic atașat permutărilor nu va mai
+reține doar dacă o poziție a fost „văzută” sau nu, ci și poziția din care ea
+provine (prin valoarea funcției $H$). Trebuie de asemenea reținut tipul
+mutării (A, B sau C) prin care s-a ajuns în acea configurație. Cei doi vectori
+se numesc {\tt Father} și {\tt MoveKind}. Inițial, toate elementele vectorului
+{\tt Father} au eticheta „Unknown”, semnificând că nodurile nu au fost încă
+vizitate, cu excepția elementului atașat configurației inițiale, care poartă
+eticheta specială „Root” (rădăcină).
+
+Pseudocodul pentru expandarea unui nod arată cam așa:
+
+\vspace{\algskip}
+\begin{algorithmic}[1]
+  \STATE $K \leftarrow$ primul număr din coadă
+  \STATE $P \leftarrow H^{-1}(K)$
+  \STATE află cei trei succesori $Q_A, Q_B, Q_C$
+  \FOR{$i = A, B, C$}
+  \IF{$Father[H(Q_i)] = Unknown$}
+  \STATE $Father[H(Q_i)] \leftarrow K$
+  \STATE $MoveKind[H(Q_i)] \leftarrow i$
+  \STATE adaugă $H(Q_i)$ în coadă
+  \ENDIF
+  \ENDFOR
+  \STATE șterge $K$ din coadă
+\end{algorithmic}
+
+Reconstituirea soluției se face recursiv: se pornește de la configurația
+finală și se merge înapoi (folosind informația din vectorul {\tt Father}) până
+la configurația inițială, măsurându-se astfel numărul de mutări. La revenire
+se tipăresc toate mutările efectuate (folosind informația din vectorul {\tt
+  MoveKind}).
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <stdlib.h>
+#define Unknown 0xFFFF
+#define Root 0xFFFE
+
+typedef huge unsigned Vector[40320];
+typedef char CharVector[40320];
+typedef int Perm[8];
+typedef struct list { unsigned X; struct list * Next; } List;
+
+Perm StartPerm={1,2,3,4,5,6,7,8}, EndPerm;
+const Perm Moves[3]=
+   {{7,6,5,4,3,2,1,0},
+    {3,0,1,2,5,6,7,4},
+    {0,6,1,3,4,2,5,7}};
+/* Cele trei tipuri de mutari */
+Vector Father; /* Legaturile de tip tata */
+CharVector MoveKind;
+unsigned StartValue,EndValue;
+/* Valorile atasate configuratiilor initiala si finala */
+List *Head, *Tail; /* Coada de expandat */
+
+/**** Bijectia care asociaza un numar unei permutari ****/
+
+unsigned Perm2Int(Perm P)
+{ int i,j,k,Fact=5040;
+  unsigned Sum=0;
+
+  for (i=0;i<=6;i++)
+    { k=P[i]-1;
+      for (j=0;j<i;j++)
+        if (P[j]<P[i]) k--;
+      Sum+=k*Fact;
+      Fact/=(7-i);
+    }
+  return Sum;
+}
+
+void Int2Perm(unsigned Sum, Perm P)
+{ int i,j,k,Order,Fact=5040;
+  Perm Used={0,0,0,0,0,0,0,0};
+
+  for (i=0;i<=7;i++)
+    { Order=Sum/Fact;
+      j=-1;
+      for (k=0;k<=Order;k++)
+        do j++; while (Used[j]);
+      Used[j]=1;
+      P[i]=j+1;
+      Sum%=Fact;
+      if (i!=7) Fact/=(7-i);
+    }
+}
+
+/**** Lucrul cu liste ****/
+
+void InitList(void)
+{
+  Head=Tail=malloc(sizeof(List));
+  Tail->X=StartValue;
+  Tail->Next=NULL;
+}
+
+void AddToTail(unsigned K)
+{
+  Tail->Next=malloc(sizeof(List));
+  Tail=Tail->Next;
+  Tail->X=K;
+  Tail->Next=NULL;
+}
+
+void Behead(void)
+/* Sterge capul listei */
+{ List *LCor=Head;
+
+  Head=Head->Next;
+  free(LCor);
+}
+
+/**** Cautarea propriu-zisa ****/
+
+void MakeMove(Perm P,Perm Q,int Kind)
+/* Kind = 0, 1 sau 2 */
+{ int i;
+  for (i=0;i<=7;i++)
+    Q[i]=P[Moves[Kind][i]];
+}
+
+void Expand(void)
+{ List *LCor;
+  Perm P1,P2;
+  unsigned i,XSon,Done;
+
+  InitList();
+  do {
+    Int2Perm(Head->X,P1);
+    for(i=0;i<=2;i++)
+      { MakeMove(P1,P2,i);
+        XSon=Perm2Int(P2);
+        if (Father[XSon]==Unknown)
+          { Father[XSon]=Head->X;
+            MoveKind[XSon]=i+65;
+            AddToTail(XSon);
+          }
+      }
+    Done=(Head->X==EndValue);
+    Behead(); }
+  while (!Done);
+}
+
+/* Intrarea si iesirea */
+
+void InitData(void)
+{ FILE *F=fopen("input.txt","rt");
+  unsigned i;
+
+  for (i=0;i<=7;i++) fscanf(F,"%d",&EndPerm[i]);
+  fclose(F);
+  StartValue=Perm2Int(StartPerm);
+  EndValue=Perm2Int(EndPerm);
+  for (i=0;i<40320;) Father[i++]=Unknown;
+  Father[StartValue]=Root;
+}
+
+void WriteMove(FILE *F,unsigned K,int Len)
+{
+  if (K!=StartValue)
+    { WriteMove(F,Father[K],Len+1);
+      fprintf(F,"%c\n",MoveKind[K]);
+    }
+    else fprintf(F,"%d\n",Len);
+}
+
+void Restore(void)
+{ FILE *F=fopen("output.txt","wt");
+
+  WriteMove(F,EndValue,0);
+  fclose(F);
+}
+
+void main(void)
+{
+  InitData();
+  Expand();
+  Restore();
+}
+\end{lstlisting}

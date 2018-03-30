@@ -1,0 +1,358 @@
+\chapter{Probleme de concurs}
+
+\section{Problema 1}
+
+{\bf ENUNȚ}: Se consideră următorul joc: Pe o tablă liniară cu $2N+1$ căsuțe
+sunt dispuse $N$ bile albe (în primele $N$ căsuțe) și $N$ bile negre (în
+ultimele $N$ căsuțe), căsuța din mijloc fiind liberă. Bilele albe se pot mișca
+numai spre dreapta, iar cele negre numai spre stânga. Mutările posibile sunt:
+
+\begin{enumerate}
+
+\item O bilă albă se poate deplasa o căsuță spre dreapta, numai dacă aceasta
+  este liberă;
+
+\item O bilă albă poate sări peste bila aflată imediat în dreapta ei
+  (indiferent de culoarea acesteia), așezându-se în căsuța de dincolo de ea,
+  numai dacă aceasta este liberă;
+
+\item O bilă neagră se poate deplasa o căsuță spre stânga, numai dacă aceasta
+  este liberă;
+
+\item O bilă neagră poate sări peste bila aflată imediat în stânga ei
+  (indiferent de culoarea acesteia), așezându-se în căsuța de dincolo de ea,
+  numai dacă aceasta este liberă.
+
+\end{enumerate}
+
+Trebuie schimbat locul bilelor albe cu cele negre. Se mai cere în plus ca
+prima mutare să fie făcută cu o bilă albă.
+
+{\bf Intrarea}: De la tastatură se citește numărul $N \leq 1000$.
+
+{\bf Ieșirea}: În fișierul {\tt OUTPUT.TXT} se vor tipări două linii terminate
+cu <tt><Enter></tt>. Pe prima se va tipări numărul de mutări efectuate, iar pe
+a doua o succesiune de cifre cuprinse între 1 și 4, nedespărțite prin spații,
+corespunzătoare mutărilor ce trebuie făcute.
+
+{\bf Exemple}:
+
+\begin{itemize}
+
+\item $N=1 \implies$ Ieșirea 141
+
+\item $N=2 \implies$ Ieșirea 14322341
+
+\end{itemize}
+
+{\bf Complexitate cerută}: $O(N^2)$.
+
+{\bf Timp de implementare}: 1h.
+
+{\bf Timp de rulare}: 10 secunde pentru un test.
+
+{\bf REZOLVARE}: La prima vedere, problema pare să se preteze la o rezolvare
+în timp exponențial, prin metoda „Branch and Bound”. Un neajuns al enunțului
+pare să fie faptul că nu se specifică dacă numărul de mutări efectuate trebuie
+sau nu să fie minim. Pentru a ne lămuri, să privim în detaliu soluțiile pentru
+$N=1$ și $N=2$:
+
+\begin{itemize}
+
+\item Pentru $N = 1$, toate mutările sunt forțate ((a) - se mută bila albă,
+  (b) - se sare cu cea neagră peste ea, (c) - se mută din nou bila albă);
+  trebuie remarcat că după mutările (a) și (b) se obțin două configurații
+  simetrice una în raport cu cealaltă (oglindite).
+
+\item Pentru $N = 2$, se poate începe sărind cu bila albă de la margine peste
+  cealaltă, dar această mutare ar duce la blocarea jocului. Este deci
+  obligatoriu să se înceapă prin a împinge bila albă centrală (a). Următoarea
+  mutare este forțată ((b) - se sare cu bila neagră peste cea albă), apoi
+  toate mutările sunt obligate (în sensul că dacă la orice pas se face altă
+  mutare decât cea care conduce la soluție, jocul se blochează în câteva
+  mutări): (c) - se împinge bila neagră, (d), (e) - se sare de două ori cu
+  bilele albe, (f) - se împinge bila neagră, (g) - se sare cu bila neagră, (h)
+  - se împinge bila albă. Trebuie din nou remarcat că după mutările (c) și (e)
+  se obțin două configurații simetrice.
+
+\end{itemize}
+
+Așadar în ambele cazuri, soluția este unică. De fapt, există două soluții
+asemănătoare, una dacă se începe cu o mutare a bilei albe și una dacă se
+începe cu o mutare a bilei negre. Fiindcă enunțul impune ca prima mutare să se
+facă cu o bilă albă, soluția este unică. Se mai observă și că, atât pentru
+$N=1$ cât și pentru $N=2$ șirul de mutări este simetric. Pentru a indica
+efectiv modul de determinare a soluției (care va sugera și ideea de scriere a
+programului) și pentru a explica observațiile de mai sus, să generalizăm
+observațiile făcute pentru un $N$ oarecare.
+
+\tikzset{
+  board/.style = {matrix of nodes, ampersand replacement=\&, nodes=cell},
+  cell/.style = {rectangle, draw, minimum height=1em, minimum width=1em, font=\huge},
+  noborder/.style={column #1/.style={nodes={draw=none, font=\normalsize}}},
+  noborder/.list={5, 15},
+  empty/.style={text=white},
+}
+
+\begin{itemize}
+
+\item Configurația inițială este:
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$ \&
+      \node[empty] {$\circ$}; \&
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$ \&
+      $\cdots$ \&
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$
+      \\
+    };
+  }
+
+\item Se împinge bila albă și se sare cu cea neagră peste ea (șirul de mutări
+  14):
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\circ$ \& $\circ$ \& $\bullet$ \&
+      $\circ$ \&
+      \node[empty] {$\circ$}; \& $\bullet$ \& $\bullet$ \& $\bullet$ \&
+      $\cdots$ \&
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$
+      \\
+    };
+  }
+
+\item Se împinge bila neagră și se sare de două ori cu cele albe peste ea
+  (șirul de mutări 322):
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\circ$ \& \node[empty] {$\circ$}; \& $\bullet$ \&
+      $\circ$ \&
+      $\bullet$ \& $\circ$ \& $\bullet$ \& $\bullet$ \&
+      $\cdots$ \&
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$
+      \\
+    };
+  }
+
+\item Se împinge bila albă și se sare de trei ori cu cele negre peste ea
+  (șirul de mutări 1444):
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\bullet$ \& $\circ$ \& $\bullet$ \&
+      $\circ$ \&
+      $\bullet$ \& $\circ$ \& \node[empty] {$\circ$}; \& $\bullet$ \&
+      $\cdots$ \&
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$
+      \\
+    };
+  }
+
+\item Se împinge bila neagră și se sare de patru ori cu cele albe peste ea
+  (șirul de mutări 32222):
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$ \&
+      $\cdots$ \&
+      \node[empty] {$\circ$}; \& $\bullet$ \& $\circ$ \& $\bullet$ \&
+      $\circ$ \&
+      $\bullet$ \& $\circ$ \& $\bullet$ \& $\circ$ \&
+      $\cdots$ \&
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$
+      \\
+    };
+  }
+
+  \hfil\hdashrule{6cm}{1pt}{1pt 4pt}\hfil
+
+\item Se împinge bila albă (mutarea 1)
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      \node[empty] {$\circ$}; \& $\circ$ \& $\bullet$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\bullet$ \& $\circ$ \& $\bullet$ \&
+      $\circ$ \&
+      $\bullet$ \& $\circ$ \& $\bullet$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\bullet$ \& $\circ$ \& $\bullet$
+      \\
+    };
+  }
+
+\item Se sare de $N$ ori cu cele negre peste ea (șirul de mutări 44..44):
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\bullet$ \& $\circ$ \& $\bullet$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\bullet$ \& $\circ$ \& $\bullet$ \&
+      $\circ$ \&
+      $\bullet$ \& $\circ$ \& $\bullet$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\bullet$ \& $\circ$ \& \node[empty] {$\circ$};
+      \\
+    };
+  }
+
+\end{itemize}
+
+Ultimele două configurații sunt simetrice. În acest moment șirul de mutări se
+inversează:
+
+\begin{itemize}
+
+\item Se împinge bila albă (mutarea 1):
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\bullet$ \& $\circ$ \& $\bullet$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\bullet$ \& $\circ$ \& $\bullet$ \&
+      $\circ$ \&
+      $\bullet$ \& $\circ$ \& $\bullet$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\bullet$ \& \node[empty] {$\circ$}; \& $\circ$
+      \\
+    };
+  }
+
+  \hfil\hdashrule{6cm}{1pt}{1pt 4pt}\hfil
+
+\item Se sare de patru ori cu bilele albe și se împinge bila neagră (șirul
+  de mutări 22223):
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$ \&
+      $\cdots$ \&
+      $\bullet$ \& \node[empty] {$\circ$}; \& $\circ$ \& $\bullet$ \&
+      $\circ$ \&
+      $\bullet$ \& $\circ$ \& $\bullet$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$
+      \\
+    };
+  }
+
+\item Se sare de trei ori cu bilele negre și se împinge bila albă (șirul de
+  mutări 4441):
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$ \&
+      $\cdots$ \&
+      $\bullet$ \& $\bullet$ \& $\circ$ \& $\bullet$ \&
+      $\circ$ \&
+      $\bullet$ \& \node[empty] {$\circ$}; \& $\circ$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$
+      \\
+    };
+  }
+
+\item Se sare de două ori cu bilele albe și se împinge bila neagră (șirul de
+  mutări 223):
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$ \&
+      $\cdots$ \&
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& \node[empty] {$\circ$}; \&
+      $\circ$ \&
+      $\bullet$ \& $\circ$ \& $\circ$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$
+      \\
+    };
+  }
+
+\item Se sare cu bila neagră și se împinge bila albă (șirul de mutări 41),
+  obținându-se configurația finală:
+
+  \centeredTikzFigure[]{
+    \matrix[board] (m) {
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$ \&
+      $\cdots$ \&
+      $\bullet$ \& $\bullet$ \& $\bullet$ \& $\bullet$ \&
+      \node[empty] {$\circ$}; \&
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$ \&
+      $\cdots$ \&
+      $\circ$ \& $\circ$ \& $\circ$ \& $\circ$
+      \\
+    };
+  }
+
+\end{itemize}
+
+În concluzie, șirul de mutări este: o împingere - un salt - o împingere - două
+salturi - o împingere - trei salturi - ... - o împingere - $N-1$ salturi - o
+împingere - $N$ salturi - o împingere - $N-1$ salturi - ... - o împingere -
+trei salturi - o împingere - două salturi - o împingere - un salt - o
+împingere, culorile alternând la fiecare pas.
+
+Pentru a calcula numărul de mutări, putem să le numărăm pe măsură ce le
+efectuăm, dar deoarece se cere afișarea mai întâi a numărului de mutări și
+după aceea a mutărilor în sine, trebuie fie să stocăm toate mutările în
+memorie, fie să lucrăm cu fișiere temporare, ambele variante putând duce la
+complicații nedorite. Din fericire, numărul de mutări se poate calcula cu
+ușurință astfel: fiecare piesă albă trebuie mutată în medie cu $N$ pași către
+dreapta și fiecare piesă neagră trebuie mutată cu $N$ pași către stânga. Deci
+numărul total de pași este $2N(N+1).$ Din secvența generală de mutări expusă
+mai sus se observă că nu se fac decât $2N$ împingeri de piese (mutări de un
+singur pas), restul fiind salturi (mutări de câte doi pași). Deci numărul de
+mutări este:
+
+\begin{equation}
+  2N + \frac{2N(N + 1) - 2N}{2} = 2N + N^2 = N(N + 2)
+\end{equation}
+
+De aici deducem că nu există un algoritm mai bun decât $O(N^2)$, deoarece
+numărul de mutări este $O(N^2)$. Propunem ca temă cititorului să demonstreze
+că nu există decât două succesiuni de mutări care rezolvă problema, din care
+una începe cu mutarea unei piese albe, iar cealaltă este oglindirea ei și
+începe cu mutarea unei piese negre, deci nu poate constitui o soluție
+corectă. Demonstrația începe prin a arăta că sunt necesare cel puțin $2N$
+împingeri de piese. Această demonstrație explică de ce nu se cere un număr
+minim de mutări în enunț - cerința nu ar avea sens întrucât soluția este
+oricum unică.  Acestea fiind zise, programul arată astfel:
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+int N;
+FILE *OutF;
+
+void Jump(int Level, char A, char B)
+{ int i;
+  putc(A,OutF);
+  for (i=1;i<=Level;i++) putc(B,OutF);
+  if (Level<N)
+    {
+      Jump(Level+1,'1'+'2'-A,'4'+'3'-B);
+      for (i=1;i<=Level;i++) putc(B,OutF);
+    }
+  putc(A,OutF);
+}
+
+void main(void)
+{
+  printf("N=");scanf("%d",&N);
+  OutF=fopen("output.txt","wt");
+  fprintf(OutF,"%ld\n",(long)N*(N+2));
+  Jump(1,'1','4');
+  fprintf(OutF,"\n");
+  fclose(OutF);
+}
+\end{lstlisting}

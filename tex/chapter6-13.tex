@@ -1,0 +1,324 @@
+\section{Problema 13}
+
+Probabil că orice elev care are cât de cât experiență în programare a auzit
+despre {\bf problema celui mai lung subșir crescător}. Când este prezentată la
+concurs, problema e „învelită” sub diverse forme. Aici o vom formaliza din
+punct de vedere matematic.
+
+{\bf ENUNȚ}: Se dă un vector cu $N$ elemente numere întregi. Se cere să se
+determine cel mai lung subșir crescător.
+
+{\bf Intrarea}: Fișierul de tip text {\tt INPUT.TXT} conține pe prima linie
+numărul $N$ de elemente din vector ($N \leq 10.000$), iar pe fiecare din
+următoarele $N$ linii se află câte un element al vectorului.
+
+{\bf Ieșirea}: În fișierul de tip text {\tt OUTPUT.TXT} se vor lista pe prima
+linie lungimea $L$ a celui mai lung subșir crescător, iar pe următoarele $L$
+linii subșirul în sine. Dacă există mai multe soluții, se va tipări una
+singură.
+
+{\bf Exemplu}:
+
+\texttt{
+  \begin{tabular}{|l|l|}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        6 & 3 \\
+        2 & 2 \\
+        5 & 3 \\
+        7 & 4 \\
+        3 &   \\
+        4 &   \\
+        1 &   \\
+        \hline
+  \end{tabular}
+}
+
+{\bf Timp de implementare}: 45 minute.
+
+{\bf Timp de rulare}: 5 secunde.
+
+{\bf Complexitate cerută}: $O(N \log N)$.
+
+{\bf REZOLVARE}: Începem prin a lămuri diferența dintre noțiunile de „subșir”
+și „subsecvență”. Fie $V[1], V[2], \dots, V[N]$ vectorul citit. Prin {\bf
+  subșir de lungime $L$} al vectorului $V$ se înțelege o succesiune nu
+neapărat continuă de elemente $V[K_1]$, $V[K_2]$, $\dots, V[K_L]$, unde $K_1 < K_2
+< \dots < K_L$. Prin {\bf subsecvență de lungime $L$} a vectorului, începând
+de la poziția $K$, se înțelege succesiunea continuă de elemente $V[K], V[K+1],
+\dots, V[K+L-1]$.
+
+Rezolvarea prin metoda programării dinamice este în general cunoscută și nu
+vom insista asupra ei. Probabil că aflarea celui mai lung subșir crescător
+este punctul de plecare al oricărui elev în învățarea programării
+dinamice. Totuși, această metodă de rezolvare are complexitatea $O(N^2)$. În
+continuare prezentăm o metodă mai puțin cunoscută și ceva mai dificil de
+implementat, dar mult mai eficientă. Ea are complexitatea $O(N \log N)$. Vom
+enunța principiul de rezolvare, urmat de o schiță a demonstrației de
+corectitudine.
+
+Fie $V$ vectorul citit. Se parcurge vectorul de la stânga la dreapta și se
+construiesc în paralel doi vectori $P$ și $Q$, astfel: inițial vectorul $Q$
+este vid. Se ia fiecare element din $V$ și se suprascrie peste cel mai mic
+element din $Q$ care este strict mai mare ca el. Dacă nu există un asemenea
+element în $Q$, cu alte cuvinte dacă elementul analizat din $V$ este mai mare
+ca toate elementele din $Q$, atunci el este adăugat la sfârșitul vectorului
+$Q$. Concomitent, se notează în vectorul $P$ poziția pe care a fost adăugat în
+vectorul $Q$ elementul din $V$. Iată cum se construiesc vectorii $P$ și $Q$
+pentru exemplul din enunț:
+
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    nodes = {
+      draw,
+      rectangle,
+      minimum width=2em,
+      minimum height=2em,
+    },
+    row 1/.style = {
+      nodes = {
+        draw = none,
+        font=\bf,
+      },
+    }
+  },
+  emph/.style = {
+    fill=gray!40,
+  },
+]{
+  \matrix[mat] {
+    V \&[2em] Q \&   \&   \&[2em] P \&   \&   \&   \&   \&   \\[1em]
+    2 \& \node[emph] {2}; \&   \&   \& 1 \&   \&   \&   \&   \&   \\[1em]
+    5 \& 2 \& \node[emph] {5}; \&   \& 1 \& 2 \&   \&   \&   \&   \\[1em]
+    7 \& 2 \& 5 \& \node[emph] {7}; \& 1 \& 2 \& 3 \&   \&   \&   \\[1em]
+    3 \& 2 \& \node[emph] {3}; \& 7 \& 1 \& 2 \& 3 \& 2 \&   \&   \\[1em]
+    4 \& 2 \& 3 \& \node[emph] {4}; \& 1 \& 2 \& 3 \& 2 \& 3 \&   \\[1em]
+
+    1 \& \node[emph] {1}; \& 3 \& 4 \&
+    \node[emph] {1}; \& 2 \& 3 \& \node[emph] {2}; \& \node[emph] {3}; \& 1 \\
+  };
+}
+
+Lungimea $L$ la care ajunge vectorul $Q$ la sfârșitul acestei prelucrări este
+tocmai lungimea celui mai lung subșir crescător al vectorului $V$. Pentru a
+afla exact și care sunt elementele subșirului crescător se procedează astfel:
+se caută ultima apariție în vectorul $P$ a valorii $L$. Să spunem că ea este
+găsită pe poziția $K_L$. Se caută apoi ultima apariție în vectorul $P$ a
+valorii $L-1$, anterior poziției $K_L$. Ea va fi pe poziția $K_{L-1} <
+K_{L}$. Analog se caută în vectorul $P$ valorile $L-2, L-3, \dots, 2,
+1$. Subșirul crescător este $S=(V[K_1], V[K2], \dots, V[K_L])$.
+
+În figura de mai sus au fost hașurate elementele respective găsite în vectorul
+$P$. Vectorul $Q$ are la sfârșit lungimea $L=3$, deci cel mai lung subșir
+crescător are trei elemente. Se caută în vectorul $P$ cifrele 3, 2 și 1 și se
+găsesc pe pozițiile $K_1=1$, $K_2=4$ și $K_3=5$, ceea ce înseamnă că cel mai
+lung subșir crescător este (2, 3, 4).
+
+Demonstrația (care, fără a pierde din corectitudine, face apel la intuiție...)
+folosește aceleași notații de mai sus și are următoarele etape:
+
+\begin{proposition}
+  Vectorul $Q$ este în permanență sortat crescător.
+\end{proposition}
+
+\begin{proof}
+  Folosim inducția matematică. După primul pas (inserarea elementului $V[1]$),
+  vectorul $Q$ are un singur element și este bineînțeles ordonat. Trebuie acum
+  arătat că dacă vectorul Q este sortat după inserarea elementului $V[i-1]$,
+  el rămâne sortat și după inserarea lui $V[i]$. Într-adevăr, pentru elementul
+  $V[i]$ există două variante:
+
+  \begin{enumerate}[label=\alph*)]
+
+  \item $V[i]$ este mai mare decât toate elementele lui $Q$, caz în care este
+    adăugat la sfârșitul lui $Q$, care rămâne sortat;
+
+  \item Există $t>1$ astfel încât $Q[t-1] \leq V[i] <Q[t]$, caz în care $V[i]$
+    se suprascrie peste $Q[t]$. Dar $Q[t] \leq Q[t+1] \implies Q[t-1] \leq
+    V[i] < Q[t+1]$ și vectorul $Q$ rămâne sortat.
+
+  \end{enumerate}
+\end{proof}
+
+Această deducție ne va fi utilă în calculul complexității algoritmului.
+
+\begin{proposition}
+  Odată ce au fost scrise pentru prima oară, elementele vectorului $Q$ nu mai
+  pot decât să scadă sau să rămână constante. Ele nu pot crește niciodată.
+\end{proposition}
+
+\begin{proof}
+  Afirmația este evidentă, decurgând din modul de construcție a lui $Q$.
+\end{proof}
+
+\begin{proposition}
+  Elementele din vectorul $V$ de la poziția $K_{i-1}+1$ la poziția $K_{i}-1$
+  sunt fie mai mici decât $V[K_{i-1}]$, fie mai mari decât $V[K_i]$.
+\end{proposition}
+
+\begin{proof}
+  Acest lucru este natural, deoarece dacă ar exista $K_{i-1} < X <K_i$ astfel
+  încât $V[K_{i-1}] \leq V[X] \leq V[K_i]$, atunci șirul $S$ ar putea fi
+  extins cu elementul $V[X]$, deci nu ar fi subșir maximal, contradicție.
+\end{proof}
+
+\begin{proposition}
+  Toate elementele care urmează în $V$ după $V[K_L]$ sunt mai mici decât
+  $V[K_L]$.
+\end{proposition}
+
+\begin{proof}
+  Dacă ar exista $X>K_L$ astfel încât $V[X] \geq V[K_L]$, atunci $S$ ar putea fi
+  extins la dreapta cu $V[X]$, contradicție.
+\end{proof}
+
+\begin{proposition}
+  Elementul $V[K_1]$ este suprascris peste poziția $Q[1]$.
+\end{proposition}
+
+\begin{proof}
+  Dacă elementul $V[K_1]$ este inserat în $Q$ pe o poziție $t>1$, rezultă că,
+  în momentul tratării lui $V[K_1]$, pe poziția $t-1$ în vectorul $Q$ exista
+  deja un număr $X < V[K_1]$. Aceasta înseamnă că $S$ poate fi prelungit la
+  stânga cu $X$, deci $S$ nu este un subșir crescător maxim, contradicție.
+\end{proof}
+
+\begin{proposition}
+  Orice element $V[K_i]$ va fi suprascris în $Q$ pe poziția următoare celei pe
+  care a fost scris $V[K_{i-1}]$
+\end{proposition}
+
+\begin{proof}
+  Să presupunem că $V[K_{i-1}]$ a fost scris peste $Q[t]$. Înainte de a ajunge
+  să tratăm elementul $V[K_i]$, a trebuit să tratăm elementele $V[K_{i-1}+1],
+  V[K_{i-1}+2], \dots, V[K_{i}-1]$, care, după cum s-a stabilit la punctul
+  (3), pot fi:
+
+  \begin{enumerate}[label=\alph*)]
+
+  \item mai mici decât $V[K_{i-1}]$, caz în care ele vor fi scrise în vector
+    pe poziții mai mici sau egale cu $t$, iar $Q[t]$ va scădea, deci $Q[t]
+    \leq V[K_{i-1}]$ (conform punctului 2);
+
+  \item mai mari decât $V[K_i]$, caz în care vor fi scrise în $Q$ pe poziții
+    mai mari decât $t$, așadar $Q[t+1]>V[K_i]$.
+  \end{enumerate}
+
+  Se obține lanțul de inegalități $Q[t] \leq V[K_{i-1}] \leq V[K_i] \leq
+  Q[t+1]$, de unde rezultă conform modului de construcție că $V[K_i]$ va fi
+  scris peste $Q[t+1]$. Cu aceasta, folosind și punctul (5), am demonstrat că
+  $V[K_i]$ este scris pe poziția $Q[i], \forall i=1, 2, \dots, L$.
+
+\end{proof}
+
+După tratarea primelor $K_L$ elemente din $V$, vectorul $Q$ are lungimea
+$L$. Mai rămâne de văzut ce se întâmplă cu elementele $V[K_L+1], \dots, V[N]$.
+
+\begin{proposition}
+  Elementele care îi urmează lui $V[K_L]$ se scriu în $Q$ pe poziții mai mici
+  sau egale cu $L$.
+\end{proposition}
+
+\begin{proof}
+  Acest fapt este intuitiv dacă se ține cont de punctul (4). Deducem că la
+  final vectorul $Q$ are lungime $L$, adică aceeași cu a lui $S$.
+\end{proof}
+
+Modul de reconstituire a lui $S$ din vectorul $P$ este corect. Trebuie să avem
+grijă ca, atunci când căutăm în vectorul $P$ o apariție a valorii $X$, să o
+alegem pe ultima disponibilă, altfel pot apărea erori. Spre exemplu, pentru
+vectorii dați în exemplu, $V=(2, 5, 7, 3, 4, 1)$ și $P=(1, 2, 3, 2, 3, 1)$,
+dacă se alege prima apariție a lui 2 (pe poziția a doua), avem subșirul $S=(2,
+5, 4)$ care nu este crescător. Dacă însă alegem ultima apariție a lui 2 (pe
+poziția a patra), avem subșirul crescător maximal $S=(2, 3, 4)$.
+
+Calculul complexității este ușor de făcut:
+
+\begin{itemize}
+
+\item Pentru construcția vectorilor $P$ și $Q$ sunt necesare $N$ inserții în
+  vectorul $Q$, care este sortat; o inserție binară cere $O(\log N)$, așadar
+  complexitatea primei părți este $O(N \log N)$.
+
+\item Pentru reconstituirea lui $S$ se face o singură parcurgere a vectorului
+  $P$, deci $O(N)$.
+
+\end{itemize}
+
+Complexitatea totală a algoritmului este $O(N \log N)$.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <stdlib.h>
+#define Infinity 30000
+typedef int Vector[10001];
+
+Vector V,P,Q,*S;
+int N,Len; /* Len = Lungimea vectorului Q */
+
+void ReadData(void)
+{ FILE *F=fopen("input.txt","rt");
+  int i;
+
+  fscanf(F,"%d",&N);
+  for(i=1;i<=N;i++) fscanf(F,"%d",&V[i]);
+  fclose(F);
+}
+
+int Insert(int K,int Lo,int Hi)
+{ int Mid=(Lo+Hi)/2;
+
+  if (Lo==Hi)
+    { if (Hi>Len) Q[++Len+1]=Infinity;
+      Q[Lo]=K;
+      return Lo;
+    }
+    else if (K<Q[Mid]) return Insert(K,Lo,Mid);
+                     else return Insert(K,Mid+1,Hi);
+}
+
+void BuildPQ(void)
+{ int i,Place;
+
+  Len=0;Q[1]=Infinity;
+  for (i=1;i<=N;i++)
+    P[i]=Insert(V[i],1,Len+1);
+}
+
+void BuildS(void)
+{ int i,K=N;
+
+  S=malloc(sizeof(*S));
+  for (i=Len;i;i--)
+    { while (P[K]!=i) K--;
+      (*S)[i]=V[K];
+    }
+}
+
+void WriteSolution(void)
+{ FILE *F=fopen("output.txt","wt");
+  int i;
+
+  fprintf(F,"%d\n",Len);
+  for(i=1;i<=Len;i++) fprintf(F,"%d\n",(*S)[i]);
+
+  fclose(F);
+}
+
+void main(void)
+{
+  ReadData();
+  BuildPQ();
+  BuildS();
+  WriteSolution();
+}
+\end{lstlisting}
+
+Menționăm că în sursa de mai sus se putea construi vectorul $S$ peste vectorul
+$Q$, deoarece pentru construirea lui $S$ nu avem nevoie decât de elementele
+vectorului $P$. În acest fel, programul ar fi avut nevoie numai de trei
+vectori, iar volumul total de date nu ar fi depășit un segment. Am preferat
+totuși varianta în care vectorul $S$ este alocat dinamic pentru a evita
+confuziile.

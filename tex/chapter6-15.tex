@@ -1,0 +1,210 @@
+\section{Problema 15}
+
+Problema următoare a fost propusă la proba de baraj de la Olimpiada Națională
+de Informatică, Slatina 1995 și este un exemplu tipic de aplicare a
+principiului lui Dirichlet.
+
+{\bf ENUNȚ}: La un SHOP din Slatina se găsesc spre vînzare $P-1$ ($P$ este un
+număr prim) produse unicat de costuri $X(1), X(2), \dots, X(P-1)$. Nici unul
+din produse nu poate fi cumpărat prin plata exactă cu bancnote de $P$\$. În
+SHOP intră un olimpic care are un număr nelimitat de bancnote de $P$\$ și o
+singură bancnotă de $Q$\$ ($1 \leq Q \leq P-1$). Ce produse trebuie să cumpere
+olimpicul pentru a putea plăti exact produsele cumpărate?
+
+{\bf Intrarea}: Datele de intrare se dau în fișierul de intrare {\tt
+  INPUT.TXT} ce conține două linii:
+
+\begin{itemize}
+
+\item pe prima linie valorile lui $P$ și $Q$;
+
+\item pe a doua linie valorile costurilor produselor.
+
+\end{itemize}
+
+Ieșirea se va face în fișierul {\tt OUTPUT.TXT} unde se vor lista în ordine
+crescătoare indicii produselor cumpărate de olimpic.
+
+\texttt{
+  \begin{tabular}{|l|l|}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        5 4 & 1 2 \\
+        1 3 6 7 & \\
+        \hline
+  \end{tabular}
+}
+
+{\bf Timp de implementare}: la Slatina s-au acordat cam 90 de minute, dar 45
+ar trebui să fie suficiente.
+
+{\bf Timp de rulare pentru fiecare test}: 1 sec.
+
+{\bf Complexitate cerută}: $O(P)$.
+
+Enunțul original nu specifica nici o limită maximă pentru valoarea lui P. Vom
+adăuga noi această limită, respectiv $P < 10.000$.
+
+{\bf REZOLVARE}: Problema se reduce la a găsi un grup de obiecte pentru care
+suma costurilor să fie divizibilă cu $P$ sau să fie congruentă cu $Q$ modulo
+$P$. Am văzut deja în problema precedentă că dispunem de o soluție $O(N^2)$
+pentru a găsi un număr de elemente care să se dividă cu $P$. În cazul nostru,
+trebuie să observăm însă că nu avem $P$ obiecte, ci numai $P-1$; în schimb,
+dispunem de o bancnotă suplimentară de valoare $Q$. Aceste diferențe vor fi
+explicate mai târziu și se va vedea că ele nu schimbă cu nimic natura
+problemei. Diferența esențială provine din faptul că nu se mai cere ca suma
+numerelor să fie maximă, ca în problema precedentă. Orice combinație de numere
+care dau o sumă potrivită este suficientă.
+
+Să începem prin a explica principiul lui Dirichlet, care de altfel face apel
+numai la intuiție și nu necesită cunoștințe speciale de matematică. Acest
+principiu spune că dacă distribuim $N$ obiecte în $K$ cutii, atunci cel puțin
+într-o cutie se vor afla minim $\lceil N/K \rceil$ obiecte (aici prin $\lceil
+N/K \rceil$ se înțelege „cel mai mic întreg mai mare sau egal cu
+$N/K$”). Demonstrația se face prin reducere la absurd: dacă în fiecare cutie
+s-ar afla mai puțin decât $\lceil N/K \rceil$ obiecte, atunci numărul total de
+obiecte ar fi mai mic decât $K \times \lceil N/K \rceil$, adică mai mic decât
+$N$.
+
+Spre exemplu, oricum am distribui 7 obiecte în 4 cutii, putem fi siguri că cel
+puțin într-o cutie se vor afla minim $\lceil 7/4 \rceil = 2$
+obiecte. Într-adevăr, dacă toate cutiile ar conține cel mult câte un obiect,
+atunci numărul total de obiecte nu ar putea fi mai mare ca 4, ceea ce este
+absurd.
+
+Să vedem acum cum s-ar putea aplica acest principiu la problema de față. Să
+facem notația
+
+\begin{equation}
+  S(k) = \sum_{i = 1}^{k} X(i)
+\end{equation}
+
+și convenția $S(0) = 0$. Prin urmare, putem scrie egalitatea
+
+\begin{equation}
+  S(k_2) - S(k_1) = \sum_{i = k_1 + 1}^{k_2} X(i)
+\end{equation}
+
+Dacă găsim în vectorul $S$ două valori $S(k_1)$ și $S(k_2)$ care dau același
+rest la împărțirea prin $P$, înseamnă că diferența lor se divide cu $P$, deci
+șirul de obiecte $k_1+1, k_1+2, \dots, k_2$ poate constitui o soluție.
+
+Să presupunem pentru început că dispunem de $P$ obiecte. Se pune întrebarea:
+ce valori poate lua restul împărțirii lui $S(k)$ prin $P$? Desigur, orice
+valoare între 0 și $P-1$. Există deci în total $P$ resturi distincte. Pe de
+altă parte, există $P+1$ elemente în vectorul $S$ (se consideră și elementul
+$S(0)$). Începem să recunoaștem aici principiul lui Dirichlet, în care
+„obiectele” sunt resturile $S(0) \bmod P, S(1) \bmod P, \dots, S(P) \bmod P$,
+iar cutiile sunt clasele de resturi modulo $P$. Avem de distribuit P+1 obiecte
+în P cutii, așadar cel puțin într-o cutie se vor afla $\lceil (P+1)/P \rceil =
+2$ obiecte. Prin urmare, vor exista cu siguranță doi indici $k_1 < k_2$ astfel
+încât $S(k_2) - S(k_1) \equiv 0 \pmod{P}$. Nu avem decât să tipărim secvența
+$k_1+1, k_1+2, \dots, k_2$.
+
+Să vedem acum ce se întâmplă dacă avem numai $P-1$ obiecte, așa cum este cazul
+problemei. Atunci avem numai $P$ resturi posibile, deci se poate ca toate
+elementele din $S$ să dea resturi distincte la împărțirea prin $P$. Dar în
+acest caz, există un indice $k$ astfel încât $S(k) \equiv Q \pmod{N}$, deci
+trebuie doar să tipărim secvența de indici $1, 2, \dots, k$.
+
+Pentru a reuni aceste două cazuri într-unul singur, putem considera expresia
+$S(k)$ drept un alt mod de a scrie expresia $S(k) - S(0)$. Problema se reduce
+la a căuta doi indici $k_1, k_2 \in \{0, 1, 2, \dots, P\}$ astfel încât
+$(S(k_2) - S(k_1)) \bmod N \in [0,Q]$. Să nu uităm că trebuie să efectuăm
+această operație într-un timp liniar, deci nu avem voie să comparăm pur și
+simplu două câte două elementele vectorului $S$. Vom prezenta modul în care se
+pot găsi două elemente congruente modulo $P$, cazul celălalt tratându-se
+analog. Metoda constă în crearea unui alt vector, $L$, în care $L(i) = j$
+înseamnă că suma $S(j)$ dă restul $i$ la împărțirea prin $P$. Inițial, toate
+elementele vectorului $L$ vor avea o valoare specială, eventual negativă. Apoi
+se parcurge vectorul $S$ și pentru fiecare $S(j)$ se efectuează operația
+$L(S(j) \bmod P) \leftarrow j$. În momentul în care se încearcă reatribuirea
+unui element din $L$ care are deja o valoare dată, înseamnă că am găsit cei
+doi indici pe care îi căutam.
+
+Iată un exemplu. Dacă $P=7$ și $X=(8, 8, 2, 6, 13, 3)$, rezultă vectorul
+$S=(8, 16, 18, 24, 37, 40)$. Resturile la împărțirea prin 7 sunt respectiv 1,
+2, 4, 3, 2 și 5.
+
+\centeredTikzFigure[
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    nodes = {
+      draw,
+      rectangle,
+      anchor=center,
+      minimum width=2em,
+      minimum height=2em,
+    },
+    row 1/.style = noborder,
+    row 2/.style = noborder,
+    column 1/.style = noborder,
+  },
+  noborder/.style = {
+    nodes = {
+      draw = none,
+      font=\bf,
+    },
+  },
+]{
+  \matrix[mat] (m) {
+    R \&[2em] \&   \&   \& L \&   \&   \&   \\[1em]
+    \ \& 0 \& 1 \& 2 \& 3 \& 4 \& 5 \& 6 \\
+    1 \& 0 \& 1 \& -1 \& -1 \& -1 \& -1 \& -1 \\[1em]
+    2 \& 0 \& 1 \&  2 \& -1 \& -1 \& -1 \& -1 \\[1em]
+    4 \& 0 \& 1 \&  2 \& -1 \&  3 \& -1 \& -1 \\[1em]
+    3 \& 0 \& 1 \&  2 \&  4 \&  3 \& -1 \& -1 \\[1em]
+    2 \\
+  };
+
+  \draw[<->] (m-7-1.east) -| (m-6-4.south);
+}
+
+După cum se vede, restul 2 poate fi obținut atât cu primele două obiecte, cât
+și cu primele 5, deci suma prețurilor obiectelor 3, 4 și 5 este divizibilă cu
+7.
+
+Un ultim detaliu de implementare constă în aceea că nu este necesară memorarea
+vectorului $S$, ci numai a elementului curent; orice alte informații care ne
+trebuie la un moment dat le putem afla din vectorii $X$ și $L$. Pentru
+memorarea elementului curent din $S$, se pornește cu valoarea 0 și la fiecare
+pas se adaugă valoarea elementului corespunzător din $X$.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#define NMax 10000
+#define None -1
+
+int X[NMax], L[NMax], P, Q;
+
+void ReadData(void)
+{ FILE *F = fopen("input.txt", "rt");
+  int i;
+
+  fscanf(F, "%d %d\n", &P, &Q);
+  for (i=1; i<P; fscanf(F, "%d", &X[i++]));
+  fclose(F);
+}
+
+void FindSum(void)
+{ long S=0;
+  FILE *F = fopen("output.txt", "wt");
+  int i,j;
+
+  for (i=1, L[0]=0; i<P; L[i++] = None);
+  i=0;
+  while ( L[ (S+=X[++i]) % P ]==None && // Restul 0
+          L[ (S%P+P-Q) % P ]==None )    // Restul Q
+    L[S%P]=i;
+  for (j = 1 + ((L[S%P]!=None)? L[S%P]: L[ (S%P+P-Q) % P ]);
+       j <= i; fprintf(F, "%d ", j++));
+  fclose(F);
+}
+
+void main(void)
+{
+  ReadData();
+  FindSum();
+}
+\end{lstlisting}

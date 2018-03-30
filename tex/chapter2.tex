@@ -1,0 +1,1036 @@
+\chapter{Lucrul cu numere mari}
+
+De multe ori, în probleme, apar situații când este nevoie să memorăm numere
+întregi foarte mari (de ordinul sutelor de cifre), iar uneori trebuie să
+efectuăm și operații aritmetice cu aceste numere. Iată un asemenea exemplu:
+
+{\bf ENUNȚ}: Se dă un număr natural cu $N \leq 1000$ cifre. Se cere să se
+extragă rădăcina cubică a numărului. Se garantează că numărul citit este cub
+perfect.
+
+{\bf Intrarea}: Fișierul {\tt INPUT.TXT} conține un singur rând, terminat cu
+{\tt EOF}, pe care se află numărul, cifrele fiind nedespărțite.
+
+{\bf Ieșirea}: În fișierul {\tt OUTPUT.TXT} se va tipări rădăcina cubică a
+numărului, pe o singură linie terminată cu {\tt EOF}.
+
+{\bf Exemplu:}
+
+\texttt{
+  \begin{tabular}{| l | l |}
+    \hline
+    {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+    2097152 & 128 \\
+    \hline
+  \end{tabular}
+}
+
+{\bf Timp de implementare}: 1h 30’.
+
+{\bf Timp de rulare}: 10 secunde.
+
+{\bf Complexitate cerută}: $O(N^2)$.
+
+{\bf REZOLVARE}: Problema este cât se poate de simplă din punct de vedere
+matematic; dificultatea apare la implementare, atât datorită structurilor de
+date necesare, cât mai ales datorită complexității cerute. Despre lucrul cu
+numere întregi (chiar și {\tt Longint}) nici nu poate fi vorba, iar la lucrul
+cu numere reale apar erori de calcul.
+
+Structura de date propusă pentru abordarea acestui gen de probleme este
+următoarea: numerele vor fi reprezentate printr-un vector de cifre
+zecimale. Prima poziție (poziția 0) din vector este rezervată pentru a memora
+numărul de cifre. Definiția C a tipului de date este:
+
+\begin{lstlisting}[language=C]
+typedef int Huge[1001];
+\end{lstlisting}
+
+Iată cum s-ar memora numărul „1997” într-un asemenea vector:
+
+\centeredTikzFigure[
+  frame/.style = {rectangle, draw=black, line width=0.2pt, minimum size=20pt},
+  label/.style = {rectangle, minimum size=20pt, font=\scriptsize},
+]{
+  \node (L1) {H};
+  \node[frame] (r1)  at ([xshift=1em] L1.east) {4};
+  \node[frame, anchor=west] (r2) at (r1.east) {7};
+  \node[frame, anchor=west] (r3) at (r2.east) {9};
+  \node[frame, anchor=west] (r4) at (r3.east) {9};
+  \node[frame, anchor=west] (r5) at (r4.east) {1};
+
+  \node[label, anchor=south] at (r1.north) {H[0]};
+  \node[label, anchor=south] at (r2.north) {H[1]};
+  \node[label, anchor=south] at (r3.north) {H[2]};
+  \node[label, anchor=south] at (r4.north) {H[3]};
+  \node[label, anchor=south] at (r5.north) {H[4]};
+}  
+
+Se observă că vectorul este oarecum „întors pe dos”. Totuși, această formă
+este cea mai convenabilă, pentru că ea permite implementarea cu o mai mare
+ușurință a operațiilor aritmetice.
+
+Mai trebuie remarcat că pe fiecare poziție $K$ în vector se află cifra care îl
+reprezintă pe $10^{K-1}$ în numărul reprezentat: în $H[1]$ se află cifra
+unităților ($10^0$), în $H[2]$ se află cifra zecilor ($10^1$), în $H[3]$ se
+află cifra sutelor ($10^2$) ș.a.m.d. Formatul zecimal nu este cea mai fericită
+(a se citi „eficientă”) alegere. El ocupă doar patru biți din cei opt ai unui
+octet, deci face risipă de memorie. Dacă am alege baza de numerație 256, am
+folosi la maximum memoria, și în plus operațiile ar fi cu mult mai rapide
+(deoarece 256 este o putere a lui 2, înmulțirile și împărțirile la 256 sunt
+simple deplasări la stânga și la dreapta ale reprezentărilor binare). Să facem
+următorul calcul ca să vedem câte cifre are în baza 256 un număr care are 1000
+de cifre în baza 10:
+
+\begin{equation}
+  10^{1000} =
+  10 \cdot (10^3)^{333} \approx
+  10 \cdot (2^{10})^{333} \approx
+  10 \cdot 2^2 \cdot (2^8)^{416} =
+  40 \cdot 256^{416}
+\end{equation}
+	
+Așadar, numărul de cifre s-a redus la sub jumătate. Un algoritm liniar ar
+funcționa de două ori mai repede pe reprezentări în baza 256, iar unul
+pătratic ar funcționa de patru ori mai repede. Inconvenientul major este
+dificultatea depanării unui program care operează într-o bază aritmetică atât
+de străină nouă. Vom rămâne deci la baza 10, cu mențiunea că acei mai temerari
+dintre voi pot încerca folosirea bazei 256.
+
+Numerele reprezentate pe vectori le vom numi pur și simplu „vectori”, iar
+numerele reprezentate printr-un tip ordinal de date le vom numi, printr-o
+analogie ușor forțată cu matematica, „scalari”. Să vedem acum cum se
+efectuează operațiile elementare pe aceste numere.
+
+\section{Inițializarea}
+
+Un vector poate fi inițializat în trei feluri: cu 0, cu un scalar sau cu un
+alt vector.
+
+La inițializarea cu 0, singurul lucru pe care îl avem de făcut este să setăm
+numărul de cifre pe 0. De aceea, este practic inutil să implementăm această
+funcție ca atare; putem folosi în loc singura instrucțiune pe care ea o
+conține.
+
+\begin{lstlisting}[language=C]
+void Atrib0(Huge H)
+{ H[0]=0; }
+\end{lstlisting}
+
+La inițializarea cu un scalar nenul, trebuie să așezăm fiecare cifră pe
+poziția corespunzătoare, aflând în paralel și numărul de cifre. Se începe cu
+cifra unităților, și la fiecare pas se pune în vector cifra cea mai puțin
+semnificativă, după care numărul de reprezentat se împarte la 10
+(neglijându-se restul), iar numărul de cifre se incrementează.
+
+\begin{lstlisting}[language=C]
+void AtribValue(Huge H, unsigned long X)
+{ H[0]=0;
+  while (X)
+    { H[++H[0]]=X%10;
+      X/=10;
+    }
+}
+\end{lstlisting}
+
+Iată, de exemplu, cum se pune pe vector numărul 195:
+
+\centeredTikzFigure[
+  col1/.style = {rectangle, minimum height=2em, text width=5em},
+  col2/.style = {rectangle, minimum height=2em, text width=7em},
+  frame/.style = {rectangle, draw=black, line width=0.2pt, minimum size=20pt},
+]{
+  % row 0
+  \node[col1] (c01) {};
+  \node[col2, anchor=west] (c02) at (c01.east) {};
+  \node[frame] (c03)  at ([xshift=2em] c02.east) {0};
+  \node[frame, anchor=west] (c04) at (c03.east) {0};
+  \node[frame, anchor=west] (c05) at (c04.east) {0};
+  \node[frame, anchor=west] (c06) at (c05.east) {0};
+
+  % row 1
+  \node[col1, anchor=north] (c11) at (c01.south) {$X = 195$};
+  \node[col2, anchor=west] (c12) at (c11.east) {$X\,\bmod\,10 = 5$};
+  \node[frame] (c13)  at ([xshift=2em] c12.east) {1};
+  \node[frame, anchor=west] (c14) at (c13.east) {5};
+  \node[frame, anchor=west] (c15) at (c14.east) {0};
+  \node[frame, anchor=west] (c16) at (c15.east) {0};
+  \node[anchor=west] (c17)  at ([xshift=2em] c16.east) {$X / 10 = 19$};
+
+  % row 2
+  \node[col1, anchor=north] (c21) at (c11.south) {$X = 19$};
+  \node[col2, anchor=west] (c22) at (c21.east) {$X\,\bmod\,10 = 9$};
+  \node[frame] (c23)  at ([xshift=2em] c22.east) {2};
+  \node[frame, anchor=west] (c24) at (c23.east) {5};
+  \node[frame, anchor=west] (c25) at (c24.east) {9};
+  \node[frame, anchor=west] (c26) at (c25.east) {0};
+  \node[anchor=west] (c27)  at ([xshift=2em] c26.east) {$X / 10 = 1$};
+
+  % row 3
+  \node[col1, anchor=north] (c31) at (c21.south) {$X = 1$};
+  \node[col2, anchor=west] (c32) at (c31.east) {$X\,\bmod\,10 = 1$};
+  \node[frame] (c33)  at ([xshift=2em] c32.east) {3};
+  \node[frame, anchor=west] (c34) at (c33.east) {5};
+  \node[frame, anchor=west] (c35) at (c34.east) {9};
+  \node[frame, anchor=west] (c36) at (c35.east) {1};
+  \node[anchor=west] (c37)  at ([xshift=2em] c36.east) {$X / 10 = 0$};
+
+  % top label
+  \node[minimum height=2em, anchor=south] (L1) at ([xshift=1em] c04.north) {H};
+}  
+
+În sfârșit, inițializarea unui vector cu altul se face printr-o simplă copiere
+(se pot folosi cu succes rutine de lucru cu memoria, cum ar fi {\tt FillChar}
+în Pascal sau {\tt memmove} în C). Pentru eleganță, poate fi folosită și
+atribuirea cifră cu cifră:
+
+\begin{lstlisting}[language=C]
+void AtribHuge(Huge H, Huge X)
+{ int i;
+
+  for (i=0;i<=X[0];i++) H[i]=X[i];
+}
+\end{lstlisting}
+
+\section{Compararea}
+
+Pentru a compara două numere „uriașe”, începem prin a afla numărul de cifre
+semnificative (deoarece, în urma anumitor operații pot rezulta zerouri
+nesemnificative care „atârnă” totuși la numărul de cifre). Aceasta se face
+decrementând numărul de cifre al fiecărui număr atâta timp cât cifra cea mai
+semnificativă este 0. După ce ne-am asigurat asupra acestui punct, comparăm
+numărul de cifre al celor două cifre. Numărul cu mai multe cifre este cel mai
+mare. Dacă ambele numere au același număr de cifre, pornim de la cifra cea mai
+semnificativă și comparăm cifrele celor două numere până la prima diferență
+întâlnită. În acest moment, numărul a cărui cifră este mai mare este el însuși
+mai mare. Dacă toate cifrele numerelor sunt egale două câte două, atunci în
+mod evident numerele sunt egale.
+
+După cum se vede, algoritmul seamănă foarte bine cu ceea ce s-a învățat la
+matematică prin clasa a II-a (doar că atunci nu ni s-a spus că este vorba de
+un „algoritm”). Rutina de mai jos compară două numere uriașe $H_1$ și $H_2$ și
+întoarce -1, 0 sau 1, după $H_1$ este mai mic, egal sau mai mare decât $H_2$.
+
+\begin{lstlisting}[language=C]
+int Sgn(Huge H1,Huge H2)
+{ int i;
+
+  while (!H1[H1[0]] && H1[0]) H1[0]--;
+  while (!H2[H2[0]] && H2[0]) H2[0]--;
+  if (H1[0]!=H2[0])
+    return H1[0]<H2[0] ? -1 : 1;
+  i=H1[0];
+  while (H1[i]==H2[i] && i) i--;
+  return H1[i]<H2[i] ? -1 : H1[i]==H2[i] ? 0 : 1;
+}
+\end{lstlisting}
+
+\section{Adunarea a doi vectori}
+
+Fiind dați doi vectori, $A$ cu $M$ cifre și $B$ cu $N$ cifre, adunarea lor se
+face în mod obișnuit, ca la aritmetică. Pentru a evita testele de depășire, se
+recomandă să se completeze mai întâi vectorul cu mai puține cifre cu zerouri
+până la dimensiunea vectorului mai mare. La sfârșit, vectorul sumă va avea
+dimensiunea vectorului mai mare dintre $A$ și $B$, sau cu 1 mai mult dacă
+apare transport de la cifra cea mai semnificativă. Procedura de mai jos adaugă
+numărul $B$ la numărul $A$.
+
+\begin{lstlisting}[language=C]
+void Add(Huge A, Huge B)
+/* A <- A+B */
+{ int i,T=0;
+
+  if (B[0]>A[0])
+    { for (i=A[0]+1;i<=B[0];) A[i++]=0;
+      A[0]=B[0];
+    }
+    else for (i=B[0]+1;i<=A[0];) B[i++]=0;
+  for (i=1;i<=A[0];i++)
+    { A[i]+=B[i]+T;
+      T=A[i]/10;
+      A[i]%=10;
+    }
+  if (T) A[++A[0]]=T;
+}
+\end{lstlisting}
+
+\section{Scăderea a doi vectori}
+
+Se dau doi vectori $A$ și $B$ și se cere să se calculeze diferența $A - B$. Se
+presupune $B \leq A$ (acest lucru se poate testa cu funcția {\tt Sgn}). Pentru
+aceasta, se pornește de la cifra unităților și se memorează la fiecare pas
+„împrumutul” care trebuie efectuat de la cifra de ordin imediat superior
+(împrumutul poate fi doar 0 sau 1). Deoarece $B \leq A$, avem garanția că
+pentru a scădea cifra cea mai semnificativă a lui $B$ din cifra cea mai
+semnificativă a lui $A$ nu e nevoie de împrumut.
+
+\begin{lstlisting}[language=C]
+void Subtract(Huge A, Huge B)
+/* A <- A-B */
+{ int i, T=0;
+
+  for (i=B[0]+1;i<=A[0];) B[i++]=0;
+  for (i=1;i<=A[0];i++)
+    A[i]+= (T=(A[i]-=B[i]+T)<0) ? 10 : 0;
+    /* Adica A[i]=A[i]-(B[i]+T);
+       if (A[i]<0) T=1; else T=0;
+       if (T) A[i]+=10; */
+  while (!A[A[0]]) A[0]--;
+}
+\end{lstlisting}
+
+\section{Înmulțirea și împărțirea cu puteri ale lui 10}
+
+Aceste funcții sunt uneori utile. Ele pot folosi și funcțiile de înmulțire a
+unui vector cu un scalar, care vor fi prezentate mai jos, dar se pot face și
+prin deplasarea întregului număr spre stânga sau spre dreapta. De exemplu,
+înmulțirea unui număr cu 100 presupune deplasarea lui cu două poziții înspre
+cifra cea mai semnificativă și adăugarea a două zerouri la coadă. Principalul
+avantaj al scrierii unor funcții separate pentru înmulțirea cu 10, 100, ...,
+este că se pot folosi rutinele de acces direct al memoriei ({\tt FillChar},
+respectiv {\tt memmove}). Iată funcțiile care realizează deplasarea
+vectorilor, atât prin mutarea blocurilor de memorie, cât și prin atribuiri
+succesive.
+
+\begin{lstlisting}[language=C]
+void Shl(Huge H, int Count)
+/* H <- H*10^Count */
+{ 
+  /* Shifteaza vectorul cu Count pozitii */
+  memmove(&H[Count+1],&H[1],sizeof(int)*H[0]);
+  /* Umple primele Count pozitii cu 0 */
+  memset(&H[1],0,sizeof(int)*Count);
+  /* Incrementeaza numarul de cifre */
+  H[0]+=Count;
+}
+
+void Shl2(Huge H, int Count)
+/* H <- H*10^Count */
+{ int i;
+
+  /* Shifteaza vectorul cu Count pozitii */
+  for (i=H[0];i;i--) H[i+Count]=H[i];
+  /* Umple primele Count pozitii cu 0 */
+  for (i=1;i<=Count;) H[i++]=0;
+  /* Incrementeaza numarul de cifre */
+  H[0]+=Count;
+}
+
+void Shr(Huge H, int Count)
+/* H <- H/10^Count */
+{ 
+  /* Shifteaza vectorul cu Count pozitii */
+  memmove(&H[1],&H[Count+1],sizeof(int)*(H[0]-Count));
+  /* Decrementeaza numarul de cifre */
+  H[0]-=Count;
+}
+
+void Shr2(Huge H, int Count)
+/* H <- H/10^Count */
+{ int i;
+
+  /* Shifteaza vectorul cu Count pozitii */
+  for (i=Count+1;i<=H[0];i++) H[i-Count]=H[i];
+  /* Decrementeaza numarul de cifre */
+  H[0]-=Count;
+}
+\end{lstlisting}
+
+\section{Înmulțirea unui vector cu un scalar}
+
+Și această operație este o simplă implementare a modului manual de efectuare a
+calculului. La înmulțirea „de mână” a unui număr mare cu unul de o singură
+cifră, noi parcurgem deînmulțitul de la sfârșit la început, și pentru fiecare
+cifră efectuăm următoarele operații:
+
+\begin{itemize}
+
+\item Înmulțim cifra respectivă cu înmulțitorul;
+
+\item Adăugăm „transportul” de la înmulțirea precedentă;
+
+\item Separăm ultima cifră a rezultatului și o trecem la produs;
+
+\item Celelalte cifre are rezultatului constituie transportul pentru
+  următoarea înmulțire;
+
+\item La sfârșitul înmulțirii, dacă există transport, acesta are o singură
+  cifră, care se scrie înaintea rezultatului.
+
+\end{itemize}
+
+Exact același procedeu se poate aplica și dacă înmulțitorul are mai mult de o
+cifră. Singura deosebire este că transportul poate avea mai multe cifre (poate
+fi mai mare ca 9). Din această cauză, la sfârșitul înmulțirii, poate rămâne un
+transport de mai multe cifre, care se vor scrie înaintea rezultatului. Iată de
+exemplu cum se calculează produsul $312 \times 87$:
+
+\begin{center}
+  \begin{tabular}{lll@{\hspace{1in}}llllll}
+    & & & & & {\large\bf 3} & {\large\bf 1} & {\large\bf 2} & $\times$ \\
+    & & & & & & {\large\bf 8} & {\large\bf 7} & \\ \cline{4-8}
+
+    $87 \times 2$ & $= 174$ & $= 17 \times 10 + 4$ & & & & & {\large\bf 4} & \\
+    $87 \times 1 + 17$ & $= 104$ & $= 10 \times 10 + 4$ & & & & {\large\bf 4} & & \\
+    $87 \times 3 + 10$ & $= 271$ & $= 27 \times 10 + 1$ & & & {\large\bf 1} & & & \\
+    $87 \times 0 + 27$ & $= 27$ & $= 2 \times 10 + 7$ & & {\large\bf 7} & & & & \\
+    $87 \times 0 + 2$ & $= 2$ & $= 0 \times 10 + 2$ & {\large\bf 2} & & & & &
+  \end{tabular}
+\end{center}
+
+Procedura este descrisă mai jos:
+
+\begin{lstlisting}[language=C]
+void Mult(Huge H, unsigned long X)
+/* H <- H*X */
+{ int i;
+  unsigned long T=0;
+
+  for (i=1;i<=H[0];i++)
+    { H[i]=H[i]*X+T;
+      T=H[i]/10;
+      H[i]=H[i]%10;
+    }
+  while (T) /* Cat timp exista transport */
+    { H[++H[0]]=T%10;
+      T/=10;
+    }
+}
+\end{lstlisting}
+
+\section{Înmulțirea a doi vectori}
+
+Dacă ambele numere au dimensiuni mari și se reprezintă pe tipul de date {\tt
+  Huge}, produsul lor se calculează înmulțind fiecare cifră a deînmulțitului
+cu fiecare cifră a înmulțitorului și trecând rezultatul la ordinul de mărime
+(exponentul lui 10) cuvenit. De fapt, același lucru îl facem și noi pe
+hârtie. Considerând același exemplu, în care ambele numere sunt „uriașe”,
+produsul lor se calculează de mână astfel:
+
+\begin{center}
+  \begin{tabular}{llllll}
+    & & 3 & 1 & 2 & $\times$ \\
+    & & & 8 & 7 \\ \cline{1-5}
+    & 2 & 1 & 8 & 4 \\
+    2 & 4 & 9 & 6 & \\ \cline{1-5}
+    2 & 7 & 1 & 4 & 4
+  \end{tabular}
+\end{center}
+
+S-a luat deci fiecare cifră a înmulțitorului și s-a efectuat produsul parțial
+corespunzător, corectând la fiecare pas rezultatul prin calculul
+transportului. Rezultatul pentru fiecare produs parțial s-a scris din ce în ce
+mai în stânga, pentru a se alinia corect ordinele de mărime. Acest procedeu
+este oarecum incomod de implementat. Se pot face însă unele observații care
+ușurează mult scrierea codului:
+
+\begin{itemize}
+
+\item Prin înmulțirea cifrei cu ordinul de mărime $10^i$ din primul număr cu
+  cifra cu ordinul de mărime $10^j$ din al doilea număr se obține o cifră
+  corespunzătoare ordinului de mărime $10^{i+j}$ în rezultat (sau se obține un
+  număr cu mai mult de o singură cifră, caz în care transportul merge la cifra
+  corespunzătoare ordinului de mărime $10^{i + j + 1}$).
+      
+\item Dacă numerele au $M$ și respectiv $N$ cifre, atunci produsul lor va avea
+  fie $M + N$ fie $M + N - 1$ cifre. Într-adevăr, dacă numărul $A$ are $M$
+  cifre, atunci $10^{M - 1} \leq A < 10^M$ și $10^{N - 1} \leq B < 10^N$, de
+  unde rezultă $10^{M + N - 2} \leq A \times B < 10^{M + N}$.
+
+\item La calculul produselor parțiale se poate omite calculul transportului,
+  acesta urmând a se face la sfârșit. Cu alte cuvinte, într-o primă fază putem
+  pur și simplu să înmulțim cifră cu cifră și să adunăm toate produsele de
+  aceeași putere, obținând un număr cu „cifre” mai mari ca 9, pe care îl
+  aducem la forma normală printr-o singură parcurgere. Să reluăm același
+  exemplu:
+
+\end{itemize}
+
+\begin{center}
+  \begin{tabular}{l@{\hspace{0.5in}}rrrrrl}
+    \multirow{2}{*}{Intrarea: Vectorii $A$ și $B$}
+    & & & {\large\bf 3} & {\large\bf 1} & {\large\bf 2} & $\times$ \\
+    & & & & {\large\bf 8} & {\large\bf 7} & \\ \cline{2-6}
+
+    \multirow{2}{*}{Etapa I: Efectuarea produselor intermediare}
+    & & & 21 & 7 & 14 & \\
+    & & 24 & 8 & 16 & & \\ \cline{2-6}
+
+    \multirow{2}{*}{Etapa a II-a: Adunarea produselor intermediare}
+    & & 24 & 29 & 23 & 14 & \\
+    & & $\overleftarrow{2}$ & $\overleftarrow{3}$ & $\overleftarrow{2}$ & $\overleftarrow{1}$ & \\
+    \cline{2-6}
+
+    Etapa a III-a: Corectarea rezultatului
+    & {\large\bf 2} & {\large\bf 7} & {\large\bf 1} & {\large\bf 4} & {\large\bf 4} &
+  \end{tabular}
+\end{center}
+
+Această operație efectuează $M \times N$ produse de cifre și $M + N$ (sau $M +
+N - 1$, după caz) „transporturi” pentru aflarea rezultatului, deci are
+complexitatea $O(M \times N)$. Iată și implementarea:
+
+\begin{lstlisting}[language=C]
+void MultHuge(Huge A, Huge B, Huge C)
+/* C <- A x B */
+{ int i,j,T=0;
+
+  C[0]=A[0]+B[0]-1;
+  for (i=1;i<=A[0]+B[0];) C[i++]=0;
+  for (i=1;i<=A[0];i++)
+    for (j=1;j<=B[0];j++)
+      C[i+j-1]+=A[i]*B[j];
+  for (i=1;i<=C[0];i++)
+    { T=(C[i]+=T)/10;
+      C[i]%=10;
+    }
+  if (T) C[++C[0]]=T;
+}
+\end{lstlisting}
+
+Mai există o altă modalitate de a înmulți două numere de câte $N$ cifre
+fiecare, care are complexitatea $O(N^{\log_2 3}) \approx O(N^{1,58}) \approx
+O(N \sqrt{N})$. Ea derivă de un algoritm propus de Strassen în 1969 pentru
+înmulțirea matricelor. Diferența se face simțită, ce-i drept pentru valori
+mari ale lui $N$, dar constanta multiplicativă crește destul de mult și, în
+plus, soluția e mai greu de implementat; de aceea nu recomandăm implementarea
+ei în timpul concursului. Ideea de bază este să se micșoreze numărul de
+înmulțiri și să se mărească numărul de adunări, deoarece adunarea a doi
+vectori se face în $O(N)$, pe când înmulțirea se face în $O(N^2)$. Să
+considerăm întregii $A$ și $B$, fiecare de câte $N$ cifre. Trebuie să-i
+înmulțim într-un timp $T(N)$ mai bun decât $O(N^2)$. Să împărțim numărul $A$
+în două „bucăți” $C$ și $D$, fiecare de câte $N$ / 2 cifre, iar întregul $B$
+în două bucăți $E$ și $F$, tot de câte $N$ / 2 cifre (presupunem că $N$ este
+par):
+
+\centeredTikzFigure[
+  frame/.style = {rectangle, draw=black, line width=0.2pt, minimum width=6em},
+]{
+  % row 0
+  \node[minimum width=2em] (a) at (0,0) {\bf $A$};
+  \node[frame] (c) at ([xshift=5em] a.east) {$C$};
+  \node[frame, anchor=west] (d) at (c.east) {$D$};
+
+  % row 0
+  \node[minimum width=2em] (b) at (0,-2em) {\bf $B$};
+  \node[frame] (e) at ([xshift=5em] b.east) {$E$};
+  \node[frame, anchor=west] (f) at (e.east) {$F$};
+
+  % top arrow
+  \draw [<->] (3em,.5) -- node[above]{$N$} (15em,.5);
+
+  % bottom arrows
+  \draw [<->] (3em,-1.35) -- node[below]{$N/2$} (9em,-1.35);
+  \draw [<->] (9em,-1.35) -- node[below]{$N/2$} (15em,-1.35);
+}  
+
+Atunci se poate scrie relația
+
+\begin{align}
+  \begin{split}
+    A \times B & = (C \times 10^{N / 2} + D) \times (E \times 10^{N / 2} + F) \\
+    & = CE \times 10^{N} + (CF + DE) \times 10^{N / 2} + DF
+  \end{split}
+\end{align}
+
+Pentru a putea calcula produsul $A \times B$ avem, prin urmare, nevoie de
+patru produse parțiale, de trei adunări și de două înmulțiri cu puteri ale lui
+10. Adunările și înmulțirile cu puteri ale lui 10 se fac în timp liniar. Dacă
+efectuăm cele patru produse parțiale prin patru înmulțiri, rezultă formula
+recurentă de calcul
+
+\begin{equation}
+  T(N) = 4 T(N / 2) + O(N)
+\end{equation}
+
+care duce prin eliminarea recurenței la $T(N) \in O(N^2)$. Cu alte cuvinte,
+încă n-am câștigat nimic. Trebuie să reușim cumva să reducem numărul de
+înmulțiri de la 4 la 3, chiar dacă prin aceasta vom mări numărul de adunări
+necesare. Să definim produsul
+
+\begin{align}
+  \begin{split}
+    G & = (C + D) \times (E + F) \\
+    & = CE + CF + DE + DF \\
+    & = CE + DF + (CF + DE)
+  \end{split}
+\end{align}
+
+Atunci putem scrie:
+
+\begin{equation}
+  A \times B = CE \times 10^{N} + (G - CE - DF) \times 10^{N / 2} + DF
+\end{equation}
+	
+Pentru această variantă, folosim doar trei înmulțiri, și chiar dacă avem
+nevoie de șase adunări și scăderi și două înmulțiri cu puteri ale lui 10,
+complexitatea se va reduce la $O(N^{\log_2 3})$. În cazul în care $N$ este o
+putere a lui 2, împărțirea în două a numerelor se poate face fără probleme la
+fiecare pas, până se ajunge la numere de o singură cifră, care se înmulțesc
+direct. În cazul în care $N$ nu este o putere a lui 2, este comod să se
+completeze numerele cu zerouri până la o putere a lui 2. În funcțiile descrise
+mai jos, {\tt MultRec} nu face decât înmulțirea recursivă, pe când {\tt
+  MultHuge2} se ocupă și de corectarea numărului de cifre (incrementarea până
+la o putere a lui 2). Pentru calculul produselor $C \times E$ și $D \times F$,
+procedura {\tt MultRec} se autoapelează; pentru calcularea produsului $(C+D)
+\times (E+F)$, însă, este nevoie să fie apelată procedura {\tt MultHuge2},
+deoarece prin cele două adunări poate să apară o creștere a numărului de cifre
+al factorilor, care în acest caz trebuie readuși la un număr de cifre egal cu
+o putere a lui 2.
+
+\begin{lstlisting}[language=C]
+void MultHuge2(Huge A, Huge B, Huge P);
+
+void MultRec(Huge A, Huge B, Huge P)
+{ Huge C,D,E,F,CE,DF;
+
+  if (A[0]==1)
+    { P[1]=A[1]*B[1];
+      P[0]=(P[2]=P[1]/10)>0 ? 2 : 1;
+      P[1]%=10;
+    }
+    else { P[0]=0;
+           AtribHuge(C,A);Shr(C,A[0]/2);
+           AtribHuge(D,A);D[0]=A[0]/2;
+           AtribHuge(E,B);Shr(E,B[0]/2);
+           AtribHuge(F,B);F[0]=B[0]/2;
+           MultRec(C,E,CE);MultRec(D,F,DF);
+           Add(C,D);Add(E,F);
+           MultHuge2(C,E,P);
+           Subtract(P,CE);Subtract(P,DF);
+           Shl(P,A[0]/2);
+           Shl(CE,A[0]);Add(P,CE);
+           Add(P,DF);
+         }
+}
+
+void MultHuge2(Huge A, Huge B, Huge P)
+/* P <- A x B, varianta N^(lg 3) */
+{ int i,j,NDig=A[0]>B[0] ? A[0] : B[0],Needed=1,SaveA,SaveB;
+
+  /* Corecteaza numarul de cifre */
+  while (Needed<NDig) Needed<<=1;
+  SaveA=A[0];SaveB=B[0];A[0]=B[0]=Needed;
+  for (i=SaveA+1;i<=Needed;) A[i++]=0;
+  for (i=SaveB+1;i<=Needed;) B[i++]=0;
+  MultRec(A,B,P);
+
+  /* Restaureaza numarul de cifre */
+  A[0]=SaveA;B[0]=SaveB;
+  while (!P[P[0]] && P[0]>1) P[0]--;
+}
+\end{lstlisting}
+
+\section{Împărțirea unui vector la un scalar}
+
+Ne propunem să scriem o funcție care să împartă numărul $A$ de tip {\tt Huge}
+la scalarul $B$, să rețină valoarea câtului tot în numărul $A$ și să întoarcă
+restul (care este o variabilă scalară). Să pornim de la un exemplu particular
+și să generalizăm apoi procedeul: să calculăm câtul și restul împărțirii lui
+1997 la 7. Cu alte cuvinte, să găsim acele numere $C$ de tip {\tt Huge} și $R
+\in \{0, 1, 2, 3, 4, 5, 6\}$ cu proprietatea că $1997 = 7 \times C + R$.
+
+\begin{center}
+  \begin{tabular}{
+      llll
+      llllll}
+    1 & 9 & 9 & 7 & & \multicolumn{1}{|l}{7} & & & & \\ \cline{6-9}
+    0 & & & & & \multicolumn{1}{|l}{0} & 2 & 8 & 5 & $\leftarrow$ câtul \\ \cline{1-1}
+    1 & 9 & & & & & & & & \\
+    1 & 4 & & & & & & & & \\ \cline{1-2}
+    & 5 & 9 & & & & & & & \\
+    & 5 & 6 & & & & & & & \\ \cline{2-3}
+    & & 3 & 7 & & & & & & \\
+    & & 3 & 5 & & & & & & \\ \cline{3-4}
+    & & & 2 & $\leftarrow$ restul & & & & &
+  \end{tabular}
+\end{center}
+
+La fiecare pas se coboară câte o cifră de la deîmpărțit alături de numărul
+deja existent (care inițial este 0), apoi rezultatul se împarte la împărțitor
+(7 în cazul nostru). Câtul este întotdeauna o cifră și se va depune la
+sfârșitul câtului împărțirii, iar restul va fi folosit pentru următoarea
+împărțire. Restul care rămâne după ultima împărțire este tocmai $R$ pe care îl
+căutăm. Procedeul funcționează și atunci când deîmpărțitul are mai multe
+cifre. La sfârșit trebuie să decrementăm corespunzător numărul de cifre al
+câtului, prin neglijarea zerourilor create la începutul numărului. Numărul
+maxim de cifre al câtului este egal cu cel al deîmpărțitului.
+
+\begin{lstlisting}[language=C]
+unsigned long Divide(Huge A, unsigned long X)
+/* A <- A/X si intoarce A%X */
+{ int i;
+  unsigned long R=0;
+
+  for (i=A[0];i;i--)
+    { A[i]=(R=10*R+A[i])/X;
+      R%=X;
+    }
+  while (!A[A[0]] && A[0]>1) A[0]--;
+  return R;
+}
+\end{lstlisting}
+
+Dacă dorim numai să aflăm restul împărțirii, nu mai avem nevoie decât să
+recalculăm restul la fiecare pas, fără a mai modifica vectorul $A$:
+
+\begin{lstlisting}[language=C]
+unsigned long Mod(Huge A, unsigned long X)
+/* Intoarce A%X */
+{ int i;
+  unsigned long R=0;
+
+  for (i=A[0];i;i--)
+    R=(10*R+A[i])%X;
+  return R;
+}
+\end{lstlisting}
+
+\section{Împărțirea a doi vectori}
+
+Dacă se dau doi vectori $A$ și $B$ și se cere să se afle câtul $C$ și restul
+$R$, etapele de parcurs sunt aceleași ca la punctul precedent, numai că
+operatorii „/” și „\%” trebuie implementați de utilizator, ei nefiind definiți
+pentru vectori. Cu alte cuvinte, după ce „coborâm” la fiecare pas următoarea
+cifră de la deîmpărțit, trebuie să aflăm cea mai mare cifră $X$ astfel încât
+împărțitorul să se cuprindă de $X$ ori în restul de la momentul
+respectiv. Acest lucru se face cel mai comod prin adunări repetate: pornim cu
+cifra $X$ = 0 și o incrementăm, micșorând concomitent restul, până când restul
+care rămâne este prea mic. Să efectuăm aceeași împărțire, $1997:7$, considerând
+că ambele numere sunt reprezentate pe tipul {\tt Huge}.
+
+\centeredTikzFigure[
+  scale=0.8,
+  every node/.style={scale=0.8},
+  frame/.style = {rectangle, draw=black, line width=0.2pt, minimum width=22em},
+  digit/.style = {rectangle, minimum width = 2em, font=\bf\Large}
+]{
+  % box 1
+  \node[frame] (box1) { 
+    \begin{tabular}{ll}
+      \multicolumn{2}{l}{Restul înainte de coborârea cifrei: 0} \\
+      \multicolumn{2}{l}{Restul după coborârea cifrei: $10 \times 0 + 1 = 1$} \\
+      $7 \times 1 = 7$ & prea mare \\
+      Restul rămas: 1
+    \end{tabular}
+  };
+
+  % box 2
+  \node[frame] (box2) at (0,-4) { 
+    \begin{tabular}{ll}
+      \multicolumn{2}{l}{Restul înainte de coborârea cifrei: 1} \\
+      \multicolumn{2}{l}{Restul după coborârea cifrei: $10 \times 1 + 9 = 19$} \\
+      $7 \times 1 = 7$ & $19 - 7 = 12$ \\
+      $7 \times \mathbf{2} = 14$ & $12 - 7 = 5$ \\
+      $7 \times 3 = 21$ & prea mare \\
+      Restul rămas: 5
+    \end{tabular}
+  };
+
+  % box 3
+  \node[frame] (box3) at (10.5,-6.2) { 
+    \begin{tabular}{ll}
+      \multicolumn{2}{l}{Restul înainte de coborârea cifrei: 5} \\
+      \multicolumn{2}{l}{Restul după coborârea cifrei: $10 \times 5 + 9 = 59$} \\
+      $7 \times 1 = 7$ & $59 - 7 = 52$ \\
+      $\cdots$ \\
+      $7 \times \mathbf{8} = 56$ & $10 - 7 = 3$ \\
+      $7 \times 9 = 63$ & prea mare \\
+      Restul rămas: 3
+    \end{tabular}
+  };
+
+  % box 4
+  \node[frame] (box4) at (10.5,-1) { 
+    \begin{tabular}{ll}
+      \multicolumn{2}{l}{Restul înainte de coborârea cifrei: 3} \\
+      \multicolumn{2}{l}{Restul după coborârea cifrei: $10 \times 3 + 7 = 37$} \\
+      $7 \times 1 = 7$ & $37 - 7 = 30$ \\
+      $\cdots$ \\
+      $7 \times \mathbf{5} = 35$ & $9 - 7 = 2$ \\
+      $7 \times 6 = 42$ & prea mare \\
+      Restul rămas: 2
+    \end{tabular}
+  };
+
+  % digits
+  \node[digit] (d1) at (4, 3.5) {1};
+  \node[digit, anchor=west] (d2) at (d1.east) {9};
+  \node[digit, anchor=west] (d3) at (d2.east) {9};
+  \node[digit, anchor=west] (d4) at (d3.east) {7};
+  \node[digit, anchor=west] (quotient) at (d4.east) {: 7 =};
+  \node[digit, anchor=north] (d5) at (d1.south) {0};  
+  \node[digit, anchor=west] (d6) at (d5.east) {2};
+  \node[digit, anchor=west] (d7) at (d6.east) {8};
+  \node[digit, anchor=west] (d8) at (d7.east) {5};
+  \node[digit, anchor=west] (remainder) at (d8.east) {rest 2};
+
+  %arrows
+  \draw[-] (d5.south) -- (d5 |- box1.north);
+  \draw[-] (d6.south) |- (box2.east);
+  \draw[-] (d7.south) |- (box3.west);
+  \draw[-] (d8.south) -- (d8 |- box4.north);
+}
+
+Cazul cel mai defavorabil (când $X = 9$) presupune 9 scăderi și 10 comparații,
+cazul cel mai favorabil (când $X = 0$) presupune numai o comparație, deci
+cazul mediu presupune 4 scăderi și 5 comparații. Căutarea lui $X$ se poate
+face și binar, prin înjumătățirea intervalului, ceea ce reduce timpul mediu de
+căutare la aproximativ 3 comparații și trei înmulțiri, dar codul se complică
+nejustificat de mult (de cele mai multe ori).
+
+\begin{lstlisting}[language=C]
+void DivideHuge(Huge A, Huge B, Huge C, Huge R)
+/* A/B = C rest R */
+{ int i;
+
+  R[0]=0;C[0]=A[0];
+  for (i=A[0];i;i--)
+    { Shl(R,1);R[1]=A[i];
+      C[i]=0;
+      while (Sgn(B,R)!=1)
+        { C[i]++;
+          Subtract(R,B);
+        }
+    }
+  while (!C[C[0]] && C[0]>1) C[0]--;
+}
+\end{lstlisting}
+
+\section{Extragerea rădăcinii cubice}
+
+Vom sări peste prezentarea algoritmului de extragere a rădăcinii pătrate, pe
+care îl vom lăsa ca temă cititorului, și ne vom îndrepta atenția asupra celui
+de extragere a rădăcinii cubice, care este puțin mai complicat, dar care poate
+fi ușor extins pentru rădăcini de orice ordin. Problema este exact cea din
+enunț, așa că vom porni de la exemplul dat. Să notăm $A = 2.097.152$ și $X =
+\sqrt[3]{A}$. Cum se află $X$?
+
+O primă variantă ar fi căutarea binară a rădăcinii, prin înjumătățirea
+intervalului. Inițial se pornește cu intervalul (1,$A$), deoarece rădăcina
+cubică se află undeva între 1 și A (evident, încadrarea este mai mult decât
+acoperitoare; ea ar putea fi mai limitativă, dar nu ar reduce timpul de lucru
+decât cu câteva iterații). La fiecare pas, intervalul va fi înjumătățit. Cum,
+probabil că știți deja; se ia jumătatea intervalului, se ridică la puterea a
+treia și se compară cu $A$. Dacă este mai mare, înseamnă că rădăcina trebuie
+căutată în jumătatea inferioară a intervalului. Dacă este mai mică, vom
+continua căutarea în jumătatea superioară a intervalului. Dacă cele două
+numere sunt egale, înseamnă că am găsit tocmai ce ne interesa. Prima variantă
+a pseudocodului este:
+
+\vspace{\algskip}
+\begin{algorithmic}[1]
+  \STATE {\bf citește} $A$ cu $N$ cifre
+  \STATE $Lo \leftarrow 1, Hi \leftarrow A, X \leftarrow 0$
+  \WHILE{$X = 0$}
+  \STATE $Mid \leftarrow (Lo+Hi)/2$
+  \IF {$Mid3 < A$}
+  \STATE $Lo \leftarrow Mid+1$
+  \ELSIF{$Mid3 > A$}
+  \STATE $Hi \leftarrow Mid-1$
+  \ELSE
+  \STATE $X \leftarrow Mid$
+  \ENDIF
+  \ENDWHILE
+\end{algorithmic}
+
+În cazul cel mai rău, algoritmul de mai sus efectuează $\log_2 A$ înjumătățiri
+de interval, fiecare din ele presupunând o adunare, o împărțire la 2 și o
+ridicare la cub. Dintre aceste operații, cea mai costisitoare este ridicarea
+la cub, $O(N^2)$. Complexitatea totală este prin urmare $O(N^2 \log_2
+A)$. Deoarece $A$ are ordinul de mărime $10^N$, rezultă complexitatea $O(N^3
+\log 10)= O(N^3)$, adică mai proastă decât cea cerută (de altfel, un algoritm
+cu această complexitate nici nu s-ar încadra în timp pentru $N$ = 1000). Dacă
+timpul ne permite, trebuie să căutăm altă metodă.
+
+În exemplul ales, să observăm că $10^6 \leq A < 10^9$, de unde deducem că
+$10^2 \leq X < 10^3$. Cu alte cuvinte, $X$ are 3 cifre. În cazul general, dacă
+$A$ are $N$ cifre, atunci $X$ are $\lceil N / 3 \rceil$ cifre (prin $\lceil N
+/ 3 \rceil$ se înțelege „cel mai mic întreg mai mare sau egal cu $N /
+3$”). Care ar putea fi prima cifră a lui $X$ ? Dacă $X$ începe cu cifra 2,
+atunci $200 \leq X < 300 \implies 8.000.000 \leq 2.097.152 < 27.000.000$, ceea
+ce este fals. Cu atât mai puțin poate prima cifră a lui $X$ să fie mai mare ca
+2. Rezultă că prima cifră a lui $X$ este 1. De altfel, pentru a afla acest
+lucru, putem să și neglijăm ultimele 6 cifre ale lui $A$. Ne interesează doar
+prima cifră, cea a milioanelor, iar prima cifră a lui $X$ o alegem în așa fel
+încât cubul ei să fie mai mic sau egal cu 2.
+
+Ce putem spune despre a doua cifră? Dacă ar fi 3, atunci $130 \leq X < 140
+\implies 2.197.000 \leq 2.097.152 < 2.744.000$, fals (deci cifra este cel mult
+2). Dacă ar fi 1, atunci $110 \leq X < 120 \implies 1.331.000 \leq 2.097.152 <
+1.728.000$, fals. Rezultă că a doua cifră este obligatoriu 2. Analog, putem
+neglija ultimele trei cifre ale lui $A$, iar a doua cifră a lui $X$ este cel
+mai mare $C$ pentru care $\overline{1C}^3 \leq 2097$. Pentru a afla ultima
+cifră, aplicăm același raționament: Dacă ar fi 9, atunci $X$ = 129 și ar
+rezulta $2.146.688 = X^3 = 2.097.152$, absurd. Dacă considerăm că cifra este
+8, atunci calculul se verifică. Am aflat așadar că $X$ = 128.
+
+Procedeul general este următorul: dându-se un număr $A$ cu $N$ cifre, îl
+completăm cu zerouri nesemnificative până când $N$ se divide cu 3 (poate fi
+necesar să adăugăm maxim două zerouri). Numărul de cifre semnificative ale
+rădăcinii cubice este $M = N / 3$. Aflăm pe rând fiecare cifră, începând cu
+cea mai semnificativă. Să presupunem că am aflat cifrele $X_{M}, X_{M-1},
+\dots, X_{K+1}$. Cifra $X_K$ este cea mai mare cifră pentru care numărul
+$\overline{X_{M}X_{M-1}{\dots}X_{K+1}X_{K}00{\dots}00}^3 \leq A$. Cifra $X_K$
+este unică, deoarece există, în general, mai multe cifre care verifică
+proprietatea cerută, dar una singură este „cea mai mare”. O a doua versiune a
+pseudocodului este deci:
+
+\vspace{\algskip}
+\begin{algorithmic}[1]
+\STATE {\bf citește} $A$ cu $N$ cifre
+\STATE $X \leftarrow 0, T \leftarrow 0$
+\WHILE{$N \bmod 3 \neq 0$}
+\STATE adaugă un 0 nesemnificativ
+\ENDWHILE
+\FOR {$i = 1$ \TO $N/3$}
+\STATE adaugă la $T$ următoarele 3 cifre din $A$
+\STATE adaugă la $X$ cea mai mare cifră astfel încât $X^3 \leq T$
+\ENDFOR
+\end{algorithmic}
+
+Să evaluăm complexitatea acestei versiuni. Linia 1 se execută în timp liniar,
+$O(N)$. Liniile 2-5 se execută în timp constant. Linia 7 presupune adăugarea
+unei cifre ($O(N)$), iar linia 8 un număr constant de ridicări la cub, așadar
+înmulțiri ($O(N^2)$). Deoarece liniile 7 și 8 se execută de $N/3$ ori (linia
+6), rezultă o complexitate de $O(N^3)$. Iată că nici acest algoritm nu a adus
+îmbunătățiri și pare și ceva mai greu de implementat. El poate fi totuși
+modificat pentru a-i scădea complexitatea la $O(N^2)$.
+
+Principalul neajuns al său este efectuarea ridicării la cub, care se face în
+$O(N^2)$. Dacă am putea să-l aflăm la fiecare pas pe $X^3$ fără a efectua
+înmulțiri, adică în timp liniar, atunci întregul algoritm ar avea complexitate
+pătratică. Bineînțeles, prima întrebare care vine pe buzele cititorului este
+„cum să ridicăm la cub fără să facem înmulțiri?”. Să nu uităm însă ceva: că
+noi nu-l cunoaștem numai pe $X$. Îl cunoaștem și pe $X$ de la pasul anterior,
+care avea o cifră mai puțin (îl vom boteza $OldX$). Să presupunem că, printr-o
+metodă oarecare, am reușit să-l ridicăm pe $OldX$ la puterile a doua și a
+treia (și am obținut numerele $OldX2$ și $OldX3$). Cum putem, cunoscând aceste
+trei numere, precum și noua cifră ce se va adăuga la sfârșitul lui $X$ (să-i
+spunem $C$), să-l aflăm pe $X$, pătratul și cubul său? Nu e prea greu:
+
+\begin{equation}
+  X = 10 \cdot OldX + C
+\end{equation}
+
+\begin{align}
+  \begin{split}
+    X^2 & = (10 \cdot OldX + C)^2 = 100 \cdot OldX^2 + 20 \cdot C \cdot OldX + C^2 \\
+    & = 100 \cdot OldX^2 + (20 \cdot C) \cdot OldX + C^2
+  \end{split}
+\end{align}
+
+\begin{align}
+  \begin{split}
+    X^3 & = (10 \cdot OldX + C)^3 = 1000 \cdot OldX^3 + 300 \cdot C \cdot OldX^2 + 30 \cdot C^2 \cdot OldX + C^3 \\
+    & = 1000 \cdot OldX^3 + (300 \cdot C) \cdot OldX^2 + (30 \cdot C^2) \cdot OldX + C^3
+  \end{split}
+\end{align}
+
+Iată așadar că pentru a afla noile valori ale puterilor 1, 2 și 3 ale lui $X$,
+folosindu-le pe cele vechi, nu avem nevoie decât de adunări și de înmulțiri cu
+numere mici (de ordinul miilor). Toate aceste operații se fac în timp liniar,
+deci am reușit să găsim un algoritm pătratic. Iată mai jos sursa C:
+
+\begin{lstlisting}[language=C]
+void FindDigit(Huge L,Huge NewL2,Huge NewL3,
+     Huge OldL,Huge OldL2,Huge OldL3,Huge Target)
+{ Huge Aux;
+
+  L[1]=10;
+  do
+    { L[1]--;
+      /* Trebuie calculat L^3. Se stiu OldL (L/10)
+         si noua cifra L[1]. Deci (OldL*10+L[1])^3=?
+         Se aplica binomul lui Newton. */
+      AtribHuge(NewL3,OldL3);Shl(NewL3,3);
+      AtribHuge(Aux,OldL2);Mult(Aux,300*L[1]);
+      Add(NewL3,Aux);
+      AtribHuge(Aux,OldL);Mult(Aux,30*L[1]*L[1]);
+      Add(NewL3,Aux);
+      AtribValue(Aux,L[1]*L[1]*L[1]);
+      Add(NewL3,Aux);
+    }
+  while (Sgn(NewL3,Target)==1);
+  /* Aceeasi operatie pentru L^2 */
+  AtribHuge(NewL2,OldL2);Shl(NewL2,2);
+  AtribHuge(Aux,OldL);Mult(Aux,20*L[1]);
+  Add(NewL2,Aux);
+  AtribValue(Aux,L[1]*L[1]);
+  Add(NewL2,Aux);
+  /* Noile valori devin 'vechi' */
+  AtribHuge(OldL2,NewL2);
+  AtribHuge(OldL,L);
+  AtribHuge(OldL3,NewL3);
+}
+
+void CubeRoot(Huge A, Huge X)
+{ Huge Target,OldX,OldX2,OldX3,NewX2,NewX3;
+  int i;
+
+  /* Se initializeaza vectorii cu 0 (nici o cifra) */
+  OldX[0]=OldX2[0]=OldX3[0]=X[0]=0;
+  for (i=1;i<=(A[0]+2)/3;i++)
+    { AtribHuge(Target,A);
+      Shr(Target,3*((A[0]+2)/3-i));
+      Shl(X,1);
+      FindDigit(X,NewX2,NewX3,OldX,OldX2,OldX3,Target);
+    }
+}
+\end{lstlisting}
+
+Acum nu mai avem decât să scriem rutinele de intrare/ieșire și programul
+principal:
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <mem.h>
+#define NMax 1000
+typedef int Huge[NMax+3];
+Huge A,X; /* A[0] si X[0] indica numarul de cifre */
+
+void ReadData(void)
+{ FILE *F=fopen("input.txt","rt");
+  int C,i;
+
+  A[0]=0;
+  do A[++A[0]]=(C=fgetc(F))-'0';
+  while (C!=EOF);
+  A[0]--;
+  fclose(F);
+  /* Intoarce vectorul pe dos */
+  for (i=1;i<=A[0]/2;i++)
+    A[i]=(A[i]^A[A[0]+1-i])^(A[A[0]+1-i]=A[i]);
+}
+
+void WriteSolution(void)
+{ FILE *F=fopen("output.txt","wt");
+  int i=X[0];
+
+  while (!X[i]) i--;
+  while (i) fputc(X[i--]+'0',F);
+  fclose(F);
+}
+
+void main(void)
+{
+  ReadData();
+  CubeRoot(A,X);
+  WriteSolution();
+}
+\end{lstlisting}
+
+Pentru a extinde această metodă la rădăcini de orice ordin $K$, trebuie numai
+să ținem cont de expresia binomului lui Newton:
+
+\begin{align}
+  \begin{split}
+    X^p & = (10 \cdot OldX + C)^p \\
+    & = \sum_{i=0}^{p} \mathbf{C}_p^i \cdot 10^i \cdot OldX^i \cdot C^{p-i}
+  \end{split}
+\end{align}
+
+Presupunând că avem calculate toate puterile de la 1 la $p$ ale lui $OldX$, se
+poate calcula noua valoare a lui $X^p$ folosind numai adunări și înmulțiri cu
+scalari. În felul acesta se pot calcula în timp liniar valorile lui $X, X^2,
+X^3, \dots, X^K.$

@@ -1,0 +1,307 @@
+\section{Problema 12}
+
+Această problemă a fost propusă la a IV-a Balcaniadă de Informatică, Nicosia
+1996.
+
+{\bf ENUNȚ}: Grupul de rock U2 va da un concert în Nicosia. Un grup de $N \leq
+200$ fani U2 așteaptă la coadă în scopul de a cumpăra bilete de la singura
+caserie deschisă. Fiecare persoană vrea să cumpere numai un bilet, iar
+casierul poate vinde unei persoane cel mult două bilete.
+
+Casierul folosește $T[i]$ unități de timp pentru a servi al $i$-lea fan ($1
+\leq i \leq N$). Este posibil totuși ca doi fani așezați la coadă unul după
+altul (de exemplu, al $j$-lea și al $j+1$-lea) să convină ca numai unul din ei
+să rămână la coadă, iar celălalt să plece, dacă timpul $R[j]$ ($1 \leq j \leq
+N-1$) în care casierul servește al $j$-lea și al $j+1$-lea fan este mai mic
+decât $T[j]+T[j+1]$. Deci, pentru a minimiza timpul de lucru al casierului,
+fiecare persoană din coadă încearcă să negocieze cu predecesorul și cu
+succesorul său, ceea ce va duce în final la o servire mai rapidă.
+
+Fiind date numerele întregi pozitive $N$, $T[i]$ ($1 \leq i \leq N$) și $R[j]$
+($1 \leq j \leq N-1$), se cere să se minimizeze timpul total al
+casierului. Acest lucru va fi realizat grupând într-un mod optim perechi de
+persoane consecutive. Atenție! Nu este necesar ca un anumit fan să se cupleze
+neapărat cu predecesorul sau cu succesorul său.
+
+{\bf Intrarea}: În fișierul {\tt INPUT.TXT}, datele de intrare sunt date pe
+trei linii:
+
+\begin{itemize}
+
+\item prima linie conține numărul întreg $N$;
+
+\item a doua linie conține $N$ întregi: valorile $T[i]$, separate prin câte un
+  spațiu;
+
+\item a treia linie conține $N$-1 întregi: valorile $R[j]$, separate de
+  asemenea prin câte un spațiu;
+
+\end{itemize}
+
+Ieșirea se va face în fișierul {\tt OUTPUT.TXT}, astfel:
+
+\begin{itemize}
+
+\item prima linie conține un întreg care reprezintă timpul total (minim) al
+  casierului;
+
+\item pe fiecare din următoarele linii se află un singur număr sau două numere
+  separate prin caracterul '+'. Mai exact, fiecare linie conține numărul $i$
+  dacă al $i$-lea fan este servit singur, sau $i+(i+1)$ dacă cei doi fani sunt
+  serviți ca o pereche.
+
+\end{itemize}
+
+{\bf Exemplu}:
+
+\texttt{
+  \begin{tabular}{|l|l|}
+    \hline
+        {\bf INPUT.TXT} & {\bf OUTPUT.TXT} \\ \hline
+        7              & 14 \\
+        5 4 3 2 1 4 4  & 1 \\
+        7 3 4 2 2 4    & 2+3 \\
+        \              & 4+5 \\
+        \              & 6+7 \\
+        \hline
+  \end{tabular}
+}
+
+{\bf Timp de rulare}: 15 secunde pentru un test.
+
+Acesta este enunțul în forma lui de la Nicosia. Iată acum și completările „din
+studio”:
+
+\begin{itemize}
+
+\item Numărul de fani este $N \leq 5.000$;
+
+\item {\bf Complexitatea cerută} este $O(N)$;
+
+\item {\bf Timpul de rulare} este de o secundă.
+
+\end{itemize}
+
+{\bf REZOLVARE}: O primă metodă de rezolvare o vom lăsa în seama cititorului,
+întrucât ea este foarte asemănătoare cu rezolvarea problemei înmulțirii optime
+a unui șir de matrice. Ideea de pornire este de a defini o matrice $D$ cu $N$
+linii și $N$ coloane, în care $D[X,Y]$ reprezintă timpul minim în care pot fi
+serviți fanii $X, X+1, \dots, Y-1, Y$. Scopul este de a afla valoarea
+$D[1,N]$.
+
+După cum se știe, însă, înmulțirea optimă a unui șir de matrice se poate
+determina în timp $O(N^3)$. Pentru condițiile inițiale ale problemei ($N \leq
+200$), metoda se încadrează în timp. Ea putea fi deci folosită la concurs, pe
+câtă vreme dacă se impun condițiile suplimentare, rezolvarea în timp cubic nu
+mai dă rezultate. Iată ideea de rezolvare a problemei în timp liniar.
+
+Vom denumi o {\bf cuplare de ordin $K$} modul în care primii $K$ fani sunt
+serviți câte unul sau câte doi. Fiecare cuplare are atașat un cost, respectiv
+timpul consumat de casier pentru a servi toți fanii. Dintre toate cuplările de
+ordin $K$, cele pentru care costul este minim (în cazul general pot fi mai
+multe) se vor numi {\bf cuplări optime de ordinul $K$}. Cerința problemei
+exprimată cu noua terminologie este: să se găsească o cuplare optimă de
+ordinul $N$.
+
+Să presupunem acum că am găsit cumva această cuplare optimă de ordinul $N$, pe
+care o vom nota cu $C_N$. Dacă în această cuplare al $K$-lea fan este servit
+de unul singur, atunci modul de servire al primilor $K-1$ fani reprezintă o
+cuplare optimă de ordinul $K-1$, pe care o vom nota cu $C_{K-1}$. Demonstrația
+nu este grea: dacă fanii $1, 2, \dots, K-1$ nu ar fi cuplați în mod optim în
+cadrul lui $C_N$, atunci ar exista o cuplare a lor $C'_{K-1}$ de cost mai mic
+decât $C_{K-1}$. Dar această cuplare mai bună ar putea fi folosită pentru a
+obține o cuplare mai bună a tuturor celor $N$ fani (servind primii $K-1$ fani
+conform cuplării $C'_{K-1}$, iar pe ceilalți conform cuplării $C_N$). S-ar
+obține astfel o cuplare $C'_N$ de cost mai mic decât $C_N$, ceea ce este
+absurd, deoarece am presupus $C_N$ ca fiind optimă.
+
+În mod absolut identic se poate demonstra că dacă $C_N$ este o cuplare optimă
+de ordinul $N$ în care fanii $K$ și $K+1$ sunt serviți împreună, atunci modul
+de servire al primilor $K-1$ fani reprezintă o cuplare optimă de ordinul
+$K-1$. Recunoaștem în aceste afirmații principiul programării dinamice:
+optimul global presupune optime locale. De aici deducem că, pentru a realiza o
+cuplare optimă a primilor $K$ fani avem nevoie de câte o cuplare optimă pentru
+primii $K-1$ fani, respectiv pentru primii $K-2$ fani, urmând ca apoi să aflăm
+care este costul minim al unei cuplări de ordin $K$, atât în ipoteza că fanul
+al $K$-lea este servit singur, cât și în ipoteza că el este servit împreună cu
+al $K-1$-lea fan.
+
+Vom crea așadar doi vectori $T_1$ și $T_2$, ambii cu câte $N$ elemente, în
+care:
+
+\begin{itemize}
+
+\item $T_1[K]$ este timpul minim în care pot fi serviți fanii $1, 2, \dots,
+  K$, astfel încât fanul al $K$-lea să rămână singur;
+
+\item $T_2[K]$ este timpul minim în care pot fi serviți fanii $1, 2, \dots,
+  K$, astfel încât fanii $K$ și $K-1$ să fie cuplați.
+
+\end{itemize}
+
+Datele inițiale pe care le putem trece în cei doi vectori sunt:
+
+\begin{itemize}
+
+\item $T_1[1] = T[1]$;
+
+\item $T_2[1] = \infty$ (un singur fan nu poate fi cuplat cu nimeni);
+
+\item $T_1[2] = T[1]+T[2]$ (dacă al doilea fan rămâne singur, atunci și primul
+  rămâne singur);
+
+\item $T_2[2] = R[1]$.
+
+\end{itemize}
+
+Relațiile de recurență se deduc fără prea multă bătaie de cap:
+
+\begin{itemize}
+
+\item $T_1[K] = T[K] + \min(T_1[K-1], T_2[K-1])$ (dacă fanul $K$ rămâne
+  singur, atunci el este servit în timpul $T[K]$, iar fanul $K-1$ se va cupla
+  cu $K-2$ sau va rămâne singur, după cum este mai convenabil);
+
+\item $T_2[K] = R[K-1] + \min(T_1[K-2], T_2[K-2])$ (dacă fanul $K$ se cuplează
+  cu $K-1$, atunci ei sunt serviți în timpul $R[K-1]$, iar fanul $K-2$ se va
+  cupla cu $K-3$ sau va rămâne singur, după cum este mai convenabil);
+
+\end{itemize}
+
+Putem deci să completăm vectorii de la stânga la dreapta. Odată ce am făcut
+aceasta, costul minim al cuplării de ordinul $N$ este $\min(T_1[N],
+T_2[N])$. Pentru a reconstitui și așezarea fanilor, vom proceda recurent,
+astfel: dacă $T_2[N]<T_1[N]$, înseamnă că este mai avantajos ca fanii $N$ și
+$N-1$ să fie cuplați și reluăm reconstituirea pentru fanii $1, 2, \dots,
+N-2$. În caz contrar, înseamnă că este mai avantajos ca fanul $N$ să rămână
+singur și reluăm reconstituirea pentru fanii $1, 2, \dots, N-1$. De exemplu,
+iată modul în care se completează vectorii $T_1$ și $T_2$ pentru exemplul din
+enunț:
+
+\centeredTikzFigure[
+  scale = 0.75,
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    nodes = {
+      scale = 0.75,
+      draw,
+      rectangle,
+      anchor=center,
+      font=\Large,
+      minimum width=3.2em,
+      minimum height=3.2em,
+    },
+  },
+  double/.style = {
+    nodes={
+      draw = none,
+      font = \tiny,
+    },
+  },
+]{
+  \matrix[mat] at (0,0) {
+    5 \& 4 \& 3 \& 2 \& 1 \& 4 \& 4 \\
+  };
+
+  \matrix[mat] at (0,-2) {
+    7 \& 3 \& 4 \& 2 \& 2 \& 4 \\
+  };
+
+  \matrix[mat,double] at  (0, -3.6) {
+    \ \& 4 + 5 = \& 3 + 7 = \& 2 + 8 = \& 1 + 10 = \& 4 + 10 = \& 4 + 12 = \\
+  };
+  \matrix[mat] at (0,-4) {
+    5 \& 9 \& 10 \& 10 \& 11 \& 14 \& 16 \\
+  };
+
+  \matrix[mat,double] at  (0, -5.6) {
+    \ \& \ \& 3 + 5 = \& 4 + 7 = \& 2 + 8 = \& 2 + 10 = \& 4 + 10 = \\
+  };
+  \matrix[mat] at (0,-6) {
+    $\infty$ \& 7 \& 8 \& 11 \& 10 \& 12 \& 14 \\
+  };
+
+  \node at (-6,0) {\Large $T$};
+  \node at (-6,-2) {\Large $R$};
+  \node at (-6,-4) {\Large $T_1$};
+  \node at (-6,-6) {\Large $T_2$};
+}
+
+\begin{itemize}
+
+\item $T_2[7]<T_1[7] \implies$ Fanii 6 și 7 sunt cuplați. Reconstituim
+  așezarea primilor 5 fani.
+
+\item $T_2[5]<T_1[5] \implies$ Fanii 4 și 5 sunt cuplați. Reconstituim
+  așezarea primilor 3 fani.
+
+\item $T_2[3]<T_1[3] \implies$ Fanii 2 și 3 sunt cuplați, iar primul fan este
+  singur.
+
+\end{itemize}
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#define NMax 5001
+typedef unsigned IntVector[NMax];
+typedef long LongVector[NMax];
+
+IntVector T, R;
+LongVector T1, T2;
+int N;
+FILE *OutF;
+
+void ReadData(void)
+{ FILE *F=fopen("input.txt", "rt");
+  int i;
+
+  fscanf(F,"%d\n", &N);
+  for (i=1; i<=N;)
+    fscanf(F,"%d", &T[i++]);
+  for (i=1; i<N;)
+    fscanf(F,"%d", &R[i++]);
+}
+
+long Min(long X, long Y)
+{
+  return X<Y? X : Y;
+}
+void Match(void)
+{ int i;
+  T1[1]=T[1]; T2[1]=0xFFFF; /* =Infinit */
+  T1[2]=T[1]+T[2]; T2[2]=R[1];
+  for (i=3; i<=N; i++)
+    {
+      T1[i]=T[i]+Min(T1[i-1],T2[i-1]);
+      T2[i]=R[i-1]+Min(T1[i-2],T2[i-2]);
+    }
+}
+
+void GoBack(int K)
+{
+  if (K)
+    if (T1[K]<T2[K])
+      { GoBack(K-1);
+        fprintf(OutF,"%d\n",K);
+      }
+      else { GoBack(K-2);
+             fprintf(OutF,"%d+%d\n",K-1,K);
+           }
+}
+
+void WriteSolution(void)
+{
+  OutF=fopen("output.txt", "wt");
+  fprintf(OutF,"%d\n",Min(T1[N],T2[N]));
+  GoBack(N);
+  fclose(OutF);
+}
+
+void main(void)
+{
+  ReadData();
+  Match();
+  WriteSolution();
+}
+\end{lstlisting}
