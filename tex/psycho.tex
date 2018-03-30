@@ -36,8 +36,6 @@
   shapes.multipart
 }
 
-%\let\MakeUppercase\relax
-
 \title{Psihologia concursurilor de informatică}
 \author{Cătălin Frâncu}
 \date{}
@@ -47,6 +45,7 @@
 
 \definecolor{light-gray}{gray}{0.95}
 
+% style for code listings
 \lstset{
   aboveskip=\bigskipamount,
   backgroundcolor=\color{light-gray},
@@ -56,8 +55,7 @@
   numberstyle=\scriptsize\color{gray},
 }
 
-\tikzset{>={Triangle[length=3mm,width=2mm]}}
-
+% default figure layout
 \newcommand{\centeredTikzFigure}[2][]{
   \begin{figure}[H]
     \centering
@@ -67,6 +65,10 @@
   \end{figure}
 }
 
+% default arrow head in TikZ figures
+\tikzset{>={Triangle[length=3mm,width=2mm]}}
+
+% \bdiv operator, similar to \bmod
 \makeatletter
 \newcommand*{\bdiv}{%
   \nonscript\mskip-\medmuskip\mkern5mu%
@@ -75,11 +77,15 @@
 }
 \makeatother
 
+% vertical space between paragraphs
 \setlength{\parskip}{0.7em}
-\def \algskip {0.7em} % skip before algorithmic environments
 
+% skip before algorithmic environments
+\def \algskip {0.7em}
+
+% add support for chapter subtitles
 \newcommand\Chapter[2]{
-  \chapter[#1: {\itshape#2}]{#1\\[0.5ex]\Large#2}
+  \chapter[#1 {\itshape#2}]{#1\\[0.5ex]\Large#2}
 }
 
 \hypersetup{
@@ -93,6 +99,7 @@
 
 \sloppy
 
+% translate pseudocode commands to Romanian
 \renewcommand{\algorithmicdo}{\textbf{execută}}
 \renewcommand{\algorithmicelse}{\textbf{altfel}}
 \renewcommand{\algorithmicend}{\textbf{sfârșit}}
