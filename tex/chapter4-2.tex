@@ -1,0 +1,642 @@
+\section{Tabele HASH}
+
+În multe aplicații lucrăm cu structuri mari de date în care avem nevoie să
+facem căutări, inserări, modificări și ștergeri. Aceste structuri pot fi
+vectori, matrice, liste etc. În cazurile mai fericite ale vectorilor, aceștia
+pot fi sortați, caz în care localizarea unui element se face prin metoda
+înjumătățirii intervalului, adică în timp logaritmic. Chiar dacă nu avem voie
+să sortăm vectorul, tot se pot face anumite optimizări care reduc foarte mult
+timpul de căutare. De exemplu, probabil că mulți dintre cititori au idee
+despre ce înseamnă {\it indexarea} unei baze de date. Dacă avem o bază de date
+cu patru elemente de tip string, și anume
+
+\begin{equation*}
+  B = (bac, zugrav, abac, zarva)  
+\end{equation*}
+
+putem construi un vector $Ind$ care să ne indice ordinea în care s-ar cuveni
+să fie așezate cuvintele în vectorul sortat. Ordinea alfabetică (din cartea de
+telefon) a cuvintelor este: „abac”, „bac”, „zarva”, „zugrav”, deci vectorul
+$Ind$ este:
+
+\begin{equation*}
+  Ind = (3, 1, 4, 2)
+\end{equation*}
+
+semnificând că primul cuvânt din vectorul sortat ar trebui să fie al treilea
+din vectorul $B$, respectiv „abac” și așa mai departe. În felul acesta am
+obținut un vector sortat, care presupune o indirectare a elementelor. Vectorul
+sortat este
+
+\begin{equation*}
+B' = (B(Ind(1)), B(Ind(2)), B(Ind(3)), B(Ind(4)).
+\end{equation*}
+
+Această operație se numește indexare. Ce-i drept, construcția vectorului $Ind$
+nu se poate face într-un timp mai bun decât $O(N \log N)$, dar după ce acest
+lucru se face (o singură dată, la începutul programului), căutările se pot
+face foarte repede. Dacă pe parcurs se fac adăugări sau ștergeri de elemente
+în/din baza de date, se va pierde câtva timp pentru menținerea indexului, dar
+în practică timpul acesta este mult mai mic decât timpul care s-ar pierde cu
+căutarea unor elemente în cazul în care vectorul ar fi neindexat. Nu vom intra
+în detalii despre indexare, deoarece nu acesta este obiectul capitolului de
+față.
+
+În unele situații nu se poate face nici indexarea structurii de date. Să
+considerăm cazul unui program care joacă șah. În esență, modul de funcționare
+al acestui program se reduce la o rutină care primește o poziție pe tablă și o
+variabilă care indică dacă la mutare este albul sau negrul, rutina întorcând
+cea mai bună mutare care se poate efectua din acea poziție. Majoritatea
+programelor de șah încep să {\it expandeze} respectiva poziție, examinând tot
+felul de variante ce pot decurge din ea și alegând-o pe cea mai promițătoare,
+așa cum fac și jucătorii umani. Pozițiile analizate sunt stocate în memorie
+sub forma unei liste simplu sau dublu înlănțuite. Memorarea nu se poate face
+sub forma unui vector, deoarece numărul de poziții analizate este de ordinul
+sutelor de mii sau chiar al milioanelor, din care câteva zeci de mii sunt
+reținute în permanență în memorie.
+
+Să ne închipuim acum următoarea situație. Este posibil ca, prin expandarea
+unei configurații inițiale a tablei să se ajungă la aceeași configurație
+finală pe două căi diferite. Spre exemplu, dacă albul mută întâi calul la f3,
+apoi nebunul la c4, poziția rezultată va fi aceeași ca și când s-ar fi mutat
+întâi nebunul și apoi calul (considerând bineînțeles că negrul dă în ambele
+situații aceeași replică). Dacă configurația finală a fost deja analizată
+pentru prima variantă, este inutil să o mai analizăm și pentru cea de-a doua,
+pentru că rezultatul (concluzia la care se va ajunge) va fi exact același. Dar
+cum își poate da programul seama dacă poziția pe care are de gând s-o
+analizeze a fost analizată deja sau nu?
+
+Cea mai simplă metodă este o scanare a listei de configurații examinate din
+memorie. Dacă în această listă se află poziția curentă de analizat, înseamnă
+că ea a fost deja analizată și vom renunța la ea. Dacă nu, o vom analiza
+acum. Ideea în mare a algoritmului este:
+
+\vspace{\algskip}
+\begin{algorithm}
+  \floatname{algorithm}{Procedura}
+  \caption{Analizează(Poziție $P$)}
+  \begin{algorithmic}[1]
+    \STATE caută $P$ în lista de poziții deja analizate
+    \IF{$P$ nu există în listă}
+    \STATE expandează $P$ și află cea mai bună mutare $M$
+    \STATE adaugă $P$ la lista de poziții analizate
+    \RETURN $M$
+    \ELSE
+    \RETURN valoarea $M$ atașată poziției $P$ găsite în listă
+    \ENDIF
+  \end{algorithmic}  
+\end{algorithm}
+
+Nu vom insista asupra a cum se expandează o poziție și cum se calculează
+efectiv cea mai bună mutare. Noi ne vom interesa de un singur aspect, și anume
+căutarea unei poziții în listă. Tehnica cea mai „naturală” este o parcurgere a
+listei de la cap la coadă, comparând pe rând poziția căutată cu fiecare
+poziție din listă. Dacă lista are memorate $N$ poziții, atunci în cazul unei
+căutări cu succes (poziția este găsită), numărul mediu de comparații făcute
+este $N/2$, iar numărul cel mai defavorabil ajunge până la $N$. În cazul unei
+căutări fără succes (poziția nu există în listă), numărul de comparații este
+întotdeauna $N$. De altfel, cazul căutării fără succes este mult mai frecvent
+pentru problema jocului de șah, unde numărul de poziții posibile crește
+exponențial cu numărul de mutări. Același număr de comparații îl presupun și
+ștergerea unei poziții din listă (care presupune întâi găsirea ei) și
+adăugarea (care presupune ca poziția de adăugat să nu existe deja în listă).
+
+Pentru îmbunătățirea {\bf practică} a acestui timp sunt folosite {\bf tabelele
+  de dispersie} sau {\bf tabelele hash} (engl. {\it hash = a toca,
+  tocătură}). Menționăm de la bun început că tabelele hash nu au nici o
+utilitate din punct de vedere teoretic. Dacă suntem rău intenționați, este
+posibil să găsim exemple pentru care căutarea într-o tabelă hash să dureze la
+fel de mult ca într-o listă simplu înlănțuită, respectiv $O(N)$. Dar în
+practică timpul căutării și al adăugării de elemente într-o tabelă hash
+coboară uneori până la $O(1)$, iar în medie scade foarte mult (de mii de ori).
+
+Iată despre ce este vorba. Să presupunem pentru început că în loc de poziții
+pe tabla de șah, lista noastră memorează numere între 0 și 999. În acest caz,
+tabela hash ar fi un simplu vector $H$ cu 1000 de elemente booleene. Inițial,
+toate elementele lui $H$ au valoarea {\tt False} (sau 0). Dacă numărul 473 a
+fost găsit în listă, nu avem decât să setăm valoarea lui $H(473)$ la {\tt
+  True} (sau 1). La o nouă apariție a lui 473 în listă, vom examina elementul
+$H(473)$ și, deoarece el este {\tt True}, înseamnă că acest număr a mai fost
+găsit. Dacă dorim ștergerea unui element din hash, vom reseta poziția
+corespunzătoare din $H$. Practic, avem de-a face cu un exemplu rudimentar de
+ceea ce se cheamă {\bf funcție de dispersie}, aidcă $h(x) = x$. O proprietate
+foarte importantă a acestei funcții este injectivitatea; este imposibil ca la
+două numere distincte să corespundă aceeași intrare în tabelă. Să încercăm o
+reprezentare grafică a metodei:
+
+\centeredTikzFigure[
+  scale=0.65,
+  every node/.style = {scale=0.65},
+  header/.style={font=\Large},
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    anchor=north,
+  },
+]{
+  % left-hand list
+  \matrix[
+    mat,
+    nodes={minimum width=2.5em, minimum height=2.5em},
+    values/.style={
+      row #1/.style={
+        nodes={rectangle, draw}
+      },
+    },
+    values/.list={1, 4, 7, 10},
+    pointers/.style={
+      row #1/.style={
+        nodes={rectangle, draw, minimum height=1.5em}
+      },
+    },
+    pointers/.list={2, 5, 8, 11},
+  ] (l) {
+    2 \\
+    \ \\
+    \ \\
+    4 \\
+    \ \\
+    \ \\
+    1 \\
+    \ \\
+    \ \\
+    2 \\
+    \ \\
+    \ \\
+    $\vdots$ \\
+  };
+
+  \matrix[
+    mat,
+    column 1/.style={nodes={rectangle, draw, font=\Large, minimum width=3.5em, minimum height=3.5em}},
+    row 6/.style={nodes={draw=none}},
+  ] (a) at (5, 0) {
+    0 \& 0\\
+    1 \& 1 \\
+    1 \& 2 \\
+    0 \& 3 \\
+    1 \& 4 \\
+    $\vdots$ \& \  \\
+    0 \& 998 \\
+    0 \& 999 \\
+  };
+
+  % headers
+  \node[header, anchor=south] at ([yshift=1em]l-1-1.north) {L};
+  \node[header, anchor=south] at ([yshift=1em]a-1-1.north) {H};
+
+  % pointers
+  \draw[->] (l-2-1.center) -- (l-4-1.north);
+  \draw[->] (l-5-1.center) -- (l-7-1.north);
+  \draw[->] (l-8-1.center) -- (l-10-1.north);
+  \draw[->] (l-11-1.center) -- (l-13-1.north);
+
+  % arrows from l to a
+  \draw[->,dotted] (l-1-1.east) -- (a-3-1.west);
+  \draw[->,dotted] (l-4-1.east) -- (a-5-1.west);
+  \draw[->,dotted] (l-7-1.east) -- (a-2-1.west);
+  \draw[->,dotted] (l-10-1.east) -- (a-3-1.west);
+}
+
+Iată primul set de proceduri de gestionare a unui Hash.
+
+\begin{lstlisting}[language=C]
+#define M 1000 // numarul de "intrari" //
+typedef int Hash[M];
+typedef int DataType;
+Hash H;
+
+void InitHash1(Hash H)
+{ int i;
+
+  for (i=0; i<M; H[i++]=0);
+}
+
+inline int h(DataType K)
+{
+  return K;
+}
+
+int Search1(Hash H, DataType K)
+/* Intoarce -1 daca elementul nu exista in hash
+   sau indicele in hash daca el exista */
+{
+  return H[h(K)] ? h(K) : -1;
+}
+
+void Add1(Hash H, DataType K)
+{
+  H[h(K)]=1;
+}
+
+void Delete1(Hash H, DataType K)
+{
+  H[h(K)]=0;
+}
+\end{lstlisting}
+
+Prin „număr de intrări” în tabelă se înțelege numărul de elemente ale
+vectorului $H$; în general, orice tabelă hash este un vector. Pentru ca
+funcțiile să fie cât mai generale, am dat tipului de dată {\tt int} un nou
+nume - {\tt DataType}. În principiu, tabelele Hash se aplică oricărui tip de
+date. În realitate, fenomenul este tocmai cel invers: orice tip de date
+trebuie „convertit” printr-o metodă sau alta la tipul de date {\tt int}, iar
+funcția de dispersie primește ca parametru un întreg. Funcțiile hash
+prezentate în viitor nu vor mai lucra decât cu variabile de tip întreg. Vom
+vorbi mai târziu despre cum se poate face conversia. Acum să generalizăm
+exemplul de mai sus.
+
+Într-adevăr, cazul anterior este mult prea simplu. Să ne închipuim de pildă că
+în loc de numere mai mici ca 1000 avem numere de până la 2.000.000.000. În
+această situație posibilitatea de a reprezenta tabela ca un vector
+caracteristic iese din discuție. Numărul de intrări în tabelă este de ordinul
+miilor, cel mult al zecilor de mii, deci cu mult mai mic decât numărul total
+de chei (numere) posibile. Ce avem de făcut? Am putea încerca să adăugăm un
+număr $K$ într-o tabelă cu $M$ intrări (numerotate de la 0 la $M-1$) pe
+poziția $K \bmod M$, adică $h(K)=K \bmod M$. Care va fi însă rezultatul?
+Funcția $h$ își va pierde proprietatea de injectivitate, deoarece mai multor
+chei le poate corespunde aceeași intrare în tabelă, cum ar fi cazul numerelor
+1234 și 2001234, ambele dând același rest la împărțirea prin $M=1000$. Nu
+putem avea însă speranța de a găsi o funcție injectivă, pentru că atunci
+numărul de intrări în tabelă ar trebui să fie cel puțin egal cu numărul de
+chei distincte. Vrând-nevrând, trebuie să rezolvăm {\bf coliziunile} (sau {\bf
+  conflictele}) care apar, adică situațiile când mai multe chei distincte sunt
+repartizate la aceeași intrare.
+
+Vom reveni ulterior la oportunitatea alegerii funcției modul și a numărului de
+1000 de intrări în tabelă. Deocamdată vom folosi aceste date pentru a explica
+modul de funcționare a tabelei hash pentru funcții neinjective. Să presupunem
+că avem două chei $K_1$ și $K_2$ care sunt repartizate de funcția $h$ la
+aceeași intrare $X$, adică $h(K_1) = h(K_2) = X$. Soluția cea mai comodă este
+ca $H(X)$ să nu mai fie un număr, ci o listă liniară simplu sau dublu
+înlănțuită care să conțină toate cheile găsite până acum și repartizate la
+aceeași intrare $X$. Prin urmare vectorul $H$ va fi un vector de liste:
+
+\centeredTikzFigure[
+  scale=0.65,
+  every node/.style = {scale=0.65},
+  header/.style={font=\Large},
+  mat/.style = {
+    matrix of nodes,
+    ampersand replacement=\&,
+    anchor=north,
+  },
+]{
+  % left-hand list
+  \matrix[
+    mat,
+    nodes={minimum width=3.5em, minimum height=2.5em},
+    values/.style={
+      row #1/.style={
+        nodes={rectangle, draw}
+      },
+    },
+    values/.list={1, 4, 7, 10},
+    pointers/.style={
+      row #1/.style={
+        nodes={rectangle, draw, minimum height=1.5em}
+      },
+    },
+    pointers/.list={2, 5, 8, 11},
+  ] (l) {
+    1002 \\
+    \ \\
+    \ \\
+    4 \\
+    \ \\
+    \ \\
+    5001 \\
+    \ \\
+    \ \\
+    3002 \\
+    \ \\
+    \ \\
+    $\vdots$ \\
+  };
+
+  \matrix[
+    mat,
+    column 1/.style={nodes={rectangle, draw, font=\Large, minimum width=3.5em, minimum height=3.5em}},
+    column 3/.style={nodes={minimum width=4em}},
+    row 6/.style={nodes={draw=none}},
+    cell/.style={rectangle, draw, minimum height=2.5em, anchor=west},
+    value/.style={minimum width=2.5em, xshift=2em},
+    ptr/.style={minimum width=1.5em},
+  ] (a) at (10, 0) {
+    $\bullet$ \& \ \& 0\\
+    \  \&
+    \node[cell, value] (c5001) {5001};
+    \node[cell, ptr] (p5001) at (c5001.east) {};
+    \& 1 \\
+    \  \&
+    \node[cell, value] (c1002) {1002};
+    \node[cell, ptr] (p1002) at (c1002.east) {};
+    \node[cell, value] (c3002) at (p1002.east) {3002};
+    \node[cell, ptr] (p3002) at (c3002.east) {};
+    \& 2 \\
+    $\bullet$ \& \ \& 3 \\
+    \  \&
+    \node[cell, value] (c4) {4};
+    \node[cell, ptr] (p4) at (c4.east) {};
+    \& 4 \\
+    $\vdots$ \& \ \& $\vdots$  \\
+    $\bullet$ \& \ \& 998 \\
+    $\bullet$ \& \ \& 999 \\
+  };
+
+  % headers
+  \node[header, anchor=south] at ([yshift=1em]l-1-1.north) {L};
+  \node[header, anchor=south] at ([yshift=1em]a-1-1.north) {H};
+
+  % l pointers
+  \draw[->] (l-2-1.center) -- (l-4-1.north);
+  \draw[->] (l-5-1.center) -- (l-7-1.north);
+  \draw[->] (l-8-1.center) -- (l-10-1.north);
+  \draw[->] (l-11-1.center) -- (l-13-1.north);
+  
+  % a pointers
+  \draw[->] (a-2-1.center) -- (c5001.west);
+  \draw[->] (a-3-1.center) -- (c1002.west);
+  \draw[->] (p1002.center) -- (c3002.west);
+  \draw[->] (a-5-1.center) -- (c4.west);
+
+  % arrows from l to a
+  \draw[->,dotted] (l-1-1.east) -- (a-3-1.west);
+  \draw[->,dotted] (l-4-1.east) -- (a-5-1.west);
+  \draw[->,dotted] (l-7-1.east) -- (a-2-1.west);
+  \draw[->,dotted] (l-10-1.east) -- (a-3-1.west);
+
+  \node[anchor=west, font=\Large] at ([yshift=-2em]l.south west) {$h(x) = x \bmod M$};
+}
+
+Să analizăm acum complexitatea noilor proceduri de căutare, adăugare și
+ștergere. Căutarea nu se va mai face în toată lista, ci numai în lista
+corespunzătoare din $H$. Altfel spus, o cheie $K$ se va căuta numai în lista
+$H(h(K))$, deoarece dacă cheia $K$ a mai apărut, ea a fost în mod sigur
+repartizată la intrarea $H(h(K))$. De aceea, căutarea poate ajunge, în cazul
+cel mai defavorabil când toate cheile din listă se repartizează la aceeași
+intrare în hash, la o complexitate $O(N)$. Dacă reușim însă să găsim o funcție
+care să distrbuie cheile cât mai aleator, timpul de intrare se va reduce de
+$M$ ori. Avantajele sunt indiscutabile pentru $M=10000$ de exemplu.
+
+Întrucât operațiile cu liste liniare sunt în general cunoscute, nu vom insista
+asupra lor. Prezentăm aici numai adăugarea și căutarea, lăsându-vă ca temă
+scrierea funcției de ștergere din tabelă.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <stdlib.h>
+#define M 1000 // numarul de "intrari"
+typedef struct _List {
+          long P;
+          struct _List * Next;
+        } List;
+typedef List * Hash[M];
+Hash H;
+
+void InitHash2(Hash H)
+{ int i;
+
+  for (i=0; i<M; H[i++]=NULL);
+}
+
+int h2(int K)
+{
+  return K%M;
+}
+
+int Search2(Hash H, int K)
+/* Intoarce 0 daca elementul nu exista in hash
+   sau 1 daca el exista */
+{ List *L;
+
+  for (L=H[h2(K)]; L && (L->P != K); L = L->Next);
+  return L!=NULL;
+}
+
+void Add2(Hash H, int K)
+{ List *L = malloc(sizeof(List));
+  L->P = K;
+  L->Next = H[h2(K)];
+  H[h2(K)] = L;
+}
+\end{lstlisting}
+
+Am spus că funcțiile de dispersie sunt concepute să lucreze numai pe date de
+tip întreg; celelalte tipuri de date trebuie convertite în prealabil la tipuri
+de date întregi. Iată câteva exemple:
+
+\begin{itemize}
+
+\item Variabilele de tip string pot fi transformate în numere în baza 256 prin
+  înlocuirea fiecărui caracter cu codul său ASCII. De exemplu, șirul „abac”
+  poate fi privit ca un număr de 4 cifre în baza 256, și anume numărul (97 98
+  97 99). Conversia lui în baza 10 se face astfel:
+
+  \begin{equation}
+    X = ((97 \times  256 + 98) \times 256 + 97) \times 256 + 99 = 1.633.837.411
+  \end{equation}
+
+
+  Pentru stringuri mai lungi, rezultă numere mai mari. Uneori, ele nici nu mai
+  pot fi reprezentate cu tipurile de date ordinale. Totuși, acest dezavantaj
+  nu este supărător, deoarece majoritatea funcțiilor de dispersie presupun o
+  împărțire cu rest, care, indiferent de mărimea numărului de la intrare,
+  produce un număr controlabil.
+
+\item Variabilele de tip dată se pot converti la întreg prin formula:
+
+  \begin{equation}
+    A \times 366 + L \times 31 + Z
+  \end{equation}
+
+  unde $A$, $L$ și $Z$ sunt respectiv anul, luna și ziua datei considerate. De
+  fapt, această funcție aproximează numărul de zile scurse de la începutul
+  secolului I. Ea nu are pretenții de exactitate (ca dovadă, toți anii sunt
+  considerați a fi bisecți și toate lunile a avea 31 de zile), deoarece s-ar
+  consuma timp inutil cu calcule mai sofisticate, fără ca dispersia însăși să
+  fie îmbunătățită cu ceva. Condiția care trebuie neapărat respectată este ca
+  funcția de conversie dată $\leftrightarrow$ întreg să fie injectivă, adică
+  să nu se întâmple ca la două date $D_1$ și $D_2$ să li se atașeze același
+  întreg $X$; dacă acest lucru se întâmplă, pot apărea erori la căutarea în
+  tabelă (de exemplu, se poate raporta găsirea datei $D_1$ când de fapt a fost
+  găsită data $D_2$). Pentru a respecta injectivitatea, s-au considerat
+  coeficienții 366 și 31 în loc de 365 și 30. Dacă numărul de zile scurse de
+  la 1 ianuarie anul 1 d.H. ar fi fost calculat cu exactitate, funcția de
+  conversie ar fi fost și surjectivă, dar, după cum am mai spus, acest fapt nu
+  prezintă interes.
+
+\item Analog, variabilele de tip oră se pot converti la întreg cu formula:
+
+  \begin{equation}
+    X = (H \times 60 + M) \times 60 + S
+  \end{equation}
+
+  unde $H$, $M$ și $S$ sunt respectiv ora, minutul și secunda considerate, sau
+  cu formula
+
+  \begin{equation}
+    X = ((H \times 60 + M) \times 60 + S) \times 100 + C
+  \end{equation}
+
+  dacă se ține cont și de sutimile de secundă. De data aceasta, funcția este
+  surjectivă (oricărui număr întreg din intervalul 0 - 8.639.999 îi corespunde
+  în mod unic o oră).
+
+\item În majoritatea cazurilor, datele sunt structuri care conțin numere și
+  stringuri. O bună metodă de conversie constă în alipirea tuturor acestor
+  date și în convertirea la baza 256. Caracterele se convertesc prin simpla
+  înlocuire cu codul ASCII corespunzător, iar numerele prin convertirea în
+  baza 2 și tăierea în „bucăți” de câte opt biți. Rezultă numere cu multe
+  cifre (prea multe chiar și pentru tipul {\tt longint}), care sunt supuse
+  unei operații de împărțire cu rest. Funcția de conversie trebuie să fie
+  injectivă. De exemplu, în cazul tablei de șah despre care am amintit mai
+  înainte, ea poate fi transformată într-un vector cu 64 de cifre în baza 16,
+  cifra 0 semnificând un pătrat gol, cifrele 1-6 semnificând piesele albe
+  (pion, cal, nebun, turn, regină, rege) iar cifrele 7-12 semnificând piesele
+  negre. Prin trecerea acestui vector în baza 256, rezultă un număr cu 32 de
+  cifre. La acesta se mai pot adăuga alte cifre, respectiv partea la mutare (0
+  pentru alb, 1 pentru negru), posibilitatea de a efectua rocada mică/mare de
+  către alb/negru, numărul de mutări scurse de la începutul partidei și așa
+  mai departe.
+
+\end{itemize}
+
+Vom termina prin a prezenta două funcții de dispersie foarte des folosite.
+
+\subsection{Metoda împărțirii cu rest}
+
+Despre această metodă am mai vorbit. Funcția hash este
+
+\begin{equation}
+  h(x)=x \bmod M
+\end{equation}
+
+unde $M$ este numărul de intrări în tabelă. Problema care se pune este să-l
+alegem pe $M$ cât mai bine, astfel încât numărul de coliziuni pentru oricare
+din intrări să fie cât mai mic. De asemenea, trebuie ca $M$ să fie cât mai
+mare, pentru ca media numărului de chei repartizate la aceeași intrare să fie
+cât mai mică. Totuși, experiența arată că nu orice valoare a lui $M$ este
+bună.
+
+De exemplu, la prima vedere s-ar putea spune că o bună valoare pentru $M$ este
+o putere a lui 2, cum ar fi 1024, pentru că operația de împărțire cu rest se
+poate face foarte ușor în această situație. Totuși, funcția $h(x)=x \bmod
+1024$ are un mare defect: ea nu ține cont decât de ultimii 10 biți ai
+numărului $x$. Dacă datele de intrare sunt numere în mare majoritate pare, ele
+vor fi repartizate în aceeași proporție la intrările cu număr de ordine par,
+pentru că funcția h păstrează paritatea. Din aceleași motive, alegerea unei
+valori ca 1000 sau 2000 nu este prea inspirată, deoarece ține cont numai de
+ultimele 3-4 cifre ale reprezentării zecimale. Multe valori pot da același
+rest la împărțirea prin 1000. De exemplu, dacă datele de intrare sunt anii de
+naștere ai unor persoane dintr-o agendă telefonică, iar funcția este $h(x)=x
+\bmod 1000$, atunci majoritatea cheilor se vor îngrămădi (termenul este
+sugestiv) între intrările 920 și 990, restul rămânând nefolosite.
+
+Practic, trebuie ca $M$ să nu fie un număr rotund în nici o bază aritmetică,
+sau cel puțin nu în bazele 2 și 10. O bună alegere pentru $M$ sunt numerele
+prime care să nu fie apropiate de nici o putere a lui 2. De exemplu, în locul
+unei tabele cu $M=10000$ de intrări, care s-ar comporta dezastruos, putem
+folosi una cu 9973 de intrări. Chiar și această alegere poate fi îmbunătățită;
+între puterile lui 2 vecine, respectiv 8192 și 16384, se poate alege un număr
+prim din zona 11000-12000. Risipa de memorie de circa 1000-2000 de intrări în
+tabelă va fi pe deplin compensată de îmbunătățirea căutării.
+
+\subsection{Metoda înmulțirii}
+
+Pentru această metodă funcția hash este
+
+\begin{equation}
+  h(x) = \lfloor M(x \times A \bmod 1) \rfloor
+\end{equation}
+
+Aici $A$ este un număr pozitiv subunitar, $0 < A < 1$, iar prin $x \times A
+\bmod 1$ se înțelege partea fracționară a lui $x \times A$, adică $x \times A
+- \lfloor x \times A \rfloor$. De exemplu, dacă alegem $M = 1234$ și $A =
+0,3$, iar $x = 1997$, atunci avem
+
+\begin{equation}
+  h(x) = \lfloor 1234 \times (599,1 \bmod 1) \rfloor = \lfloor 1234 \times 0,1 \rfloor = 123
+\end{equation}
+
+Se observă că funcția $h$ produce numere între 0 și $M-1$. Într-adevăr, 
+
+\begin{equation}
+  0 \leq x \times A \bmod 1 < 1 \implies 0 \leq M(x \times A \bmod 1) < M
+\end{equation}
+
+În acest caz, valoarea lui $M$ nu mai are o mare importanță. O putem deci
+alege cât de mare ne convine, eventual o putere a lui 2. În practică, s-a
+observat că dispersia este mai bună pentru unele valori ale lui $A$ și mai
+proastă pentru altele. Donald Knuth propune valoarea
+
+\begin{equation}
+  A = \frac{\sqrt{5} - 1}{2} \approx 0.618034
+\end{equation}
+
+Ca o ultimă precizare necesară la acest capitol, menționăm că funcția de
+căutare e bine să nu întoarcă pur și simplu 0 sau 1, după cum cheia căutată a
+mai apărut sau nu înainte între datele de intrare. E recomandabil ca funcția
+să întoarcă un pointer la zona de memorie în care se află prima apariție a
+cheii căutate. Vom da acum un exemplu în care această valoare returnată este
+utilă. Dacă, în cazul prezentat mai sus al unui program de șah, se ajunge la o
+anumită poziție $P$ după ce albul a pierdut dreptul de a face rocada, această
+poziție va fi reținută în hash. Reținerea nu se va face nicidecum efectiv
+(toată tabla), pentru că s-ar ocupa foarte multă memorie. Se va memora în loc
+numai un pointer la poziția respectivă din lista de poziții analizate. Pe
+lângă economia de memorie în cazul cheilor de mari dimensiuni, mai există și
+alt avantaj. Să ne închipuim că, analizând în continuare tabla, programul va
+ajunge la aceeași poziție $P$, dar în care albul are încă dreptul de a face
+rocada. E limpede că această variantă este mai promițătoare decât precedenta,
+deoarece albul are o libertate mai mare de mișcare. Se impune deci fie
+ștergerea vechii poziții $P$ din listă și adăugarea noii poziții, fie
+modificarea celei vechi prin setarea unei variabile suplimentare care indică
+dreptul albului de a face rocada. Această modificare este ușor de făcut,
+întrucât căutarea în hash va returna chiar un pointer la poziția care trebuie
+modificată. Bineînțeles, în cazul în care poziția căutată nu se află în hash,
+funcția de căutare trebuie să întoarcă {\tt NULL}.
+
+În încheiere, prezentăm un exemplu de funcție de dispersie pentru cazul tablei
+de șah.
+
+\begin{lstlisting}[language=C]
+#define M 9973 // numarul de "intrari"
+typedef struct {
+          char b_T[8][8];
+            /* tabla de joc, cu 0<= T[i][j] <=12 */
+          char b_CastleW, b_CastleB;
+            /*  ultimii doi biti ai lui b_CastleW
+                indica daca albul are dreptul de a
+                efectua rocada mare, respectiv pe cea
+                mica. Analog pentru b_CastleB */
+          char b_Side;
+            /* 0 sau 1, dupa cum la mutare este albul
+               sau negrul */
+          char b_EP;
+            /* 0..8, indicand coloana (0..7) pe care
+               partea la mutare poate efectua o
+               captura "en passant". 8 indica ca nu
+               exista aceasta posibilitate */
+          int b_NMoves;
+            /* Numarul de mutari efectuate */
+        } Board;
+Board B;
+
+int h3(Board *B)
+{ int i,j;
+  /* Valoarea initiala a lui S este un numar pe 17 biti care
+     inglobeaza toate variabilele suplimentare pe langa T.
+     S se va lua apoi modulo M */
+  long S = (B->b_NMoves           /* 8 biti */
+          +(B->b_CastleW << 8)    /* 2 biti */
+          +(B->b_CastleB << 10)   /* 2 biti */
+          +(B->b_Side << 12)      /* 1 bit */
+          +B->b_EP<<13) % M;      /* 4 biti */
+
+  for (i=0; i<=7; i++)
+    for (j=0; j<=7; j++)
+      S=(16*S+B->b_T[i][j])%M;
+
+  return S;
+}
+\end{lstlisting}
