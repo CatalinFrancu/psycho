@@ -19,6 +19,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage{listings}
 \usepackage{mathtools}
+\usepackage{minted}
 \usepackage{multirow}
 \usepackage[markcase=noupper]{scrlayer-scrpage}
 \usepackage{textcomp}
@@ -46,6 +47,15 @@
 \definecolor{light-gray}{gray}{0.95}
 
 % style for code listings
+\usemintedstyle{tango}
+\setminted{
+  fontsize=\footnotesize,
+  frame=lines,
+  linenos,
+}
+\renewcommand{\theFancyVerbLine}{\sffamily
+  \textcolor{gray!50}{\scriptsize
+    \oldstylenums{\arabic{FancyVerbLine}}}}
 \lstset{
   aboveskip=\bigskipamount,
   backgroundcolor=\color{light-gray},

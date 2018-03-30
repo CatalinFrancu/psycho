@@ -226,7 +226,7 @@ Ca un detaliu de implementare, odată ce au fost construiți vectorii $Lo$ și
 $Hi$, vectorul $V$ nu mai este necesar, deci putem construi chiar în el
 vectorul $W$, pentru a economisi memorie.
 
-\begin{lstlisting}[language=C]
+\begin{minted}{c}
 #include <stdio.h>
 #define NMax 5000
 float V[NMax+1], Lo[NMax+1], Hi[NMax+1];
@@ -304,4 +304,4 @@ void main(void)
       FindGap();
     }
 }
-\end{lstlisting}
+\end{minted}
